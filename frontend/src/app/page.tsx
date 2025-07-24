@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
 import { NewsArticle, NEWS_CATEGORIES } from '@/types/news';
 import { SAMPLE_NEWS } from '@/data/sampleNews';
 import Header from '@/components/Header';
@@ -10,10 +9,10 @@ import NewsCard from '@/components/NewsCard';
 import Sidebar from '@/components/Sidebar';
 import { Separator } from '@/components/ui/separator';
 
-export default function Home() {
+// Separate component for search params functionality
+function HomeContent() {
   const [articles, setArticles] = useState<NewsArticle[]>(SAMPLE_NEWS);
-  const searchParams = useSearchParams();
-  const categoryFilter = searchParams.get('category');
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
 
   useEffect(() => {
     // Load articles from localStorage
@@ -21,6 +20,11 @@ export default function Home() {
     if (savedArticles) {
       setArticles(JSON.parse(savedArticles));
     }
+
+    // Get category filter from URL on client side
+    const urlParams = new URLSearchParams(window.location.search);
+    const category = urlParams.get('category');
+    setCategoryFilter(category);
   }, []);
 
   // Filter articles by category if specified
@@ -100,5 +104,48 @@ export default function Home() {
 
       <Footer />
     </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function HomeLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <main className="container mx-auto px-4 py-4 sm:py-8">
+        <div className="animate-pulse">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8">
+            <div className="lg:col-span-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12">
+                {[1, 2].map((i) => (
+                  <div key={i} className="bg-gray-200 h-64 sm:h-80 rounded-lg"></div>
+                ))}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="bg-gray-200 h-48 rounded-lg"></div>
+                ))}
+              </div>
+            </div>
+            <div className="lg:col-span-1">
+              <div className="space-y-4 sm:space-y-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-gray-200 h-32 rounded-lg"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<HomeLoading />}>
+      <HomeContent />
+    </Suspense>
   );
 }
