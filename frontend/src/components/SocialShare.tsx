@@ -58,8 +58,8 @@ export default function SocialShare({
   const iconSize = size === 'sm' ? 'h-3 w-3' : size === 'lg' ? 'h-5 w-5' : 'h-4 w-4';
 
   const containerClass = variant === 'vertical'
-    ? 'flex flex-col gap-2'
-    : 'flex items-center gap-2';
+    ? 'flex flex-col gap-1.5 sm:gap-2'
+    : 'flex items-center gap-1.5 sm:gap-2';
 
   return (
     <div className={containerClass}>
@@ -67,61 +67,61 @@ export default function SocialShare({
         variant="outline"
         size={buttonSize}
         onClick={() => handleShare('facebook')}
-        className="text-blue-600 hover:bg-blue-50"
+        className="text-blue-600 hover:bg-blue-50 p-1.5 sm:p-2"
       >
         <Facebook className={iconSize} />
-        {variant === 'vertical' && <span className="ml-2">Facebook</span>}
+        {variant === 'vertical' && <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">Facebook</span>}
       </Button>
 
       <Button
         variant="outline"
         size={buttonSize}
         onClick={() => handleShare('twitter')}
-        className="text-sky-500 hover:bg-sky-50"
+        className="text-sky-500 hover:bg-sky-50 p-1.5 sm:p-2"
       >
         <Twitter className={iconSize} />
-        {variant === 'vertical' && <span className="ml-2">Twitter</span>}
+        {variant === 'vertical' && <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">Twitter</span>}
       </Button>
 
       <Button
         variant="outline"
         size={buttonSize}
         onClick={() => handleShare('linkedin')}
-        className="text-blue-700 hover:bg-blue-50"
+        className="text-blue-700 hover:bg-blue-50 p-1.5 sm:p-2"
       >
         <Linkedin className={iconSize} />
-        {variant === 'vertical' && <span className="ml-2">LinkedIn</span>}
+        {variant === 'vertical' && <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">LinkedIn</span>}
       </Button>
 
       <Button
         variant="outline"
         size={buttonSize}
         onClick={() => handleShare('whatsapp')}
-        className="text-green-600 hover:bg-green-50"
+        className="text-green-600 hover:bg-green-50 p-1.5 sm:p-2"
       >
         <MessageCircle className={iconSize} />
-        {variant === 'vertical' && <span className="ml-2">WhatsApp</span>}
+        {variant === 'vertical' && <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">WhatsApp</span>}
       </Button>
 
       <Button
         variant="outline"
         size={buttonSize}
         onClick={() => handleShare('email')}
-        className="text-gray-600 hover:bg-gray-50"
+        className="text-gray-600 hover:bg-gray-50 p-1.5 sm:p-2"
       >
         <Mail className={iconSize} />
-        {variant === 'vertical' && <span className="ml-2">Email</span>}
+        {variant === 'vertical' && <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">Email</span>}
       </Button>
 
       <Button
         variant="outline"
         size={buttonSize}
         onClick={handleCopyLink}
-        className={`${copied ? 'text-green-600 bg-green-50' : 'text-gray-600 hover:bg-gray-50'}`}
+        className={`${copied ? 'text-green-600 bg-green-50' : 'text-gray-600 hover:bg-gray-50'} p-1.5 sm:p-2`}
       >
         <Copy className={iconSize} />
         {variant === 'vertical' && (
-          <span className="ml-2">{copied ? 'Copied!' : 'Copy Link'}</span>
+          <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm">{copied ? 'Copied!' : 'Copy Link'}</span>
         )}
       </Button>
     </div>

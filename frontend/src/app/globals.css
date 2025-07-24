@@ -65,6 +65,42 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Improve mobile scrolling */
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Mobile-specific improvements */
+  @media (max-width: 640px) {
+    /* Ensure minimum touch target size */
+    button, a, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* Improve text readability on mobile */
+    p, span, div {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Prevent horizontal scrolling */
+    body {
+      overflow-x: hidden;
+    }
+
+    /* Improve image rendering on mobile */
+    img {
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+  }
+
+  /* Prevent zoom on input focus for iOS */
+  @media screen and (max-width: 640px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
   }
 }
 
@@ -115,6 +151,17 @@
   background: #a8a8a8;
 }
 
+/* Mobile scrollbar */
+@media (max-width: 640px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+  }
+}
+
 /* Print styles */
 @media print {
   .no-print {
@@ -150,5 +197,24 @@
   /* Hide unnecessary elements when printing */
   header, footer, nav, .sidebar, .floating-share, .reading-progress {
     display: none !important;
+  }
+}
+
+/* Mobile-specific utility classes */
+@layer utilities {
+  .mobile-safe-area {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mobile-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .mobile-text-balance {
+    text-wrap: balance;
   }
 }
