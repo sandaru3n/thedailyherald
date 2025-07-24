@@ -1,338 +1,388 @@
 'use client';
 
-import { useState } from 'react';
-import AdminLayout from '@/components/AdminLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { 
+  Save, 
+  Eye, 
+  Upload, 
+  Tag, 
+  Settings,
+  AlertCircle,
+  CheckCircle
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { NewsArticle, NEWS_CATEGORIES } from '@/types/news';
-import {
-  Save,
-  ArrowLeft,
-  Upload,
-  X,
-  AlertCircle
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { apiCall } from '@/lib/auth';
+
+interface Category {
+  _id: string;
+  name: string;
+  color: string;
+}
 
 export default function NewArticlePage() {
-  const [article, setArticle] = useState({
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const [formData, setFormData] = useState({
     title: '',
     content: '',
     excerpt: '',
-    author: '',
     category: '',
-    imageUrl: '',
+    tags: '',
+    featuredImage: '',
     isFeatured: false,
-    tags: [] as string[],
-    readTime: 5
+    isBreaking: false,
+    status: 'draft',
+    seoTitle: '',
+    seoDescription: '',
+    metaKeywords: ''
   });
-  const [newTag, setNewTag] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
-    if (!article.title.trim()) newErrors.title = 'Title is required';
-    if (!article.content.trim()) newErrors.content = 'Content is required';
-    if (!article.excerpt.trim()) newErrors.excerpt = 'Excerpt is required';
-    if (!article.author.trim()) newErrors.author = 'Author is required';
-    if (!article.category) newErrors.category = 'Category is required';
-    if (!article.imageUrl.trim()) newErrors.imageUrl = 'Image URL is required';
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const fetchCategories = async () => {
+    try {
+      const data = await apiCall('/categories');
+      setCategories(data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
 
-    if (!validateForm()) return;
+    // Auto-generate SEO title and description if empty
+    if (name === 'title' && !formData.seoTitle) {
+      setFormData(prev => ({
+        ...prev,
+        seoTitle: value
+      }));
+    }
 
-    setIsLoading(true);
+    if (name === 'excerpt' && !formData.seoDescription) {
+      setFormData(prev => ({
+        ...prev,
+        seoDescription: value
+      }));
+    }
+  };
+
+  const handleSave = async (publish = false) => {
+    if (!formData.title || !formData.content || !formData.category) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    setSuccess('');
 
     try {
-      // Generate new article
-      const newArticle: NewsArticle = {
-        id: Date.now().toString(),
-        title: article.title,
-        content: article.content,
-        excerpt: article.excerpt,
-        author: article.author,
-        category: article.category,
-        imageUrl: article.imageUrl,
-        publishedAt: new Date(),
-        isFeatured: article.isFeatured,
-        tags: article.tags,
-        readTime: article.readTime
+      const articleData = {
+        ...formData,
+        status: publish ? 'published' : formData.status,
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        metaKeywords: formData.metaKeywords.split(',').map(keyword => keyword.trim()).filter(keyword => keyword)
       };
 
-      // Save to localStorage
-      const existingArticles = JSON.parse(localStorage.getItem('newsArticles') || '[]');
-      const updatedArticles = [newArticle, ...existingArticles];
-      localStorage.setItem('newsArticles', JSON.stringify(updatedArticles));
+      const response = await apiCall('/articles', {
+        method: 'POST',
+        body: JSON.stringify(articleData)
+      });
 
-      router.push('/admin/articles');
-    } catch (error) {
-      console.error('Error saving article:', error);
+      setSuccess(publish ? 'Article published successfully!' : 'Article saved as draft!');
+      
+      // Redirect to articles list after a short delay
+      setTimeout(() => {
+        router.push('/admin/articles');
+      }, 2000);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setIsLoading(false);
+      setSaving(false);
     }
   };
 
-  const addTag = () => {
-    if (newTag.trim() && !article.tags.includes(newTag.trim())) {
-      setArticle(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()]
-      }));
-      setNewTag('');
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setArticle(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addTag();
-    }
+  const handlePreview = () => {
+    // Store form data in localStorage for preview
+    localStorage.setItem('articlePreview', JSON.stringify(formData));
+    window.open('/admin/articles/preview', '_blank');
   };
 
   return (
-    <AdminLayout>
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Create New Article</h1>
-            <p className="text-gray-600 mt-1">Write and publish a new news article</p>
-          </div>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">New Article</h1>
+          <p className="text-gray-600 mt-1">Create a new news article</p>
         </div>
+        <div className="flex space-x-3">
+          <Button variant="outline" onClick={handlePreview}>
+            <Eye className="h-4 w-4 mr-2" />
+            Preview
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => handleSave(false)}
+            disabled={saving}
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {saving ? 'Saving...' : 'Save Draft'}
+          </Button>
+          <Button 
+            onClick={() => handleSave(true)}
+            disabled={saving}
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            {saving ? 'Publishing...' : 'Publish'}
+          </Button>
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {success && (
+        <Alert>
+          <CheckCircle className="h-4 w-4" />
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Article Content */}
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle>Article Content</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="title">Title *</Label>
-                  <Input
-                    id="title"
-                    value={article.title}
-                    onChange={(e) => setArticle(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Enter article title"
-                    className={errors.title ? 'border-red-500' : ''}
-                  />
-                  {errors.title && (
-                    <p className="text-red-500 text-sm mt-1">{errors.title}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor="author">Author *</Label>
-                  <Input
-                    id="author"
-                    value={article.author}
-                    onChange={(e) => setArticle(prev => ({ ...prev, author: e.target.value }))}
-                    placeholder="Enter author name"
-                    className={errors.author ? 'border-red-500' : ''}
-                  />
-                  {errors.author && (
-                    <p className="text-red-500 text-sm mt-1">{errors.author}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="category">Category *</Label>
-                  <Select
-                    value={article.category}
-                    onValueChange={(value) => setArticle(prev => ({ ...prev, category: value }))}
-                  >
-                    <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {NEWS_CATEGORIES.map((category) => (
-                        <SelectItem key={category.id} value={category.name}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.category && (
-                    <p className="text-red-500 text-sm mt-1">{errors.category}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor="readTime">Read Time (minutes)</Label>
-                  <Input
-                    id="readTime"
-                    type="number"
-                    min="1"
-                    max="30"
-                    value={article.readTime}
-                    onChange={(e) => setArticle(prev => ({ ...prev, readTime: parseInt(e.target.value) || 5 }))}
-                  />
-                </div>
-              </div>
-
               <div>
-                <Label htmlFor="imageUrl">Image URL *</Label>
+                <Label htmlFor="title">Title *</Label>
                 <Input
-                  id="imageUrl"
-                  value={article.imageUrl}
-                  onChange={(e) => setArticle(prev => ({ ...prev, imageUrl: e.target.value }))}
-                  placeholder="https://example.com/image.jpg"
-                  className={errors.imageUrl ? 'border-red-500' : ''}
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  placeholder="Enter article title..."
+                  className="mt-1"
                 />
-                {errors.imageUrl && (
-                  <p className="text-red-500 text-sm mt-1">{errors.imageUrl}</p>
-                )}
-                <p className="text-sm text-gray-500 mt-1">
-                  Use Unsplash URLs: https://images.unsplash.com/photo-xxxxx?w=800&h=400&fit=crop
-                </p>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Content */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Content</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="excerpt">Excerpt *</Label>
+                <Label htmlFor="excerpt">Excerpt</Label>
                 <Textarea
                   id="excerpt"
-                  value={article.excerpt}
-                  onChange={(e) => setArticle(prev => ({ ...prev, excerpt: e.target.value }))}
-                  placeholder="Brief summary of the article (2-3 sentences)"
+                  name="excerpt"
+                  value={formData.excerpt}
+                  onChange={handleInputChange}
+                  placeholder="Brief summary of the article..."
                   rows={3}
-                  className={errors.excerpt ? 'border-red-500' : ''}
+                  className="mt-1"
                 />
-                {errors.excerpt && (
-                  <p className="text-red-500 text-sm mt-1">{errors.excerpt}</p>
-                )}
               </div>
 
               <div>
-                <Label htmlFor="content">Article Content *</Label>
+                <Label htmlFor="content">Content *</Label>
                 <Textarea
                   id="content"
-                  value={article.content}
-                  onChange={(e) => setArticle(prev => ({ ...prev, content: e.target.value }))}
-                  placeholder="Write the full article content here..."
-                  rows={10}
-                  className={errors.content ? 'border-red-500' : ''}
+                  name="content"
+                  value={formData.content}
+                  onChange={handleInputChange}
+                  placeholder="Write your article content here..."
+                  rows={15}
+                  className="mt-1"
                 />
-                {errors.content && (
-                  <p className="text-red-500 text-sm mt-1">{errors.content}</p>
-                )}
+              </div>
+
+              <div>
+                <Label htmlFor="featuredImage">Featured Image URL</Label>
+                <Input
+                  id="featuredImage"
+                  name="featuredImage"
+                  value={formData.featuredImage}
+                  onChange={handleInputChange}
+                  placeholder="https://example.com/image.jpg"
+                  className="mt-1"
+                />
               </div>
             </CardContent>
           </Card>
+        </div>
 
-          {/* Tags & Settings */}
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Publishing */}
           <Card>
             <CardHeader>
-              <CardTitle>Tags & Settings</CardTitle>
+              <CardTitle className="flex items-center">
+                <Settings className="h-5 w-5 mr-2" />
+                Publishing
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="tags">Tags</Label>
-                <div className="flex gap-2 mb-2">
-                  <Input
-                    id="tags"
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Add tags (press Enter)"
-                  />
-                  <Button type="button" onClick={addTag} variant="outline">
-                    Add
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {article.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                      {tag}
-                      <X
-                        className="h-3 w-3 cursor-pointer"
-                        onClick={() => removeTag(tag)}
-                      />
-                    </Badge>
-                  ))}
-                </div>
+                <Label htmlFor="status">Status</Label>
+                <select
+                  id="status"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                </select>
               </div>
 
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
-                  id="featured"
-                  checked={article.isFeatured}
-                  onChange={(e) => setArticle(prev => ({ ...prev, isFeatured: e.target.checked }))}
-                  className="rounded border-gray-300"
+                  id="isFeatured"
+                  name="isFeatured"
+                  checked={formData.isFeatured}
+                  onChange={handleInputChange}
+                  className="rounded"
                 />
-                <Label htmlFor="featured">Feature this article</Label>
+                <Label htmlFor="isFeatured">Featured Article</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="isBreaking"
+                  name="isBreaking"
+                  checked={formData.isBreaking}
+                  onChange={handleInputChange}
+                  className="rounded"
+                />
+                <Label htmlFor="isBreaking">Breaking News</Label>
               </div>
             </CardContent>
           </Card>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Publishing...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Publish Article
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
+          {/* Category & Tags */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Tag className="h-5 w-5 mr-2" />
+                Category & Tags
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="category">Category *</Label>
+                <select
+                  id="category"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <Label htmlFor="tags">Tags</Label>
+                <Input
+                  id="tags"
+                  name="tags"
+                  value={formData.tags}
+                  onChange={handleInputChange}
+                  placeholder="tag1, tag2, tag3"
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">Separate tags with commas</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* SEO Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle>SEO Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="seoTitle">SEO Title</Label>
+                <Input
+                  id="seoTitle"
+                  name="seoTitle"
+                  value={formData.seoTitle}
+                  onChange={handleInputChange}
+                  placeholder="SEO optimized title..."
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {formData.seoTitle.length}/60 characters
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="seoDescription">SEO Description</Label>
+                <Textarea
+                  id="seoDescription"
+                  name="seoDescription"
+                  value={formData.seoDescription}
+                  onChange={handleInputChange}
+                  placeholder="SEO description for search engines..."
+                  rows={3}
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {formData.seoDescription.length}/160 characters
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="metaKeywords">Meta Keywords</Label>
+                <Input
+                  id="metaKeywords"
+                  name="metaKeywords"
+                  value={formData.metaKeywords}
+                  onChange={handleInputChange}
+                  placeholder="keyword1, keyword2, keyword3"
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">Separate keywords with commas</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </AdminLayout>
+    </div>
   );
 }

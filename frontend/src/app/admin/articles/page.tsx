@@ -1,228 +1,347 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import AdminLayout from '@/components/AdminLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { 
+  Plus, 
+  Search, 
+  Filter, 
+  MoreHorizontal, 
+  Eye, 
+  Edit, 
+  Trash2,
+  CheckCircle,
+  Clock,
+  Archive,
+  TrendingUp
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { SAMPLE_NEWS } from '@/data/sampleNews';
-import { NewsArticle, NEWS_CATEGORIES } from '@/types/news';
-import {
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Eye,
-  Filter,
-  Calendar
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { apiCall } from '@/lib/auth';
 
-export default function ArticlesPage() {
-  const [articles, setArticles] = useState<NewsArticle[]>([]);
-  const [categoryFilter, setCategoryFilter] = useState('All');
-  const [deleteDialog, setDeleteDialog] = useState({ open: false, articleId: '' });
-  const router = useRouter();
+interface Article {
+  _id: string;
+  title: string;
+  slug: string;
+  status: 'draft' | 'published' | 'archived';
+  isFeatured: boolean;
+  isBreaking: boolean;
+  views: number;
+  readTime: number;
+  publishedAt?: string;
+  createdAt: string;
+  category: {
+    _id: string;
+    name: string;
+    color: string;
+  };
+  author: {
+    _id: string;
+    name: string;
+  };
+}
+
+export default function AdminArticlesPage() {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    // Load articles from localStorage or use sample data
-    const savedArticles = localStorage.getItem('newsArticles');
-    if (savedArticles) {
-      setArticles(JSON.parse(savedArticles));
-    } else {
-      setArticles(SAMPLE_NEWS);
-      localStorage.setItem('newsArticles', JSON.stringify(SAMPLE_NEWS));
+    fetchArticles();
+  }, [currentPage, statusFilter]);
+
+  const fetchArticles = async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '10',
+        sort: '-createdAt'
+      });
+
+      if (statusFilter !== 'all') {
+        params.append('status', statusFilter);
+      }
+
+      if (searchTerm) {
+        params.append('search', searchTerm);
+      }
+
+      const data = await apiCall(`/articles?${params.toString()}`);
+      setArticles(data.docs || []);
+      setTotalPages(data.totalPages || 1);
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
-  const filteredArticles = categoryFilter === 'All'
-    ? articles
-    : articles.filter(article => article.category === categoryFilter);
-
-  const handleDeleteArticle = (articleId: string) => {
-    const updatedArticles = articles.filter(article => article.id !== articleId);
-    setArticles(updatedArticles);
-    localStorage.setItem('newsArticles', JSON.stringify(updatedArticles));
-    setDeleteDialog({ open: false, articleId: '' });
   };
 
-  const toggleFeatured = (articleId: string) => {
-    const updatedArticles = articles.map(article =>
-      article.id === articleId
-        ? { ...article, isFeatured: !article.isFeatured }
-        : article
-    );
-    setArticles(updatedArticles);
-    localStorage.setItem('newsArticles', JSON.stringify(updatedArticles));
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(1);
+    fetchArticles();
+  };
+
+  const handleStatusChange = async (articleId: string, newStatus: string) => {
+    try {
+      await apiCall(`/articles/${articleId}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: newStatus })
+      });
+      fetchArticles(); // Refresh the list
+    } catch (error) {
+      console.error('Error updating article status:', error);
+    }
+  };
+
+  const handleDelete = async (articleId: string) => {
+    if (!confirm('Are you sure you want to delete this article?')) return;
+    
+    try {
+      await apiCall(`/articles/${articleId}`, {
+        method: 'DELETE'
+      });
+      fetchArticles(); // Refresh the list
+    } catch (error) {
+      console.error('Error deleting article:', error);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'published':
+        return <Badge className="bg-green-100 text-green-800">Published</Badge>;
+      case 'draft':
+        return <Badge className="bg-yellow-100 text-yellow-800">Draft</Badge>;
+      case 'archived':
+        return <Badge className="bg-gray-100 text-gray-800">Archived</Badge>;
+      default:
+        return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Articles</h1>
-            <p className="text-gray-600 mt-1">Manage all your news articles</p>
-          </div>
-          <Button onClick={() => router.push('/admin/articles/new')}>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Articles</h1>
+          <p className="text-gray-600 mt-1">Manage your news articles</p>
+        </div>
+        <Button asChild>
+          <Link href="/admin/articles/new">
             <Plus className="h-4 w-4 mr-2" />
             New Article
-          </Button>
-        </div>
+          </Link>
+        </Button>
+      </div>
 
-        {/* Filters */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-gray-400" />
-                <select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="All">All Categories</option>
-                  {NEWS_CATEGORIES.map((category) => (
-                    <option key={category.id} value={category.name}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
+      {/* Filters and Search */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Filter className="h-5 w-5 mr-2" />
+            Filters & Search
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4">
+            <form onSubmit={handleSearch} className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search articles..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </form>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Status</option>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Articles List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {filteredArticles.length} Article{filteredArticles.length !== 1 ? 's' : ''}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+      {/* Articles Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Articles ({articles.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
             <div className="space-y-4">
-              {filteredArticles.map((article) => (
-                <div key={article.id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                  {/* Article Image */}
-                  <div className="relative w-16 h-16 flex-shrink-0">
-                    <Image
-                      src={article.imageUrl}
-                      alt={article.title}
-                      fill
-                      className="object-cover rounded"
-                    />
-                  </div>
-
-                  {/* Article Info */}
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse flex-1"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                </div>
+              ))}
+            </div>
+          ) : articles.length > 0 ? (
+            <div className="space-y-4">
+              {articles.map((article) => (
+                <div key={article._id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate">
-                          {article.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 line-clamp-2 mt-1">
-                          {article.excerpt}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="secondary">
-                            {article.category}
-                          </Badge>
-                          {article.isFeatured && (
-                            <Badge className="bg-yellow-100 text-yellow-800">
-                              Featured
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
+                    <div className="flex items-center space-x-3">
+                      <h3 className="text-sm font-medium text-gray-900 truncate">
+                        {article.title}
+                      </h3>
+                      {article.isFeatured && (
+                        <TrendingUp className="h-4 w-4 text-yellow-500" />
+                      )}
+                      {article.isBreaking && (
+                        <Badge className="bg-red-100 text-red-800 text-xs">Breaking</Badge>
+                      )}
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-gray-500 mt-2">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
-                      </div>
-                      <span>•</span>
-                      <span>{article.author}</span>
-                      <span>•</span>
+                    <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
+                      <span 
+                        className="inline-flex items-center space-x-1"
+                        style={{ color: article.category?.color }}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: article.category?.color }}></span>
+                        <span>{article.category?.name}</span>
+                      </span>
+                      <span>by {article.author?.name}</span>
+                      <span>{article.views} views</span>
                       <span>{article.readTime} min read</span>
+                      {article.publishedAt && (
+                        <span>{formatDate(article.publishedAt)}</span>
+                      )}
                     </div>
                   </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggleFeatured(article.id)}
-                    >
-                      {article.isFeatured ? 'Unfeature' : 'Feature'}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.push(`/admin/articles/edit/${article.id}`)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDeleteDialog({ open: true, articleId: article.id })}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  
+                  <div className="flex items-center space-x-2">
+                    {getStatusBadge(article.status)}
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/article/${article.slug}`} className="flex items-center">
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={`/admin/articles/${article._id}/edit`} className="flex items-center">
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Link>
+                        </DropdownMenuItem>
+                        {article.status === 'draft' && (
+                          <DropdownMenuItem 
+                            onClick={() => handleStatusChange(article._id, 'published')}
+                            className="flex items-center"
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Publish
+                          </DropdownMenuItem>
+                        )}
+                        {article.status === 'published' && (
+                          <DropdownMenuItem 
+                            onClick={() => handleStatusChange(article._id, 'archived')}
+                            className="flex items-center"
+                          >
+                            <Archive className="h-4 w-4 mr-2" />
+                            Archive
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem 
+                          onClick={() => handleDelete(article._id)}
+                          className="flex items-center text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               ))}
-
-              {filteredArticles.length === 0 && (
-                <div className="text-center py-12">
-                  <div className="text-gray-400 text-lg mb-2">No articles found</div>
-                  <p className="text-gray-500">Try adjusting your filters</p>
-                </div>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <Search className="h-6 w-6 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No articles found</h3>
+              <p className="text-gray-500 mb-4">
+                {searchTerm || statusFilter !== 'all' 
+                  ? 'Try adjusting your search or filters'
+                  : 'Get started by creating your first article'
+                }
+              </p>
+              {!searchTerm && statusFilter === 'all' && (
+                <Button asChild>
+                  <Link href="/admin/articles/new">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Article
+                  </Link>
+                </Button>
               )}
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </CardContent>
+      </Card>
 
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, articleId: '' })}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete Article</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete this article? This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setDeleteDialog({ open: false, articleId: '' })}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => handleDeleteArticle(deleteDialog.articleId)}
-              >
-                Delete
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </AdminLayout>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-gray-600">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
