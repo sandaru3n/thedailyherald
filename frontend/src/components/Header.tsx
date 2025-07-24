@@ -14,11 +14,40 @@ export default function Header() {
       {/* Main Header */}
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
-          <div className="text-center w-full">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
-              THE DAILY HERALD
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-600 mt-1">Truth. Integrity. Excellence.</p>
+          {/* Logo on the left */}
+          <div className="flex items-center">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
+                <Newspaper className="h-5 w-5 text-white" />
+              </div>
+              <h1 className="text-xl font-bold text-red-600">Newspaper</h1>
+            </div>
+          </div>
+          
+          {/* Icons on the right */}
+          <div className="flex items-center space-x-4">
+            {/* Search Icon */}
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200">
+              <Search className="h-5 w-5 text-gray-800" />
+            </button>
+            
+            {/* Mobile Menu Icon */}
+            <div className="lg:hidden">
+              <Button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                variant="ghost"
+                size="sm"
+                className="p-2 hover:bg-gray-100"
+                aria-label="Open menu"
+              >
+                {/* Custom menu icon: three horizontal black lines */}
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect y="5" width="24" height="2" rx="1" fill="#111" />
+                  <rect y="11" width="24" height="2" rx="1" fill="#111" />
+                  <rect y="17" width="24" height="2" rx="1" fill="#111" />
+                </svg>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -57,19 +86,6 @@ export default function Header() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Mobile Menu Button */}
-      <div className="lg:hidden border-t border-gray-200 bg-gray-50 py-3">
-        <div className="container mx-auto px-4 flex justify-end">
-          <Button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 flex items-center space-x-2 transition-all duration-200 shadow-md"
-          >
-            <Menu className="h-5 w-5" />
-            <span className="font-semibold">Menu</span>
-          </Button>
         </div>
       </div>
 
