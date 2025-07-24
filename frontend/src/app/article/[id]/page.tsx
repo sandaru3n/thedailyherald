@@ -20,7 +20,7 @@ import {
   Twitter,
   Linkedin,
   Mail,
-  Print,
+  Printer,
   Clock,
   Calendar,
   User,
@@ -208,7 +208,7 @@ export default function ArticlePage() {
                       size="sm"
                       onClick={handlePrint}
                     >
-                      <Print className="h-4 w-4" />
+                      <Printer className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -330,7 +330,7 @@ export default function ArticlePage() {
                   <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
                   <div className="space-y-3">
                     <Button variant="outline" className="w-full justify-start" onClick={handlePrint}>
-                      <Print className="h-4 w-4 mr-2" />
+                      <Printer className="h-4 w-4 mr-2" />
                       Print Article
                     </Button>
                     <Button variant="outline" className="w-full justify-start">
