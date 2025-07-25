@@ -56,7 +56,7 @@ export default function NewArticlePage() {
   const fetchCategories = async () => {
     try {
       const data = await apiCall('/categories');
-      setCategories(data);
+      setCategories(data as Category[]);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
