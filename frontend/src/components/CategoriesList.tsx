@@ -55,7 +55,7 @@ export default function CategoriesList({
   const router = useRouter();
 
   const getIconComponent = (iconName: string) => {
-    const iconMap: { [key: string]: any } = {
+    const iconMap: { [key: string]: React.ElementType } = {
       Globe,
       TrendingUp,
       Briefcase,
