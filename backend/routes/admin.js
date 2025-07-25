@@ -6,6 +6,50 @@ const { auth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
+// @route   GET /api/admin/stats
+// @desc    Get basic dashboard statistics
+// @access  Private (Admin only)
+router.get('/stats', auth, requireRole(['admin']), async (req, res) => {
+  try {
+    // Get total counts
+    const totalArticles = await Article.countDocuments();
+    const publishedArticles = await Article.countDocuments({ status: 'published' });
+    const draftArticles = await Article.countDocuments({ status: 'draft' });
+    const totalCategories = await Category.countDocuments();
+    const totalUsers = await Admin.countDocuments();
+
+    // Get total views
+    const totalViews = await Article.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalViews: { $sum: '$views' }
+        }
+      }
+    ]);
+
+    const stats = {
+      totalArticles,
+      publishedArticles,
+      draftArticles,
+      totalCategories,
+      totalUsers,
+      totalViews: totalViews[0]?.totalViews || 0
+    };
+
+    res.json({
+      success: true,
+      ...stats
+    });
+
+  } catch (error) {
+    console.error('Stats error:', error);
+    res.status(500).json({
+      error: 'Server error'
+    });
+  }
+});
+
 // @route   GET /api/admin/dashboard
 // @desc    Get dashboard statistics
 // @access  Private (Admin only)

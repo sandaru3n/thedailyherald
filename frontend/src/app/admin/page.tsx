@@ -44,19 +44,32 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentArticles, setRecentArticles] = useState<RecentArticle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [statsData, articlesData] = await Promise.all([
-          apiCall('/admin/stats'),
-          apiCall('/articles?limit=5&sort=-createdAt')
-        ]);
+        setLoading(true);
+        setError(null);
+        
+        // Fetch stats from the admin stats endpoint
+        const statsResponse = await apiCall('/admin/stats');
+        if (statsResponse.success) {
+          setStats(statsResponse);
+        } else {
+          throw new Error('Failed to fetch stats');
+        }
 
-        setStats(statsData as DashboardStats);
-        setRecentArticles((articlesData as { docs: RecentArticle[] }).docs || []);
+        // Fetch recent articles
+        const articlesResponse = await apiCall('/articles?limit=5&sort=-createdAt');
+        if (articlesResponse.success) {
+          setRecentArticles(articlesResponse.docs || []);
+        } else {
+          throw new Error('Failed to fetch recent articles');
+        }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        setError('Failed to load dashboard data');
       } finally {
         setLoading(false);
       }
@@ -100,6 +113,21 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Dashboard</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Try Again
+          </Button>
         </div>
       </div>
     );
@@ -235,7 +263,7 @@ export default function AdminDashboardPage() {
                         />
                         <span className="text-xs text-gray-500">{article.category?.name}</span>
                         <span className="text-xs text-gray-400">•</span>
-                        <span className="text-xs text-gray-500">{article.views} views</span>
+                        <span className="text-xs text-gray-500">{article.views || 0} views</span>
                         {article.publishedAt && (
                           <>
                             <span className="text-xs text-gray-400">•</span>

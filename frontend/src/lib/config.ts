@@ -6,4 +6,5 @@ export const API_ENDPOINTS = {
   categories: '/api/categories',
   articles: '/api/articles',
   auth: `${API_BASE_URL}/api/auth`,
+  admin: '/api/admin',
 } as const; 
