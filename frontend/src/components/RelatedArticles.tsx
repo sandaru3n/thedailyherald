@@ -83,7 +83,7 @@ export default function RelatedArticles({
             <div
               key={getArticleId(article)}
               className="group cursor-pointer"
-              onMouseEnter={() => setHoveredId(getArticleId(article))}
+              onMouseEnter={() => setHoveredId(getArticleId(article) || null)}
               onMouseLeave={() => setHoveredId(null)}
               onClick={() => router.push(`/article/${getArticleId(article)}`)}
             >
