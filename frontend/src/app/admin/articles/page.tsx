@@ -74,7 +74,7 @@ export default function AdminArticlesPage() {
         params.append('search', searchTerm);
       }
 
-      const data = await apiCall(`/articles?${params.toString()}`);
+      const data = await apiCall(`/articles?${params.toString()}`) as { docs: Article[]; totalPages: number };
       setArticles(data.docs || []);
       setTotalPages(data.totalPages || 1);
     } catch (error) {
