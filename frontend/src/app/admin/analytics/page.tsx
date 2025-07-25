@@ -27,11 +27,13 @@ interface AnalyticsData {
   totalCategories: number;
   recentViews: number;
   monthlyViews: number;
+  avgViewsPerArticle: number;
   topArticles: Array<{
     _id: string;
     title: string;
     views: number;
     slug: string;
+    category?: string;
   }>;
   viewsByCategory: Array<{
     category: string;
@@ -57,43 +59,55 @@ export default function AdminAnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      // In a real app, you'd have dedicated analytics endpoints
-      // For now, we'll simulate the data
-      const mockData: AnalyticsData = {
-        totalArticles: 45,
-        publishedArticles: 38,
-        draftArticles: 7,
-        totalViews: 12540,
-        totalUsers: 3,
-        totalCategories: 8,
-        recentViews: 234,
-        monthlyViews: 3420,
-        topArticles: [
-          { _id: '1', title: 'Breaking News: Major Economic Shift', views: 1240, slug: 'breaking-news-major-economic-shift' },
-          { _id: '2', title: 'Technology Trends 2024', views: 890, slug: 'technology-trends-2024' },
-          { _id: '3', title: 'Sports Championship Results', views: 756, slug: 'sports-championship-results' },
-          { _id: '4', title: 'Health and Wellness Guide', views: 634, slug: 'health-wellness-guide' },
-          { _id: '5', title: 'Environmental Policy Changes', views: 521, slug: 'environmental-policy-changes' }
-        ],
-        viewsByCategory: [
-          { category: 'Politics', views: 3200, color: '#3B82F6' },
-          { category: 'Technology', views: 2800, color: '#10B981' },
-          { category: 'Sports', views: 2100, color: '#F59E0B' },
-          { category: 'Health', views: 1800, color: '#EF4444' },
-          { category: 'Entertainment', views: 1500, color: '#8B5CF6' },
-          { category: 'Business', views: 1200, color: '#06B6D4' }
-        ],
-        systemInfo: {
-          uptime: '15 days, 8 hours',
-          memory: '2.4 GB / 8 GB',
-          database: 'MongoDB 7.0.4',
-          version: '1.0.0'
-        }
-      };
+      const response = await apiCall('/admin/analytics') as { success: boolean; analytics?: AnalyticsData };
       
-      setAnalytics(mockData);
+      if (response.success && response.analytics) {
+        // Ensure all properties have default values to prevent undefined errors
+        const safeAnalytics: AnalyticsData = {
+          totalArticles: response.analytics.totalArticles || 0,
+          publishedArticles: response.analytics.publishedArticles || 0,
+          draftArticles: response.analytics.draftArticles || 0,
+          totalViews: response.analytics.totalViews || 0,
+          totalUsers: response.analytics.totalUsers || 0,
+          totalCategories: response.analytics.totalCategories || 0,
+          recentViews: response.analytics.recentViews || 0,
+          monthlyViews: response.analytics.monthlyViews || 0,
+          avgViewsPerArticle: response.analytics.avgViewsPerArticle || 0,
+          topArticles: response.analytics.topArticles || [],
+          viewsByCategory: response.analytics.viewsByCategory || [],
+          systemInfo: {
+            uptime: response.analytics.systemInfo?.uptime || '0 days, 0 hours',
+            memory: response.analytics.systemInfo?.memory || '0 MB / 0 MB',
+            database: response.analytics.systemInfo?.database || 'MongoDB',
+            version: response.analytics.systemInfo?.version || '1.0.0'
+          }
+        };
+        setAnalytics(safeAnalytics);
+      } else {
+        throw new Error('Failed to fetch analytics data');
+      }
     } catch (error) {
       console.error('Error fetching analytics:', error);
+      // Fallback to empty analytics if API fails
+      setAnalytics({
+        totalArticles: 0,
+        publishedArticles: 0,
+        draftArticles: 0,
+        totalViews: 0,
+        totalUsers: 0,
+        totalCategories: 0,
+        recentViews: 0,
+        monthlyViews: 0,
+        avgViewsPerArticle: 0,
+        topArticles: [],
+        viewsByCategory: [],
+        systemInfo: {
+          uptime: '0 days, 0 hours',
+          memory: '0 MB / 0 MB',
+          database: 'MongoDB',
+          version: '1.0.0'
+        }
+      });
     } finally {
       setLoading(false);
     }
@@ -144,9 +158,9 @@ export default function AdminAnalyticsPage() {
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalViews.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{(analytics.totalViews || 0).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              +{analytics.recentViews} this week
+              +{(analytics.recentViews || 0)} this week
             </p>
           </CardContent>
         </Card>
@@ -157,9 +171,9 @@ export default function AdminAnalyticsPage() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.publishedArticles}</div>
+            <div className="text-2xl font-bold">{analytics.publishedArticles || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {analytics.draftArticles} drafts pending
+              {analytics.draftArticles || 0} drafts pending
             </p>
           </CardContent>
         </Card>
@@ -170,7 +184,7 @@ export default function AdminAnalyticsPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.monthlyViews.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{(analytics.monthlyViews || 0).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               +12% from last month
             </p>
@@ -183,7 +197,7 @@ export default function AdminAnalyticsPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalUsers}</div>
+            <div className="text-2xl font-bold">{analytics.totalUsers || 0}</div>
             <p className="text-xs text-muted-foreground">
               Admin accounts
             </p>
@@ -191,8 +205,8 @@ export default function AdminAnalyticsPage() {
         </Card>
       </div>
 
+      {/* Top Articles - Show message if no articles */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Articles */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -201,29 +215,37 @@ export default function AdminAnalyticsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {analytics.topArticles.map((article, index) => (
-                <div key={article._id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-medium text-blue-600">#{index + 1}</span>
+            {analytics.topArticles && analytics.topArticles.length > 0 ? (
+              <div className="space-y-4">
+                {analytics.topArticles.map((article, index) => (
+                  <div key={article._id} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-blue-600">#{index + 1}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium text-gray-900 truncate">
+                          {article.title}
+                        </h4>
+                        <p className="text-xs text-gray-500">{article.category || 'Uncategorized'}</p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium text-gray-900 truncate">
-                        {article.title}
-                      </h4>
+                    <div className="text-sm text-gray-500">
+                      {(article.views || 0).toLocaleString()} views
                     </div>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {article.views.toLocaleString()} views
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <TrendingUp className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">No articles with views yet</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Views by Category */}
+        {/* Views by Category - Show message if no data */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -232,24 +254,31 @@ export default function AdminAnalyticsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {analytics.viewsByCategory.map((category) => (
-                <div key={category.category} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div 
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: category.color }}
-                    />
-                    <span className="text-sm font-medium text-gray-900">
-                      {category.category}
-                    </span>
+            {analytics.viewsByCategory && analytics.viewsByCategory.length > 0 ? (
+              <div className="space-y-4">
+                {analytics.viewsByCategory.map((category) => (
+                  <div key={category.category} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div 
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: category.color || '#3B82F6' }}
+                      />
+                      <span className="text-sm font-medium text-gray-900">
+                        {category.category}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {(category.views || 0).toLocaleString()} views
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {category.views.toLocaleString()} views
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <BarChart3 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">No category views data yet</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -306,42 +335,6 @@ export default function AdminAnalyticsPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">
-                {analytics.totalArticles}
-              </div>
-              <p className="text-sm text-gray-600">Total Articles</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">
-                {analytics.totalCategories}
-              </div>
-              <p className="text-sm text-gray-600">Categories</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-2">
-                {Math.round(analytics.totalViews / analytics.totalArticles)}
-              </div>
-              <p className="text-sm text-gray-600">Avg Views per Article</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 } 

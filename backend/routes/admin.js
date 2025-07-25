@@ -466,112 +466,107 @@ router.delete('/users/:id', auth, requireRole(['admin']), async (req, res) => {
 });
 
 // @route   GET /api/admin/analytics
-// @desc    Get analytics data
+// @desc    Get comprehensive analytics data
 // @access  Private (Admin only)
 router.get('/analytics', auth, requireRole(['admin']), async (req, res) => {
   try {
-    const { period = '30' } = req.query; // days
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - parseInt(period));
+    // Get basic counts
+    const totalArticles = await Article.countDocuments();
+    const publishedArticles = await Article.countDocuments({ status: 'published' });
+    const draftArticles = await Article.countDocuments({ status: 'draft' });
+    const totalUsers = await Admin.countDocuments();
+    const totalCategories = await Category.countDocuments({ isActive: true });
 
-    // Articles created in period
-    const articlesCreated = await Article.countDocuments({
-      createdAt: { $gte: startDate }
-    });
+    // Get total views
+    const totalViewsResult = await Article.aggregate([
+      { $group: { _id: null, totalViews: { $sum: '$views' } } }
+    ]);
+    const totalViews = totalViewsResult.length > 0 ? totalViewsResult[0].totalViews : 0;
 
-    // Articles published in period
-    const articlesPublished = await Article.countDocuments({
-      publishedAt: { $gte: startDate }
-    });
+    // Get recent views (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const recentViewsResult = await Article.aggregate([
+      { $match: { updatedAt: { $gte: sevenDaysAgo } } },
+      { $group: { _id: null, recentViews: { $sum: '$views' } } }
+    ]);
+    const recentViews = recentViewsResult.length > 0 ? recentViewsResult[0].recentViews : 0;
 
-    // Views in period
-    const viewsInPeriod = await Article.aggregate([
-      {
-        $match: {
-          publishedAt: { $gte: startDate }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          totalViews: { $sum: '$views' }
-        }
-      }
+    // Get monthly views (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const monthlyViewsResult = await Article.aggregate([
+      { $match: { updatedAt: { $gte: thirtyDaysAgo } } },
+      { $group: { _id: null, monthlyViews: { $sum: '$views' } } }
+    ]);
+    const monthlyViews = monthlyViewsResult.length > 0 ? monthlyViewsResult[0].monthlyViews : 0;
+
+    // Get top articles by views
+    const topArticles = await Article.find({ status: 'published' })
+      .sort({ views: -1 })
+      .limit(5)
+      .select('title views slug')
+      .populate('category', 'name color');
+
+    // Get views by category
+    const viewsByCategory = await Article.aggregate([
+      { $match: { status: 'published' } },
+      { $lookup: { from: 'categories', localField: 'category', foreignField: '_id', as: 'categoryInfo' } },
+      { $unwind: '$categoryInfo' },
+      { $group: { 
+        _id: '$categoryInfo._id', 
+        category: { $first: '$categoryInfo.name' },
+        color: { $first: '$categoryInfo.color' },
+        views: { $sum: '$views' }
+      }},
+      { $sort: { views: -1 } },
+      { $limit: 6 }
     ]);
 
-    // Articles by category in period
-    const articlesByCategory = await Article.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: startDate }
-        }
-      },
-      {
-        $group: {
-          _id: '$category',
-          count: { $sum: 1 }
-        }
-      },
-      {
-        $lookup: {
-          from: 'categories',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'category'
-        }
-      },
-      {
-        $unwind: '$category'
-      },
-      {
-        $project: {
-          categoryName: '$category.name',
-          count: 1
-        }
-      }
-    ]);
-
-    // Daily article creation for chart
-    const dailyArticles = await Article.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: startDate }
-        }
-      },
-      {
-        $group: {
-          _id: {
-            $dateToString: {
-              format: '%Y-%m-%d',
-              date: '$createdAt'
-            }
-          },
-          count: { $sum: 1 }
-        }
-      },
-      {
-        $sort: { '_id': 1 }
-      }
-    ]);
-
-    const analytics = {
-      period: parseInt(period),
-      articlesCreated,
-      articlesPublished,
-      totalViews: viewsInPeriod[0]?.totalViews || 0,
-      articlesByCategory,
-      dailyArticles
+    // Get system information
+    const systemInfo = {
+      uptime: `${Math.floor(process.uptime() / 86400)} days, ${Math.floor((process.uptime() % 86400) / 3600)} hours`,
+      memory: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB / ${Math.round(process.memoryUsage().heapTotal / 1024 / 1024)} MB`,
+      database: 'MongoDB',
+      version: '1.0.0'
     };
+
+    // Calculate average views per article
+    const avgViewsPerArticle = totalArticles > 0 ? Math.round(totalViews / totalArticles) : 0;
 
     res.json({
       success: true,
-      analytics
+      analytics: {
+        totalArticles,
+        publishedArticles,
+        draftArticles,
+        totalViews,
+        totalUsers,
+        totalCategories,
+        recentViews,
+        monthlyViews,
+        avgViewsPerArticle,
+        topArticles: topArticles.map(article => ({
+          _id: article._id,
+          title: article.title,
+          views: article.views || 0,
+          slug: article.slug,
+          category: article.category?.name || 'Uncategorized'
+        })),
+        viewsByCategory: viewsByCategory.map(cat => ({
+          category: cat.category,
+          views: cat.views,
+          color: cat.color || '#3B82F6'
+        })),
+        systemInfo
+      }
     });
 
   } catch (error) {
     console.error('Analytics error:', error);
     res.status(500).json({
-      error: 'Server error'
+      success: false,
+      error: 'Failed to fetch analytics data'
     });
   }
 });
