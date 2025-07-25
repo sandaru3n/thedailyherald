@@ -12,6 +12,19 @@ interface SidebarProps {
 export default function Sidebar({ trendingNews }: SidebarProps) {
   const popularTags = ['Politics', 'Technology', 'Sports', 'Business', 'Health'];
 
+  // Helper function to get author name
+  const getAuthorName = (article: NewsArticle) => {
+    if (typeof article.author === 'string') {
+      return article.author;
+    }
+    return article.author?.name || 'Unknown Author';
+  };
+
+  // Helper function to get article ID
+  const getArticleId = (article: NewsArticle) => {
+    return article._id || article.id;
+  };
+
   return (
     <aside className="space-y-4 sm:space-y-6">
       {/* Trending News */}
@@ -24,7 +37,7 @@ export default function Sidebar({ trendingNews }: SidebarProps) {
         </CardHeader>
         <CardContent className="space-y-3 sm:space-y-4">
           {trendingNews.slice(0, 5).map((article, index) => (
-            <div key={article.id}>
+            <div key={getArticleId(article)}>
               <div className="flex items-start gap-2 sm:gap-3">
                 <div className="bg-red-500 text-white text-xs font-bold rounded px-1.5 sm:px-2 py-0.5 sm:py-1 mt-0.5 sm:mt-1 flex-shrink-0">
                   {index + 1}
@@ -34,8 +47,8 @@ export default function Sidebar({ trendingNews }: SidebarProps) {
                     {article.title}
                   </h4>
                   <div className="flex items-center gap-1 sm:gap-2 text-xs text-gray-500">
-                    <span className="hidden sm:inline">{article.author}</span>
-                    <span className="sm:hidden">{article.author.split(' ')[0]}</span>
+                    <span className="hidden sm:inline">{getAuthorName(article)}</span>
+                    <span className="sm:hidden">{getAuthorName(article).split(' ')[0]}</span>
                     <span className="hidden sm:inline">•</span>
                     <span>{new Date(article.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                   </div>
@@ -57,7 +70,7 @@ export default function Sidebar({ trendingNews }: SidebarProps) {
         </CardHeader>
         <CardContent className="space-y-3 sm:space-y-4">
           {trendingNews.slice(0, 3).map((article) => (
-            <ArticleCard key={article.id} article={article} variant="compact" />
+            <ArticleCard key={getArticleId(article)} article={article} variant="compact" />
           ))}
         </CardContent>
       </Card>

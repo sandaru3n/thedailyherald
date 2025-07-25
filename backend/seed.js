@@ -2,9 +2,10 @@ const mongoose = require('mongoose');
 const Category = require('./models/Category');
 const Article = require('./models/Article');
 const Admin = require('./models/Admin');
+require('dotenv').config({ path: './config.env' });
 
 // Connect to MongoDB Cloud
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://your-username:your-password@your-cluster.mongodb.net/thedailyherald?retryWrites=true&w=majority';
+const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,

@@ -9,6 +9,27 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({ article, variant = 'default' }: ArticleCardProps) {
+  // Helper function to get author name
+  const getAuthorName = (article: Article) => {
+    if (typeof article.author === 'string') {
+      return article.author;
+    }
+    return article.author?.name || 'Unknown Author';
+  };
+
+  // Helper function to get category name
+  const getCategoryName = (article: Article) => {
+    if (typeof article.category === 'string') {
+      return article.category;
+    }
+    return article.category?.name || 'Uncategorized';
+  };
+
+  // Helper function to get article ID
+  const getArticleId = (article: Article) => {
+    return article._id || article.id;
+  };
+
   if (variant === 'compact') {
     return (
       <div className="flex gap-3">
@@ -34,7 +55,7 @@ export function ArticleCard({ article, variant = 'default' }: ArticleCardProps) 
   if (variant === 'featured') {
     return (
       <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-        <Link href={`/article/${article.id}`}>
+        <Link href={`/article/${getArticleId(article)}`}>
           <div className="relative h-64 overflow-hidden">
             <img
               src={article.featuredImage || article.imageUrl || '/placeholder.jpg'}
@@ -59,7 +80,7 @@ export function ArticleCard({ article, variant = 'default' }: ArticleCardProps) 
   // Default variant
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      <Link href={`/article/${article.id}`}>
+      <Link href={`/article/${getArticleId(article)}`}>
         <div className="relative h-48 overflow-hidden">
           <img
             src={article.featuredImage || article.imageUrl || '/placeholder.jpg'}
@@ -72,7 +93,7 @@ export function ArticleCard({ article, variant = 'default' }: ArticleCardProps) 
             {article.title}
           </h2>
           <p className="text-gray-600 text-sm mb-2">
-            By {article.author} • {new Date(article.publishedAt).toLocaleDateString()}
+            By {getAuthorName(article)} • {new Date(article.publishedAt).toLocaleDateString()}
           </p>
           <p className="text-gray-700 line-clamp-3">{article.excerpt}</p>
         </div>
