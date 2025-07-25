@@ -51,7 +51,7 @@ export default function CategoriesList({
     const fetchCategories = async () => {
       try {
         const res = await fetch(API_ENDPOINTS.categories);
-        const data = await res.json();
+        const data = await res.json() as Category[] | { success: boolean; categories?: Category[] };
         // Handle both old and new API response formats
         if (Array.isArray(data)) {
           setCategories(data);

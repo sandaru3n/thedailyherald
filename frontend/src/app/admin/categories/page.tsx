@@ -53,7 +53,7 @@ export default function AdminCategoriesPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const data = await apiCall('/categories');
+      const data = await apiCall('/categories') as Category[] | { success: boolean; categories?: Category[] };
       
       // Handle both old and new API response formats
       if (Array.isArray(data)) {

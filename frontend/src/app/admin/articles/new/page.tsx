@@ -55,7 +55,7 @@ export default function NewArticlePage() {
 
   const fetchCategories = async () => {
     try {
-      const data = await apiCall('/categories');
+      const data = await apiCall('/categories') as Category[] | { success: boolean; categories?: Category[] };
       // Handle both old and new API response formats
       if (Array.isArray(data)) {
         setCategories(data);

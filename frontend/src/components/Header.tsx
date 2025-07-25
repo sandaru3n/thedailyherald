@@ -22,7 +22,7 @@ export default function Header() {
       try {
         console.log('Fetching categories...');
         const res = await fetch(API_ENDPOINTS.categories);
-        const data = await res.json();
+        const data = await res.json() as Category[] | { success: boolean; categories?: Category[] };
         console.log('Categories API response:', data);
         
         // Handle both old and new API response formats
@@ -97,7 +97,6 @@ export default function Header() {
                 <Home className="h-4 w-4 mr-2" />
                 Home
               </Link>
-              {console.log('Rendering categories:', categories)}
               {categories.slice(0, 5).map((category) => (
                 <Link
                   key={category._id}
