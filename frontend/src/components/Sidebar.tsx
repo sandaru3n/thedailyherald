@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { TrendingUp, Calendar, Users, Eye } from 'lucide-react';
-import NewsCard from './NewsCard';
+import { ArticleCard } from './NewsCard';
 
 interface SidebarProps {
   trendingNews: NewsArticle[];
@@ -57,7 +57,7 @@ export default function Sidebar({ trendingNews }: SidebarProps) {
         </CardHeader>
         <CardContent className="space-y-3 sm:space-y-4">
           {trendingNews.slice(0, 3).map((article) => (
-            <NewsCard key={article.id} article={article} variant="compact" />
+            <ArticleCard key={article.id} article={article} variant="compact" />
           ))}
         </CardContent>
       </Card>

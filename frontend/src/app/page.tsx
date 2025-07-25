@@ -5,7 +5,7 @@ import { NewsArticle, NEWS_CATEGORIES } from '@/types/news';
 import { SAMPLE_NEWS } from '@/data/sampleNews';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import NewsCard from '@/components/NewsCard';
+import { ArticleCard } from '@/components/NewsCard';
 import Sidebar from '@/components/Sidebar';
 import { Separator } from '@/components/ui/separator';
 
@@ -48,7 +48,7 @@ function HomeContent() {
             <section className="mb-8 sm:mb-12">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {featuredNews.slice(0, 2).map((article) => (
-                  <NewsCard key={article.id} article={article} variant="featured" />
+                  <ArticleCard key={article.id} article={article} variant="featured" />
                 ))}
               </div>
             </section>
@@ -62,7 +62,7 @@ function HomeContent() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {latestNews.slice(0, 6).map((article) => (
-                  <NewsCard key={article.id} article={article} />
+                  <ArticleCard key={article.id} article={article} />
                 ))}
               </div>
             </section>
@@ -87,7 +87,7 @@ function HomeContent() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                     {categoryNews.slice(0, 3).map((article) => (
-                      <NewsCard key={article.id} article={article} />
+                      <ArticleCard key={article.id} article={article} />
                     ))}
                   </div>
                 </section>

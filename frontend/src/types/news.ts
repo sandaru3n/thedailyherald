@@ -1,16 +1,24 @@
 export interface NewsArticle {
-  id: string;
+  _id: string;
+  id?: string;
   title: string;
+  slug: string;
   content: string;
   excerpt: string;
   author: string;
   category: string;
-  imageUrl: string;
-  publishedAt: Date;
-  isFeatured: boolean;
-  tags: string[];
-  readTime: number;
+  imageUrl?: string;
+  featuredImage?: string;
+  publishedAt: Date | string;
+  isFeatured?: boolean;
+  tags?: string[];
+  readTime?: number;
+  status?: string;
+  [key: string]: any;
 }
+
+// Alias for compatibility with ArticleCard component
+export type Article = NewsArticle;
 
 export interface NewsCategory {
   id: string;

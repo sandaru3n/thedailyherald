@@ -4,32 +4,13 @@ const { auth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
-// @route   GET /api/categories
-// @desc    Get all categories
-// @access  Public
+// GET /api/categories - get all active categories
 router.get('/', async (req, res) => {
   try {
-    const { active, sort = 'order' } = req.query;
-    
-    const query = {};
-    if (active === 'true') {
-      query.isActive = true;
-    }
-
-    const categories = await Category.find(query)
-      .sort(sort)
-      .select('-__v');
-
-    res.json({
-      success: true,
-      categories
-    });
-
+    const categories = await Category.find({ isActive: true }).sort({ order: 1, name: 1 });
+    res.json({ success: true, categories });
   } catch (error) {
-    console.error('Get categories error:', error);
-    res.status(500).json({
-      error: 'Server error'
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

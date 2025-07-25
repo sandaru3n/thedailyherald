@@ -29,7 +29,25 @@ router.get('/', async (req, res) => {
 
     // Filter by category
     if (category) {
-      query.category = category;
+      // First find the category by slug
+      const categoryDoc = await Category.findOne({ slug: category });
+      if (categoryDoc) {
+        query.category = categoryDoc._id;
+      } else {
+        // If category not found, return empty results
+        return res.json({
+          success: true,
+          docs: [],
+          totalDocs: 0,
+          limit: parseInt(limit),
+          page: parseInt(page),
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+          nextPage: null,
+          prevPage: null
+        });
+      }
     }
 
     // Filter by featured

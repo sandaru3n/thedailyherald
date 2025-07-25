@@ -1,13 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { NEWS_CATEGORIES } from '@/types/news';
 import { Menu, X, Search, Home, Newspaper } from 'lucide-react';
+import { API_ENDPOINTS } from '@/lib/config';
+
+interface Category {
+  _id: string;
+  name: string;
+  slug: string;
+  color?: string;
+}
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(API_ENDPOINTS.categories);
+        const data = await res.json();
+        if (data.success) {
+          setCategories(data.categories);
+        }
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   return (
     <header className="bg-white shadow-lg sticky top-0 z-50">
@@ -62,10 +85,10 @@ export default function Header() {
                 <Home className="h-4 w-4 mr-2" />
                 Home
               </Link>
-              {NEWS_CATEGORIES.slice(0, 5).map((category) => (
+              {categories.slice(0, 5).map((category) => (
                 <Link
-                  key={category.id}
-                  href={`/?category=${encodeURIComponent(category.name)}`}
+                  key={category._id}
+                  href={`/category/${category.slug}`}
                   className="flex items-center text-gray-700 hover:text-blue-600 font-semibold text-sm transition-all duration-200 hover:scale-105"
                 >
                   <Newspaper className="h-4 w-4 mr-2" />
@@ -139,10 +162,10 @@ export default function Header() {
                   <Home className="h-5 w-5 mr-2" />
                   Home
                 </Link>
-                {NEWS_CATEGORIES.map((category) => (
+                {categories.map((category) => (
                   <Link
-                    key={category.id}
-                    href={`/?category=${encodeURIComponent(category.name)}`}
+                    key={category._id}
+                    href={`/category/${category.slug}`}
                     className="flex items-center text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
                     onClick={() => setMobileMenuOpen(false)}
                   >
