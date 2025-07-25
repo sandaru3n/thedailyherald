@@ -180,7 +180,7 @@ export default function ArticlePage() {
         excerpt={article.excerpt}
       />
       <Header />
-      <main className="container mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-4 py-12">
         {/* Breadcrumb */}
         <nav className="mb-6">
           <ol className="flex items-center space-x-2 text-sm text-gray-600">
@@ -205,112 +205,35 @@ export default function ArticlePage() {
             <li className="text-gray-900 font-medium truncate">{article.title}</li>
           </ol>
         </nav>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Main Article Content */}
-          <article className="lg:col-span-8">
-            <Card className="overflow-hidden">
-              {/* Featured Image */}
-              <div className="relative h-96 lg:h-[500px] overflow-hidden">
-                <img
-                  src={article.featuredImage || article.imageUrl || '/placeholder.jpg'}
-                  alt={article.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                {/* Category Badge */}
-                <div className="absolute top-4 left-4">
-                  <Badge variant="secondary" className="bg-white/90 text-gray-900 hover:bg-white">
-                    {categoryName}
-                  </Badge>
-                </div>
-                {/* Bookmark Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute top-4 right-4 bg-white/90 hover:bg-white"
-                  onClick={() => setIsBookmarked(!isBookmarked)}
-                >
-                  <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
-                </Button>
-              </div>
-              <CardContent className="p-6 lg:p-8">
-                {/* Article Header */}
-                <header className="mb-8">
-                  <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight mb-4">
-                    {article.title}
-                  </h1>
-                  <p className="text-xl text-gray-600 leading-relaxed mb-6">
-                    {article.excerpt}
-                  </p>
-                  {/* Article Meta */}
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      <span>{authorName}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      <span>{formatDate(article.publishedAt)}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      <span>{readTime} min read</span>
-                    </div>
-                    {article.views && (
-                      <div className="flex items-center gap-2">
-                        <Eye className="w-4 h-4" />
-                        <span>{article.views.toLocaleString()} views</span>
-                      </div>
-                    )}
+          <article className="lg:col-span-9">
+            <Card className="overflow-hidden shadow-lg rounded-2xl">
+              <div className="p-6 lg:p-10">
+                <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{article.title}</h1>
+                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    <span>{authorName}</span>
                   </div>
-                  {/* Social Share */}
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-gray-700">Share:</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleShare('facebook')}
-                      className="hover:bg-blue-50 hover:text-blue-600"
-                    >
-                      <Facebook className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleShare('twitter')}
-                      className="hover:bg-blue-50 hover:text-blue-600"
-                    >
-                      <Twitter className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleShare('linkedin')}
-                      className="hover:bg-blue-50 hover:text-blue-600"
-                    >
-                      <Linkedin className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={copyToClipboard}
-                      className="hover:bg-gray-50"
-                    >
-                      <Share2 className="w-4 h-4" />
-                    </Button>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    <span>{formatDate(article.publishedAt)}</span>
                   </div>
-                </header>
-                <Separator className="my-8" />
-                {/* Article Content */}
-                <div className="article-content">
-                  <div 
-                    dangerouslySetInnerHTML={{ __html: article.content }}
-                  />
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    <span>{readTime} min read</span>
+                  </div>
+                  {article.views && (
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-4 h-4" />
+                      <span>{article.views.toLocaleString()} views</span>
+                    </div>
+                  )}
                 </div>
                 {/* Tags */}
                 {article.tags && article.tags.length > 0 && (
-                  <div className="mt-8">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags:</h3>
+                  <div className="mb-6">
                     <div className="flex flex-wrap gap-2">
                       {article.tags.map((tag, index) => (
                         <Badge key={index} variant="outline" className="hover:bg-gray-100">
@@ -320,6 +243,41 @@ export default function ArticlePage() {
                     </div>
                   </div>
                 )}
+                <div className="border-b border-gray-200 mb-6"></div>
+                <p className="text-xl text-gray-600 leading-relaxed mb-6">{article.excerpt}</p>
+                {/* Featured Image */}
+                <div className="flex justify-center mb-8">
+                  <div className="relative w-full max-w-2xl aspect-[16/9] rounded-xl overflow-hidden shadow-md">
+                    <img
+                      src={article.featuredImage || article.imageUrl || '/placeholder.jpg'}
+                      alt={article.title}
+                      className="w-full h-full object-cover rounded-xl"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-xl" />
+                    {/* Category Badge */}
+                    <div className="absolute top-4 left-4">
+                      <Badge variant="secondary" className="bg-white/90 text-gray-900 hover:bg-white">
+                        {categoryName}
+                      </Badge>
+                    </div>
+                    {/* Bookmark Button */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-4 right-4 bg-white/90 hover:bg-white"
+                      onClick={() => setIsBookmarked(!isBookmarked)}
+                    >
+                      <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
+                    </Button>
+                  </div>
+                </div>
+                <Separator className="my-8" />
+                {/* Article Content */}
+                <div className="article-content">
+                  <div 
+                    dangerouslySetInnerHTML={{ __html: article.content }}
+                  />
+                </div>
                 <Separator className="my-8" />
                 {/* Author Bio */}
                 <AuthorBio 
@@ -332,20 +290,18 @@ export default function ArticlePage() {
                   }}
                   category={categoryName}
                 />
-              </CardContent>
+              </div>
             </Card>
             {/* Comments Section */}
-            <CommentsSection articleId={article._id || article.id || ''} />
+            <div className="mt-10">
+              <CommentsSection articleId={article._id || article.id || ''} />
+            </div>
           </article>
           {/* Sidebar */}
-          <aside className="lg:col-span-4 space-y-6">
-            {/* Table of Contents */}
+          <aside className="lg:col-span-3 space-y-6">
             <TableOfContents content={article.content} />
-            {/* Newsletter Signup */}
             <NewsletterSignup />
-            {/* Related Articles */}
             <RelatedArticles articles={relatedArticles} />
-            {/* Ad Space */}
             <Card>
               <CardContent className="p-6">
                 <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
@@ -356,7 +312,6 @@ export default function ArticlePage() {
                 </div>
               </CardContent>
             </Card>
-            {/* Popular Categories */}
             <CategoriesList />
           </aside>
         </div>

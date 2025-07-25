@@ -283,7 +283,7 @@
   }
 
   .article-content img {
-    @apply rounded-lg shadow-md my-8 max-w-full h-auto transition-transform duration-300;
+    @apply rounded-lg shadow-md my-8 max-w-[60%] h-auto mx-auto;
   }
   .article-content img:hover {
     transform: scale(1.03);
