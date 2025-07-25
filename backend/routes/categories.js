@@ -106,6 +106,11 @@ router.post('/', auth, requireRole(['admin']), async (req, res) => {
       order: order || 0
     });
 
+    // Ensure slug is generated
+    if (!category.slug) {
+      category.slug = await Category.generateUniqueSlug(category.name);
+    }
+
     await category.save();
 
     res.status(201).json({
@@ -171,11 +176,15 @@ router.put('/:id', auth, requireRole(['admin']), async (req, res) => {
     if (order !== undefined) updates.order = order;
     if (isActive !== undefined) updates.isActive = isActive;
 
-    const updatedCategory = await Category.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      { new: true, runValidators: true }
-    );
+    // Apply updates to the category document
+    Object.assign(category, updates);
+
+    // Ensure slug is regenerated if name changed
+    if (name && name !== category.name) {
+      category.slug = await Category.generateUniqueSlug(name, category._id);
+    }
+
+    const updatedCategory = await category.save();
 
     res.json({
       success: true,

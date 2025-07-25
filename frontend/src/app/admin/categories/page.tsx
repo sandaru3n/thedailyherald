@@ -54,10 +54,20 @@ export default function AdminCategoriesPage() {
     try {
       setLoading(true);
       const data = await apiCall('/categories');
-      setCategories(data as Category[]);
+      
+      // Handle both old and new API response formats
+      if (Array.isArray(data)) {
+        setCategories(data);
+      } else if (data.success && data.categories) {
+        setCategories(data.categories);
+      } else {
+        setCategories([]);
+        console.error('Invalid categories data format:', data);
+      }
     } catch (error) {
       console.error('Error fetching categories:', error);
       setError('Failed to load categories');
+      setCategories([]);
     } finally {
       setLoading(false);
     }

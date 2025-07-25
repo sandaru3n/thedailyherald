@@ -44,7 +44,18 @@ export default function CategoryPage() {
         // Fetch category details
         const categoryRes = await fetch(`${API_ENDPOINTS.categories}`);
         const categoryData = await categoryRes.json();
-        const currentCategory = categoryData.categories?.find((cat: CategoryData) => cat.slug === params.category);
+        
+        // Handle both old and new API response formats
+        let categories;
+        if (Array.isArray(categoryData)) {
+          categories = categoryData;
+        } else if (categoryData.success && categoryData.categories) {
+          categories = categoryData.categories;
+        } else {
+          categories = [];
+        }
+        
+        const currentCategory = categories.find((cat: CategoryData) => cat.slug === params.category);
         setCategory(currentCategory || null);
 
         // Fetch articles for this category

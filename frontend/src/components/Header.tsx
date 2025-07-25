@@ -20,13 +20,25 @@ export default function Header() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        console.log('Fetching categories...');
         const res = await fetch(API_ENDPOINTS.categories);
         const data = await res.json();
-        if (data.success) {
+        console.log('Categories API response:', data);
+        
+        // Handle both old and new API response formats
+        if (Array.isArray(data)) {
+          console.log('Using new API format, categories:', data);
+          setCategories(data);
+        } else if (data.success && data.categories) {
+          console.log('Using old API format, categories:', data.categories);
           setCategories(data.categories);
+        } else {
+          console.error('Invalid categories data format:', data);
+          setCategories([]);
         }
       } catch (err) {
         console.error('Failed to fetch categories:', err);
+        setCategories([]);
       }
     };
     fetchCategories();
@@ -85,6 +97,7 @@ export default function Header() {
                 <Home className="h-4 w-4 mr-2" />
                 Home
               </Link>
+              {console.log('Rendering categories:', categories)}
               {categories.slice(0, 5).map((category) => (
                 <Link
                   key={category._id}
