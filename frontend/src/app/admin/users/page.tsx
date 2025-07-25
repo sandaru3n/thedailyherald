@@ -92,7 +92,7 @@ export default function AdminUsersPage() {
       setError('');
       setSuccess('');
 
-      const userData = { ...formData };
+      const userData = { ...formData } as { [key: string]: any };
       if (editingUser && !userData.password) {
         delete userData.password;
       }
