@@ -78,7 +78,7 @@ export default function AdminArticlesPage() {
         params.append('search', searchTerm);
       }
 
-      const response = await apiCall(`/articles?${params.toString()}`);
+      const response = await apiCall(`/articles?${params.toString()}`) as { success: boolean; docs?: Article[]; totalPages?: number };
       if (response.success) {
         setArticles(response.docs || []);
         setTotalPages(response.totalPages || 1);
@@ -109,7 +109,7 @@ export default function AdminArticlesPage() {
       const response = await apiCall(`/articles/${articleId}`, {
         method: 'PUT',
         body: JSON.stringify({ status: newStatus })
-      });
+      }) as { success: boolean; error?: string };
       if (response.success) {
         setSuccess(`Article ${newStatus} successfully!`);
         fetchArticles(); // Refresh the list
@@ -129,7 +129,7 @@ export default function AdminArticlesPage() {
       setError('');
       const response = await apiCall(`/articles/${articleId}`, {
         method: 'DELETE'
-      });
+      }) as { success: boolean; error?: string };
       if (response.success) {
         setSuccess('Article deleted successfully!');
         fetchArticles(); // Refresh the list
