@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { 
   Save, 
@@ -32,7 +32,7 @@ interface Article {
   title: string;
   content: string;
   excerpt: string;
-  category: string;
+  category: string | { _id: string; name: string };
   tags: string[];
   featuredImage: string;
   isFeatured: boolean;
@@ -67,24 +67,17 @@ export default function EditArticlePage() {
     metaKeywords: ''
   });
 
-  useEffect(() => {
-    if (params.id) {
-      fetchArticle();
-      fetchCategories();
-    }
-  }, [params.id]);
-
-  const fetchArticle = async () => {
+  const fetchArticle = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await apiCall(`/articles/${params.id}`);
+      const response = await apiCall(`/articles/${params.id}`) as { success: boolean; article?: Article };
       if (response.success && response.article) {
         const article = response.article;
         setFormData({
           title: article.title || '',
           content: article.content || '',
           excerpt: article.excerpt || '',
-          category: article.category?._id || article.category || '',
+          category: typeof article.category === 'object' ? article.category._id : article.category || '',
           tags: Array.isArray(article.tags) ? article.tags.join(', ') : '',
           featuredImage: article.featuredImage || '',
           isFeatured: article.isFeatured || false,
@@ -103,11 +96,18 @@ export default function EditArticlePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    if (params.id) {
+      fetchArticle();
+      fetchCategories();
+    }
+  }, [params.id, fetchArticle]);
 
   const fetchCategories = async () => {
     try {
-      const data = await apiCall('/categories');
+      const data = await apiCall('/categories') as Category[] | { success: boolean; categories?: Category[] };
       // Handle both old and new API response formats
       if (Array.isArray(data)) {
         setCategories(data);
@@ -169,7 +169,7 @@ export default function EditArticlePage() {
       const response = await apiCall(`/articles/${params.id}`, {
         method: 'PUT',
         body: JSON.stringify(articleData)
-      });
+      }) as { success: boolean; error?: string };
 
       if (response.success) {
         setSuccess(publish ? 'Article published successfully!' : 'Article updated successfully!');

@@ -28,6 +28,16 @@ interface DashboardStats {
   totalViews: number;
 }
 
+interface StatsResponse {
+  success: boolean;
+  totalArticles: number;
+  publishedArticles: number;
+  draftArticles: number;
+  totalCategories: number;
+  totalUsers: number;
+  totalViews: number;
+}
+
 interface RecentArticle {
   _id: string;
   title: string;
@@ -53,7 +63,7 @@ export default function AdminDashboardPage() {
         setError(null);
         
         // Fetch stats from the admin stats endpoint
-        const statsResponse = await apiCall('/admin/stats') as { success: boolean; [key: string]: any };
+        const statsResponse = await apiCall('/admin/stats') as StatsResponse;
         if (statsResponse.success) {
           setStats(statsResponse);
         } else {
