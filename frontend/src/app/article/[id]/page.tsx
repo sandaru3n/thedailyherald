@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Article } from '@/types/news';
 import Header from '@/components/Header';
@@ -42,6 +42,20 @@ export default function ArticlePage() {
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
   const [isBookmarked, setIsBookmarked] = useState(false);
 
+  const fetchRelatedArticles = useCallback(async (categoryId: string) => {
+    try {
+      const res = await fetch(`/api/articles?category=${categoryId}&limit=3&exclude=${params.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setRelatedArticles(data.articles || []);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching related articles:', err);
+    }
+  }, [params.id]);
+
   useEffect(() => {
     const fetchArticle = async () => {
       try {
@@ -73,21 +87,7 @@ export default function ArticlePage() {
     if (params.id) {
       fetchArticle();
     }
-  }, [params.id]);
-
-  const fetchRelatedArticles = async (categoryId: string) => {
-    try {
-      const res = await fetch(`/api/articles?category=${categoryId}&limit=3&exclude=${params.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success) {
-          setRelatedArticles(data.articles || []);
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching related articles:', err);
-    }
-  };
+  }, [params.id, fetchRelatedArticles]);
 
   const handleShare = (platform: string) => {
     const url = window.location.href;

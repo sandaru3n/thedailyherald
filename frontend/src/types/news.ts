@@ -28,7 +28,7 @@ export interface NewsArticle {
   metaKeywords?: string[];
   createdAt?: string;
   updatedAt?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Alias for compatibility with ArticleCard component
