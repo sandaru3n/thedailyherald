@@ -47,7 +47,7 @@ export const isAuthenticated = (): boolean => {
 export const apiCall = async (
   endpoint: string,
   options: RequestInit = {}
-): Promise<any> => {
+): Promise<unknown> => {
   const token = getAuthToken();
   
   const config: RequestInit = {
