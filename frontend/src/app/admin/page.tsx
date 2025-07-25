@@ -53,7 +53,7 @@ export default function AdminDashboardPage() {
           apiCall('/articles?limit=5&sort=-createdAt')
         ]);
 
-        setStats(statsData);
+        setStats(statsData as DashboardStats);
         setRecentArticles(articlesData.docs || []);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
