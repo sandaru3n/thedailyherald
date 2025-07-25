@@ -56,7 +56,7 @@ export default function AdminUsersPage() {
     try {
       setLoading(true);
       const data = await apiCall('/admin/users');
-      setUsers(data);
+      setUsers(data as AdminUser[]);
     } catch (error) {
       console.error('Error fetching users:', error);
       setError('Failed to load users');
