@@ -62,10 +62,10 @@ export default function AdminSettingsPage() {
     try {
       setLoading(true);
       const data = await apiCall('/auth/profile');
-      setAdminData(data.admin);
+      setAdminData((data as { admin: AdminUser }).admin);
       setProfileData({
-        name: data.admin.name,
-        email: data.admin.email
+        name: (data as { admin: AdminUser }).admin.name,
+        email: (data as { admin: AdminUser }).admin.email
       });
     } catch (error) {
       console.error('Error fetching admin data:', error);
