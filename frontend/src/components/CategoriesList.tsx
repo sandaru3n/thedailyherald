@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,31 +16,20 @@ import {
   Camera,
   Car,
   BookOpen,
-  Users
+  Users,
+  Newspaper
 } from 'lucide-react';
+import { API_ENDPOINTS } from '@/lib/config';
 
 interface Category {
-  id: string;
+  _id: string;
   name: string;
   slug: string;
   color: string;
   icon: string;
   articleCount: number;
+  description?: string;
 }
-
-const CATEGORIES: Category[] = [
-  { id: '1', name: 'Technology', slug: 'technology', color: 'bg-blue-500', icon: 'Zap', articleCount: 45 },
-  { id: '2', name: 'Business', slug: 'business', color: 'bg-green-500', icon: 'Briefcase', articleCount: 32 },
-  { id: '3', name: 'Politics', slug: 'politics', color: 'bg-red-500', icon: 'Globe', articleCount: 28 },
-  { id: '4', name: 'Sports', slug: 'sports', color: 'bg-orange-500', icon: 'Gamepad2', articleCount: 38 },
-  { id: '5', name: 'Entertainment', slug: 'entertainment', color: 'bg-purple-500', icon: 'Music', articleCount: 25 },
-  { id: '6', name: 'Health', slug: 'health', color: 'bg-pink-500', icon: 'Heart', articleCount: 19 },
-  { id: '7', name: 'Science', slug: 'science', color: 'bg-indigo-500', icon: 'BookOpen', articleCount: 22 },
-  { id: '8', name: 'Lifestyle', slug: 'lifestyle', color: 'bg-yellow-500', icon: 'Users', articleCount: 31 },
-  { id: '9', name: 'Arts', slug: 'arts', color: 'bg-teal-500', icon: 'Palette', articleCount: 15 },
-  { id: '10', name: 'Travel', slug: 'travel', color: 'bg-cyan-500', icon: 'Camera', articleCount: 18 },
-  { id: '11', name: 'Automotive', slug: 'automotive', color: 'bg-gray-500', icon: 'Car', articleCount: 12 },
-];
 
 interface CategoriesListProps {
   title?: string;
@@ -53,6 +43,25 @@ export default function CategoriesList({
   maxCategories = 8
 }: CategoriesListProps) {
   const router = useRouter();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(API_ENDPOINTS.categories);
+        const data = await res.json();
+        if (data.success) {
+          setCategories(data.categories || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const getIconComponent = (iconName: string) => {
     const iconMap: { [key: string]: React.ElementType } = {
@@ -67,12 +76,33 @@ export default function CategoriesList({
       Camera,
       Car,
       BookOpen,
-      Users
+      Users,
+      Newspaper
     };
-    return iconMap[iconName] || Globe;
+    return iconMap[iconName] || Newspaper;
   };
 
-  const displayCategories = CATEGORIES.slice(0, maxCategories);
+  const displayCategories = categories.slice(0, maxCategories);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="space-y-2">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="flex items-center gap-3 p-3">
+                  <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
+                  <div className="h-4 bg-gray-200 rounded flex-1"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -80,7 +110,7 @@ export default function CategoriesList({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-semibold text-gray-900">{title}</h3>
           <Badge variant="outline" className="text-xs">
-            {CATEGORIES.length} categories
+            {categories.length} categories
           </Badge>
         </div>
         
@@ -90,12 +120,15 @@ export default function CategoriesList({
             
             return (
               <button
-                key={category.id}
+                key={category._id}
                 onClick={() => router.push(`/category/${category.slug}`)}
                 className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group"
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 ${category.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                  <div 
+                    className="w-8 h-8 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform"
+                    style={{ backgroundColor: category.color }}
+                  >
                     <IconComponent className="w-4 h-4 text-white" />
                   </div>
                   <span className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors text-sm">
@@ -114,7 +147,7 @@ export default function CategoriesList({
         </div>
 
         {/* View All Categories */}
-        {CATEGORIES.length > maxCategories && (
+        {categories.length > maxCategories && (
           <div className="mt-4 pt-4 border-t border-gray-200">
             <button
               onClick={() => router.push('/categories')}
