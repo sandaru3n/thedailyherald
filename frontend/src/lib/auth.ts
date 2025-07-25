@@ -59,7 +59,8 @@ export const apiCall = async (
     ...options,
   };
 
-  const response = await fetch(`http://localhost:5000/api${endpoint}`, config);
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const response = await fetch(`${apiBaseUrl}/api${endpoint}`, config);
   
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Network error' }));
