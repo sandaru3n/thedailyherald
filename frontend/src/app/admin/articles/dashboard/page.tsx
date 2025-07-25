@@ -140,7 +140,7 @@ export default function AdminDashboard() {
                       </h4>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="secondary" className="text-xs">
-                          {article.category}
+                          {typeof article.category === 'string' ? article.category : article.category.name}
                         </Badge>
                         {article.isFeatured && (
                           <Badge className="text-xs bg-yellow-100 text-yellow-800">
