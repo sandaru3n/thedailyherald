@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { 
   Save, 
   Eye, 
@@ -9,7 +9,8 @@ import {
   Tag, 
   Settings,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,9 +27,26 @@ interface Category {
   color: string;
 }
 
-export default function NewArticlePage() {
+interface Article {
+  _id: string;
+  title: string;
+  content: string;
+  excerpt: string;
+  category: string;
+  tags: string[];
+  featuredImage: string;
+  isFeatured: boolean;
+  isBreaking: boolean;
+  status: 'draft' | 'published' | 'archived';
+  seoTitle: string;
+  seoDescription: string;
+  metaKeywords: string[];
+}
+
+export default function EditArticlePage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const params = useParams();
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState('');
@@ -43,15 +61,49 @@ export default function NewArticlePage() {
     featuredImage: '',
     isFeatured: false,
     isBreaking: false,
-    status: 'draft',
+    status: 'draft' as 'draft' | 'published' | 'archived',
     seoTitle: '',
     seoDescription: '',
     metaKeywords: ''
   });
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    if (params.id) {
+      fetchArticle();
+      fetchCategories();
+    }
+  }, [params.id]);
+
+  const fetchArticle = async () => {
+    try {
+      setLoading(true);
+      const response = await apiCall(`/articles/${params.id}`);
+      if (response.success && response.article) {
+        const article = response.article;
+        setFormData({
+          title: article.title || '',
+          content: article.content || '',
+          excerpt: article.excerpt || '',
+          category: article.category?._id || article.category || '',
+          tags: Array.isArray(article.tags) ? article.tags.join(', ') : '',
+          featuredImage: article.featuredImage || '',
+          isFeatured: article.isFeatured || false,
+          isBreaking: article.isBreaking || false,
+          status: article.status || 'draft',
+          seoTitle: article.seoTitle || '',
+          seoDescription: article.seoDescription || '',
+          metaKeywords: Array.isArray(article.metaKeywords) ? article.metaKeywords.join(', ') : ''
+        });
+      } else {
+        setError('Article not found');
+      }
+    } catch (error) {
+      console.error('Error fetching article:', error);
+      setError('Failed to load article');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -114,17 +166,21 @@ export default function NewArticlePage() {
         metaKeywords: formData.metaKeywords.split(',').map(keyword => keyword.trim()).filter(keyword => keyword)
       };
 
-      const response = await apiCall('/articles', {
-        method: 'POST',
+      const response = await apiCall(`/articles/${params.id}`, {
+        method: 'PUT',
         body: JSON.stringify(articleData)
       });
 
-      setSuccess(publish ? 'Article published successfully!' : 'Article saved as draft!');
-      
-      // Redirect to articles list after a short delay
-      setTimeout(() => {
-        router.push('/admin/articles');
-      }, 2000);
+      if (response.success) {
+        setSuccess(publish ? 'Article published successfully!' : 'Article updated successfully!');
+        
+        // Redirect to articles list after a short delay
+        setTimeout(() => {
+          router.push('/admin/articles');
+        }, 2000);
+      } else {
+        throw new Error(response.error || 'Failed to update article');
+      }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -139,15 +195,66 @@ export default function NewArticlePage() {
     window.open('/admin/articles/preview', '_blank');
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Edit Article</h1>
+            <p className="text-gray-600 mt-1">Loading article...</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-32 bg-gray-200 rounded"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Edit Article</h1>
+            <p className="text-gray-600 mt-1">Error loading article</p>
+          </div>
+        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+        <Button onClick={() => router.push('/admin/articles')}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Articles
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">New Article</h1>
-          <p className="text-gray-600 mt-1">Create a new news article</p>
+          <h1 className="text-3xl font-bold text-gray-900">Edit Article</h1>
+          <p className="text-gray-600 mt-1">Update your news article</p>
         </div>
         <div className="flex space-x-3">
+          <Button variant="outline" onClick={() => router.push('/admin/articles')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
           <Button variant="outline" onClick={handlePreview}>
             <Eye className="h-4 w-4 mr-2" />
             Preview
@@ -158,7 +265,7 @@ export default function NewArticlePage() {
             disabled={saving}
           >
             <Save className="h-4 w-4 mr-2" />
-            {saving ? 'Saving...' : 'Save Draft'}
+            {saving ? 'Saving...' : 'Save Changes'}
           </Button>
           <Button 
             onClick={() => handleSave(true)}
@@ -268,6 +375,7 @@ export default function NewArticlePage() {
                 >
                   <option value="draft">Draft</option>
                   <option value="published">Published</option>
+                  <option value="archived">Archived</option>
                 </select>
               </div>
 
@@ -394,4 +502,4 @@ export default function NewArticlePage() {
       </div>
     </div>
   );
-}
+} 

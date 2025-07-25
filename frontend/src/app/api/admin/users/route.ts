@@ -4,26 +4,33 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const queryString = searchParams.toString();
+    const authHeader = request.headers.get('authorization');
     
-    const response = await fetch(`${API_BASE_URL}/api/articles?${queryString}`, {
+    if (!authHeader) {
+      return NextResponse.json(
+        { success: false, error: 'Authorization header required' },
+        { status: 401 }
+      );
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': authHeader,
       },
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch articles');
+      throw new Error('Failed to fetch users');
     }
 
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Articles GET API error:', error);
+    console.error('Admin users GET API error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch articles' },
+      { success: false, error: 'Failed to fetch users' },
       { status: 500 }
     );
   }
@@ -41,7 +48,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/articles`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -52,15 +59,15 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to create article');
+      throw new Error(errorData.error || 'Failed to create user');
     }
 
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Articles POST API error:', error);
+    console.error('Admin users POST API error:', error);
     return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Failed to create article' },
+      { success: false, error: error instanceof Error ? error.message : 'Failed to create user' },
       { status: 500 }
     );
   }

@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -56,10 +57,13 @@ export default function AdminArticlesPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const fetchArticles = useCallback(async () => {
     try {
       setLoading(true);
+      setError('');
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: '10',
@@ -74,11 +78,16 @@ export default function AdminArticlesPage() {
         params.append('search', searchTerm);
       }
 
-      const data = await apiCall(`/articles?${params.toString()}`) as { docs: Article[]; totalPages: number };
-      setArticles(data.docs || []);
-      setTotalPages(data.totalPages || 1);
+      const response = await apiCall(`/articles?${params.toString()}`);
+      if (response.success) {
+        setArticles(response.docs || []);
+        setTotalPages(response.totalPages || 1);
+      } else {
+        throw new Error('Failed to fetch articles');
+      }
     } catch (error) {
       console.error('Error fetching articles:', error);
+      setError('Failed to load articles');
     } finally {
       setLoading(false);
     }
@@ -96,26 +105,40 @@ export default function AdminArticlesPage() {
 
   const handleStatusChange = async (articleId: string, newStatus: string) => {
     try {
-      await apiCall(`/articles/${articleId}/status`, {
+      setError('');
+      const response = await apiCall(`/articles/${articleId}`, {
         method: 'PUT',
         body: JSON.stringify({ status: newStatus })
       });
-      fetchArticles(); // Refresh the list
+      if (response.success) {
+        setSuccess(`Article ${newStatus} successfully!`);
+        fetchArticles(); // Refresh the list
+      } else {
+        throw new Error(response.error || 'Failed to update article status');
+      }
     } catch (error) {
       console.error('Error updating article status:', error);
+      setError(error instanceof Error ? error.message : 'Failed to update article status');
     }
   };
 
   const handleDelete = async (articleId: string) => {
-    if (!confirm('Are you sure you want to delete this article?')) return;
+    if (!confirm('Are you sure you want to delete this article? This action cannot be undone.')) return;
     
     try {
-      await apiCall(`/articles/${articleId}`, {
+      setError('');
+      const response = await apiCall(`/articles/${articleId}`, {
         method: 'DELETE'
       });
-      fetchArticles(); // Refresh the list
+      if (response.success) {
+        setSuccess('Article deleted successfully!');
+        fetchArticles(); // Refresh the list
+      } else {
+        throw new Error(response.error || 'Failed to delete article');
+      }
     } catch (error) {
       console.error('Error deleting article:', error);
+      setError(error instanceof Error ? error.message : 'Failed to delete article');
     }
   };
 
@@ -155,6 +178,18 @@ export default function AdminArticlesPage() {
           </Link>
         </Button>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {success && (
+        <Alert>
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
 
       {/* Filters and Search */}
       <Card>
@@ -232,8 +267,8 @@ export default function AdminArticlesPage() {
                         <span>{article.category?.name}</span>
                       </span>
                       <span>by {article.author?.name}</span>
-                      <span>{article.views} views</span>
-                      <span>{article.readTime} min read</span>
+                      <span>{article.views || 0} views</span>
+                      <span>{article.readTime || 5} min read</span>
                       {article.publishedAt && (
                         <span>{formatDate(article.publishedAt)}</span>
                       )}
@@ -251,7 +286,7 @@ export default function AdminArticlesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/article/${article.slug}`} className="flex items-center">
+                          <Link href={`/article/${article._id}`} className="flex items-center">
                             <Eye className="h-4 w-4 mr-2" />
                             View
                           </Link>

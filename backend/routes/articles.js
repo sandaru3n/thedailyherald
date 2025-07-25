@@ -201,6 +201,11 @@ router.post('/', auth, requireRole(['admin', 'editor']), async (req, res) => {
       metaKeywords: metaKeywords || []
     });
 
+    // Ensure slug is generated
+    if (!article.slug) {
+      article.slug = await Article.generateUniqueSlug(article.title);
+    }
+
     await article.save();
 
     // Increment category article count
@@ -275,11 +280,17 @@ router.put('/:id', auth, requireRole(['admin', 'editor']), async (req, res) => {
     if (seoDescription) updates.seoDescription = seoDescription;
     if (metaKeywords) updates.metaKeywords = metaKeywords;
 
-    const updatedArticle = await Article.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      { new: true, runValidators: true }
-    ).populate('category', 'name color').populate('author', 'name');
+    // Apply updates to the article document
+    Object.assign(article, updates);
+
+    // Ensure slug is regenerated if title changed
+    if (title && title !== article.title) {
+      article.slug = await Article.generateUniqueSlug(title, article._id);
+    }
+
+    const updatedArticle = await article.save();
+    await updatedArticle.populate('category', 'name color');
+    await updatedArticle.populate('author', 'name');
 
     // Update category article counts if category changed
     if (oldCategoryId && newCategoryId && oldCategoryId.toString() !== newCategoryId) {

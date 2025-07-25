@@ -16,6 +16,13 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
+    
+    // Return just the categories array if the response has success: true
+    if (data.success && data.categories) {
+      return NextResponse.json(data.categories);
+    }
+    
+    // Fallback to returning the full response if structure is different
     return NextResponse.json(data);
   } catch (error) {
     console.error('Categories API error:', error);

@@ -84,13 +84,11 @@ const articleSchema = new mongoose.Schema({
 });
 
 // Generate slug from title before saving
-articleSchema.pre('save', function(next) {
-  if (!this.isModified('title')) return next();
-  
-  this.slug = this.title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+articleSchema.pre('save', async function(next) {
+  // Generate slug if it doesn't exist or if title is modified
+  if (!this.slug || this.isModified('title')) {
+    this.slug = await this.constructor.generateUniqueSlug(this.title, this._id);
+  }
   
   // Generate excerpt if not provided
   if (!this.excerpt && this.content) {
@@ -114,6 +112,30 @@ articleSchema.pre('save', function(next) {
   
   next();
 });
+
+// Static method to generate unique slug
+articleSchema.statics.generateUniqueSlug = async function(title, excludeId = null) {
+  let baseSlug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+  
+  let slug = baseSlug;
+  let counter = 1;
+  
+  // Check if slug exists
+  const query = { slug };
+  if (excludeId) {
+    query._id = { $ne: excludeId };
+  }
+  
+  while (await this.findOne(query)) {
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+  
+  return slug;
+};
 
 // Virtual for URL
 articleSchema.virtual('url').get(function() {

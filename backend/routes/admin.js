@@ -306,6 +306,165 @@ router.delete('/admins/:id', auth, requireRole(['admin']), async (req, res) => {
   }
 });
 
+// @route   GET /api/admin/users
+// @desc    Get all admin users
+// @access  Private (Admin only)
+router.get('/users', auth, requireRole(['admin']), async (req, res) => {
+  try {
+    const users = await Admin.find()
+      .select('-password')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      users
+    });
+
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({
+      error: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/admin/users
+// @desc    Create new admin user
+// @access  Private (Admin only)
+router.post('/users', auth, requireRole(['admin']), async (req, res) => {
+  try {
+    const { name, email, password, role = 'editor', isActive = true } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        error: 'Name, email, and password are required'
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await Admin.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({
+        error: 'User with this email already exists'
+      });
+    }
+
+    const user = new Admin({
+      name,
+      email: email.toLowerCase(),
+      password,
+      role,
+      isActive
+    });
+
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'User created successfully',
+      user: user.toPublicJSON()
+    });
+
+  } catch (error) {
+    console.error('Create user error:', error);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        error: 'User with this email already exists'
+      });
+    }
+    res.status(500).json({
+      error: 'Server error'
+    });
+  }
+});
+
+// @route   PUT /api/admin/users/:id
+// @desc    Update admin user
+// @access  Private (Admin only)
+router.put('/users/:id', auth, requireRole(['admin']), async (req, res) => {
+  try {
+    const { name, email, password, role, isActive } = req.body;
+
+    const user = await Admin.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({
+        error: 'User not found'
+      });
+    }
+
+    // Prevent admin from deactivating themselves
+    if (req.params.id === req.admin._id.toString() && isActive === false) {
+      return res.status(400).json({
+        error: 'Cannot deactivate your own account'
+      });
+    }
+
+    const updates = {};
+    if (name) updates.name = name;
+    if (email) updates.email = email.toLowerCase();
+    if (password) updates.password = password;
+    if (role) updates.role = role;
+    if (isActive !== undefined) updates.isActive = isActive;
+
+    const updatedUser = await Admin.findByIdAndUpdate(
+      req.params.id,
+      updates,
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    res.json({
+      success: true,
+      message: 'User updated successfully',
+      user: updatedUser
+    });
+
+  } catch (error) {
+    console.error('Update user error:', error);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        error: 'Email already exists'
+      });
+    }
+    res.status(500).json({
+      error: 'Server error'
+    });
+  }
+});
+
+// @route   DELETE /api/admin/users/:id
+// @desc    Delete admin user
+// @access  Private (Admin only)
+router.delete('/users/:id', auth, requireRole(['admin']), async (req, res) => {
+  try {
+    // Prevent admin from deleting themselves
+    if (req.params.id === req.admin._id.toString()) {
+      return res.status(400).json({
+        error: 'Cannot delete your own account'
+      });
+    }
+
+    const user = await Admin.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({
+        error: 'User not found'
+      });
+    }
+
+    await Admin.findByIdAndDelete(req.params.id);
+
+    res.json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      error: 'Server error'
+    });
+  }
+});
+
 // @route   GET /api/admin/analytics
 // @desc    Get analytics data
 // @access  Private (Admin only)

@@ -57,8 +57,13 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const data = await apiCall('/admin/users');
-      setUsers(data as AdminUser[]);
+      setError('');
+      const response = await apiCall('/admin/users');
+      if (response.success) {
+        setUsers(response.users || []);
+      } else {
+        throw new Error('Failed to fetch users');
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
       setError('Failed to load users');
@@ -100,17 +105,25 @@ export default function AdminUsersPage() {
       }
 
       if (editingUser) {
-        await apiCall(`/admin/users/${editingUser._id}`, {
+        const response = await apiCall(`/admin/users/${editingUser._id}`, {
           method: 'PUT',
           body: JSON.stringify(userData)
         });
-        setSuccess('User updated successfully!');
+        if (response.success) {
+          setSuccess('User updated successfully!');
+        } else {
+          throw new Error(response.error || 'Failed to update user');
+        }
       } else {
-        await apiCall('/admin/users', {
+        const response = await apiCall('/admin/users', {
           method: 'POST',
           body: JSON.stringify(userData)
         });
-        setSuccess('User created successfully!');
+        if (response.success) {
+          setSuccess('User created successfully!');
+        } else {
+          throw new Error(response.error || 'Failed to create user');
+        }
       }
 
       resetForm();
@@ -138,11 +151,16 @@ export default function AdminUsersPage() {
     }
 
     try {
-      await apiCall(`/admin/users/${userId}`, {
+      setError('');
+      const response = await apiCall(`/admin/users/${userId}`, {
         method: 'DELETE'
       });
-      setSuccess('User deleted successfully!');
-      fetchUsers();
+      if (response.success) {
+        setSuccess('User deleted successfully!');
+        fetchUsers();
+      } else {
+        throw new Error(response.error || 'Failed to delete user');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete user');
     }
@@ -150,11 +168,16 @@ export default function AdminUsersPage() {
 
   const handleToggleActive = async (userId: string, currentStatus: boolean) => {
     try {
-      await apiCall(`/admin/users/${userId}`, {
+      setError('');
+      const response = await apiCall(`/admin/users/${userId}`, {
         method: 'PUT',
         body: JSON.stringify({ isActive: !currentStatus })
       });
-      fetchUsers();
+      if (response.success) {
+        fetchUsers();
+      } else {
+        throw new Error(response.error || 'Failed to update user');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update user');
     }
@@ -232,6 +255,7 @@ export default function AdminUsersPage() {
                     onChange={handleInputChange}
                     placeholder="Enter full name"
                     className="mt-1"
+                    required
                   />
                 </div>
 
@@ -245,6 +269,7 @@ export default function AdminUsersPage() {
                     onChange={handleInputChange}
                     placeholder="Enter email address"
                     className="mt-1"
+                    required
                   />
                 </div>
               </div>
@@ -262,6 +287,7 @@ export default function AdminUsersPage() {
                     onChange={handleInputChange}
                     placeholder={editingUser ? "Leave blank to keep current" : "Enter password"}
                     className="mt-1"
+                    required={!editingUser}
                   />
                   {editingUser && (
                     <p className="text-xs text-gray-500 mt-1">
@@ -378,6 +404,7 @@ export default function AdminUsersPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleToggleActive(user._id, user.isActive)}
+                      title={user.isActive ? 'Deactivate user' : 'Activate user'}
                     >
                       {user.isActive ? (
                         <EyeOff className="h-4 w-4" />
@@ -390,6 +417,7 @@ export default function AdminUsersPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleEdit(user)}
+                      title="Edit user"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -399,6 +427,7 @@ export default function AdminUsersPage() {
                       size="sm"
                       onClick={() => handleDelete(user._id)}
                       className="text-red-600 hover:text-red-700"
+                      title="Delete user"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
