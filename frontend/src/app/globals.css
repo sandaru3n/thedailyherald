@@ -233,3 +233,130 @@
     text-wrap: balance;
   }
 }
+
+/* Article-specific styles */
+@layer components {
+  .article-content {
+    @apply text-gray-800 leading-relaxed;
+  }
+
+  .article-content h1,
+  .article-content h2,
+  .article-content h3,
+  .article-content h4,
+  .article-content h5,
+  .article-content h6 {
+    @apply font-bold text-gray-900 mb-4 mt-8;
+  }
+
+  .article-content h1 {
+    @apply text-3xl;
+  }
+
+  .article-content h2 {
+    @apply text-2xl;
+  }
+
+  .article-content h3 {
+    @apply text-xl;
+  }
+
+  .article-content h4 {
+    @apply text-lg;
+  }
+
+  .article-content p {
+    @apply mb-6 leading-7;
+  }
+
+  .article-content ul,
+  .article-content ol {
+    @apply mb-6 pl-6;
+  }
+
+  .article-content li {
+    @apply mb-2;
+  }
+
+  .article-content blockquote {
+    @apply border-l-4 border-blue-500 pl-6 py-4 my-8 bg-blue-50 italic text-gray-700;
+  }
+
+  .article-content img {
+    @apply rounded-lg shadow-md my-8 max-w-full h-auto;
+  }
+
+  .article-content a {
+    @apply text-blue-600 hover:text-blue-800 underline;
+  }
+
+  .article-content strong {
+    @apply font-semibold;
+  }
+
+  .article-content em {
+    @apply italic;
+  }
+
+  .article-content code {
+    @apply bg-gray-100 px-2 py-1 rounded text-sm font-mono;
+  }
+
+  .article-content pre {
+    @apply bg-gray-900 text-white p-4 rounded-lg overflow-x-auto my-6;
+  }
+
+  .article-content pre code {
+    @apply bg-transparent p-0 text-white;
+  }
+
+  /* Floating elements */
+  .floating-share {
+    @apply fixed bottom-6 right-6 z-40;
+  }
+
+  .reading-progress {
+    @apply fixed top-0 left-0 w-full h-1 z-50;
+  }
+
+  /* Responsive typography */
+  @media (max-width: 768px) {
+    .article-content h1 {
+      @apply text-2xl;
+    }
+
+    .article-content h2 {
+      @apply text-xl;
+    }
+
+    .article-content h3 {
+      @apply text-lg;
+    }
+
+    .article-content p {
+      @apply text-base leading-6;
+    }
+  }
+
+  /* Dark mode support */
+  .dark .article-content {
+    @apply text-gray-200;
+  }
+
+  .dark .article-content h1,
+  .dark .article-content h2,
+  .dark .article-content h3,
+  .dark .article-content h4,
+  .dark .article-content h5,
+  .dark .article-content h6 {
+    @apply text-gray-100;
+  }
+
+  .dark .article-content blockquote {
+    @apply bg-gray-800 border-blue-400 text-gray-300;
+  }
+
+  .dark .article-content code {
+    @apply bg-gray-800 text-gray-200;
+  }
+}

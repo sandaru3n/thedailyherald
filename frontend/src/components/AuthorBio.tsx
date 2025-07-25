@@ -1,127 +1,145 @@
+'use client';
+
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, Twitter, Linkedin, Mail, Globe } from 'lucide-react';
-import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { 
+  User, 
+  Twitter, 
+  Linkedin, 
+  Globe, 
+  Mail,
+  Calendar,
+  MapPin
+} from 'lucide-react';
 
 interface AuthorBioProps {
-  author: string;
-  bio?: string;
-  avatar?: string;
-  expertise?: string[];
-  social?: {
+  author: {
+    name: string;
+    bio?: string;
+    avatar?: string;
     twitter?: string;
     linkedin?: string;
-    email?: string;
     website?: string;
+    email?: string;
+    location?: string;
+    joinedDate?: string;
+    articlesCount?: number;
   };
-  articleCount?: number;
+  category?: string;
 }
 
-export default function AuthorBio({
-  author,
-  bio,
-  avatar,
-  expertise = [],
-  social = {},
-  articleCount = 0
-}: AuthorBioProps) {
-  const defaultBio = `${author} is a senior reporter at The Daily Herald with extensive experience covering breaking news and in-depth analysis. Known for delivering accurate and timely reporting on complex issues.`;
-
-  const defaultExpertise = ['Politics', 'Breaking News', 'Investigative Journalism'];
+export default function AuthorBio({ author, category }: AuthorBioProps) {
+  const {
+    name,
+    bio = `Experienced journalist covering ${category?.toLowerCase() || 'news'} and trends.`,
+    avatar,
+    twitter,
+    linkedin,
+    website,
+    email,
+    location,
+    joinedDate,
+    articlesCount
+  } = author;
 
   return (
-    <Card className="border-2 border-gray-100">
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex items-start gap-3 sm:gap-4">
+    <Card className="bg-gradient-to-br from-gray-50 to-white border-0 shadow-sm">
+      <CardContent className="p-6">
+        <div className="flex items-start gap-4">
           {/* Author Avatar */}
-          <div className="flex-shrink-0">
+          <div className="relative">
             {avatar ? (
-              <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden">
-                <Image
-                  src={avatar}
-                  alt={author}
-                  fill
-                  className="object-cover"
-                />
-              </div>
+              <img
+                src={avatar}
+                alt={name}
+                className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md"
+              />
             ) : (
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-600 rounded-full flex items-center justify-center">
-                <User className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                <User className="w-8 h-8 text-white" />
               </div>
             )}
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
           </div>
 
           {/* Author Info */}
           <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900">{author}</h3>
-              <div className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-0">
-                {articleCount > 0 && `${articleCount} articles`}
-              </div>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900">{name}</h3>
+              <Badge variant="secondary" className="text-xs">
+                Author
+              </Badge>
             </div>
-
-            <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mb-2 sm:mb-3">
-              {bio || defaultBio}
+            
+            <p className="text-gray-600 text-sm leading-relaxed mb-3">
+              {bio}
             </p>
 
-            {/* Expertise */}
-            <div className="mb-3 sm:mb-4">
-              <p className="text-xs font-semibold text-gray-700 mb-1.5 sm:mb-2">Expertise:</p>
-              <div className="flex flex-wrap gap-1">
-                {(expertise.length > 0 ? expertise : defaultExpertise).map((skill) => (
-                  <Badge key={skill} variant="secondary" className="text-xs">
-                    {skill}
-                  </Badge>
-                ))}
-              </div>
+            {/* Author Stats */}
+            <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 mb-4">
+              {location && (
+                <div className="flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  <span>{location}</span>
+                </div>
+              )}
+              {joinedDate && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  <span>Joined {new Date(joinedDate).getFullYear()}</span>
+                </div>
+              )}
+              {articlesCount && (
+                <div className="flex items-center gap-1">
+                  <span>{articlesCount} articles</span>
+                </div>
+              )}
             </div>
 
             {/* Social Links */}
-            {(social.twitter || social.linkedin || social.email || social.website) && (
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                {social.twitter && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(`https://twitter.com/${social.twitter}`, '_blank')}
-                    className="p-1.5 sm:p-2"
-                  >
-                    <Twitter className="h-3 w-3" />
-                  </Button>
-                )}
-                {social.linkedin && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(social.linkedin, '_blank')}
-                    className="p-1.5 sm:p-2"
-                  >
-                    <Linkedin className="h-3 w-3" />
-                  </Button>
-                )}
-                {social.email && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(`mailto:${social.email}`, '_blank')}
-                    className="p-1.5 sm:p-2"
-                  >
-                    <Mail className="h-3 w-3" />
-                  </Button>
-                )}
-                {social.website && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(social.website, '_blank')}
-                    className="p-1.5 sm:p-2"
-                  >
-                    <Globe className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {twitter && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.open(twitter, '_blank')}
+                  className="w-8 h-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+                >
+                  <Twitter className="w-4 h-4" />
+                </Button>
+              )}
+              {linkedin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.open(linkedin, '_blank')}
+                  className="w-8 h-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+                >
+                  <Linkedin className="w-4 h-4" />
+                </Button>
+              )}
+              {website && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.open(website, '_blank')}
+                  className="w-8 h-8 p-0 hover:bg-gray-50"
+                >
+                  <Globe className="w-4 h-4" />
+                </Button>
+              )}
+              {email && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.open(`mailto:${email}`, '_blank')}
+                  className="w-8 h-8 p-0 hover:bg-gray-50"
+                >
+                  <Mail className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>
