@@ -31,6 +31,7 @@ import {
   ArrowLeft,
   ExternalLink
 } from 'lucide-react';
+import ScrollToTop from '@/components/ScrollToTop';
 
 export default function ArticlePage() {
   const params = useParams();
@@ -171,6 +172,7 @@ export default function ArticlePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ScrollToTop />
       <ReadingProgress />
       <FloatingShare 
         title={article.title}
@@ -178,7 +180,6 @@ export default function ArticlePage() {
         excerpt={article.excerpt}
       />
       <Header />
-      
       <main className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <nav className="mb-6">
@@ -204,7 +205,6 @@ export default function ArticlePage() {
             <li className="text-gray-900 font-medium truncate">{article.title}</li>
           </ol>
         </nav>
-
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Main Article Content */}
           <article className="lg:col-span-8">
@@ -217,14 +217,12 @@ export default function ArticlePage() {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                
                 {/* Category Badge */}
                 <div className="absolute top-4 left-4">
                   <Badge variant="secondary" className="bg-white/90 text-gray-900 hover:bg-white">
                     {categoryName}
                   </Badge>
                 </div>
-
                 {/* Bookmark Button */}
                 <Button
                   variant="ghost"
@@ -235,18 +233,15 @@ export default function ArticlePage() {
                   <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
                 </Button>
               </div>
-
               <CardContent className="p-6 lg:p-8">
                 {/* Article Header */}
                 <header className="mb-8">
                   <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight mb-4">
                     {article.title}
                   </h1>
-                  
                   <p className="text-xl text-gray-600 leading-relaxed mb-6">
                     {article.excerpt}
                   </p>
-
                   {/* Article Meta */}
                   <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
                     <div className="flex items-center gap-2">
@@ -268,7 +263,6 @@ export default function ArticlePage() {
                       </div>
                     )}
                   </div>
-
                   {/* Social Share */}
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-gray-700">Share:</span>
@@ -306,16 +300,13 @@ export default function ArticlePage() {
                     </Button>
                   </div>
                 </header>
-
                 <Separator className="my-8" />
-
                 {/* Article Content */}
                 <div className="article-content">
                   <div 
                     dangerouslySetInnerHTML={{ __html: article.content }}
                   />
                 </div>
-
                 {/* Tags */}
                 {article.tags && article.tags.length > 0 && (
                   <div className="mt-8">
@@ -329,9 +320,7 @@ export default function ArticlePage() {
                     </div>
                   </div>
                 )}
-
                 <Separator className="my-8" />
-
                 {/* Author Bio */}
                 <AuthorBio 
                   author={{
@@ -345,22 +334,17 @@ export default function ArticlePage() {
                 />
               </CardContent>
             </Card>
-
             {/* Comments Section */}
             <CommentsSection articleId={article._id || article.id || ''} />
           </article>
-
           {/* Sidebar */}
           <aside className="lg:col-span-4 space-y-6">
             {/* Table of Contents */}
             <TableOfContents content={article.content} />
-            
             {/* Newsletter Signup */}
             <NewsletterSignup />
-
             {/* Related Articles */}
             <RelatedArticles articles={relatedArticles} />
-
             {/* Ad Space */}
             <Card>
               <CardContent className="p-6">
@@ -372,13 +356,11 @@ export default function ArticlePage() {
                 </div>
               </CardContent>
             </Card>
-
             {/* Popular Categories */}
             <CategoriesList />
           </aside>
         </div>
       </main>
-
       <Footer />
     </div>
   );

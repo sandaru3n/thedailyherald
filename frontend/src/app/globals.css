@@ -283,9 +283,15 @@
   }
 
   .article-content img {
-    @apply rounded-lg shadow-md my-8 max-w-full h-auto;
+    @apply rounded-lg shadow-md my-8 max-w-full h-auto transition-transform duration-300;
   }
-
+  .article-content img:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  }
+  .article-content p:first-of-type::first-letter {
+    @apply text-5xl font-bold text-blue-600 float-left mr-2 leading-none;
+  }
   .article-content a {
     @apply text-blue-600 hover:text-blue-800 underline;
   }
@@ -316,7 +322,8 @@
   }
 
   .reading-progress {
-    @apply fixed top-0 left-0 w-full h-1 z-50;
+    @apply fixed top-0 left-0 w-full h-1 z-50 transition-colors duration-500;
+    background: linear-gradient(90deg, #2563eb 0%, #22c55e 100%);
   }
 
   /* Responsive typography */
