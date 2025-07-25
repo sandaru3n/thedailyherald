@@ -32,6 +32,8 @@ interface AdminUser {
   updatedAt: string;
 }
 
+type UserFormData = Omit<AdminUser, '_id' | 'createdAt' | 'updatedAt' | 'lastLogin'> & { password?: string };
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,7 +94,7 @@ export default function AdminUsersPage() {
       setError('');
       setSuccess('');
 
-      const userData = { ...formData } as { [key: string]: any };
+      const userData: UserFormData = { ...formData };
       if (editingUser && !userData.password) {
         delete userData.password;
       }
