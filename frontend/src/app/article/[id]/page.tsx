@@ -207,7 +207,7 @@ export default function ArticlePage() {
         </nav>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Main Article Content */}
-          <article className="lg:col-span-9">
+          <article className="lg:col-span-8">
             <Card className="overflow-hidden shadow-lg rounded-2xl">
               <div className="p-6 lg:p-10">
                 <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{article.title}</h1>
@@ -298,21 +298,29 @@ export default function ArticlePage() {
             </div>
           </article>
           {/* Sidebar */}
-          <aside className="lg:col-span-3 space-y-6">
+          <aside className="lg:col-span-4 space-y-6">
             <TableOfContents content={article.content} />
-            <NewsletterSignup />
-            <RelatedArticles articles={relatedArticles} />
-            <Card>
-              <CardContent className="p-6">
-                <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
-                  <div className="text-center text-gray-500">
-                    <ExternalLink className="w-8 h-8 mx-auto mb-2" />
-                    <p className="text-sm">Advertisement Space</p>
+            <div className="w-full">
+              <NewsletterSignup />
+            </div>
+            <div className="w-full">
+              <RelatedArticles articles={relatedArticles} />
+            </div>
+            <div className="w-full">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
+                    <div className="text-center text-gray-500">
+                      <ExternalLink className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">Advertisement Space</p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-            <CategoriesList />
+                </CardContent>
+              </Card>
+            </div>
+            <div className="w-full">
+              <CategoriesList />
+            </div>
           </aside>
         </div>
       </main>

@@ -78,7 +78,7 @@ export default function CategoriesList({
     <Card>
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <h3 className="text-base font-semibold text-gray-900">{title}</h3>
           <Badge variant="outline" className="text-xs">
             {CATEGORIES.length} categories
           </Badge>
@@ -98,7 +98,7 @@ export default function CategoriesList({
                   <div className={`w-8 h-8 ${category.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}>
                     <IconComponent className="w-4 h-4 text-white" />
                   </div>
-                  <span className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+                  <span className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors text-sm">
                     {category.name}
                   </span>
                 </div>
@@ -118,7 +118,7 @@ export default function CategoriesList({
           <div className="mt-4 pt-4 border-t border-gray-200">
             <button
               onClick={() => router.push('/categories')}
-              className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+              className="w-full text-center text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
             >
               View All Categories
             </button>
