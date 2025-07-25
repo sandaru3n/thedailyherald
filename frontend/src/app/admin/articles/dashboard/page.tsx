@@ -152,7 +152,7 @@ export default function AdminDashboard() {
                         <Clock className="h-3 w-3" />
                         <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
                         <span>•</span>
-                        <span>{article.author}</span>
+                        <span>{typeof article.author === 'string' ? article.author : article.author.name}</span>
                       </div>
                     </div>
                     <Button variant="ghost" size="sm" className="ml-4">
