@@ -58,7 +58,7 @@ export default function AdminUsersPage() {
     try {
       setLoading(true);
       setError('');
-      const response = await apiCall('/admin/users');
+      const response = await apiCall('/admin/users') as { success: boolean; users?: AdminUser[] };
       if (response.success) {
         setUsers(response.users || []);
       } else {
@@ -108,7 +108,7 @@ export default function AdminUsersPage() {
         const response = await apiCall(`/admin/users/${editingUser._id}`, {
           method: 'PUT',
           body: JSON.stringify(userData)
-        });
+        }) as { success: boolean; error?: string };
         if (response.success) {
           setSuccess('User updated successfully!');
         } else {
@@ -118,7 +118,7 @@ export default function AdminUsersPage() {
         const response = await apiCall('/admin/users', {
           method: 'POST',
           body: JSON.stringify(userData)
-        });
+        }) as { success: boolean; error?: string };
         if (response.success) {
           setSuccess('User created successfully!');
         } else {
@@ -154,7 +154,7 @@ export default function AdminUsersPage() {
       setError('');
       const response = await apiCall(`/admin/users/${userId}`, {
         method: 'DELETE'
-      });
+      }) as { success: boolean; error?: string };
       if (response.success) {
         setSuccess('User deleted successfully!');
         fetchUsers();
@@ -172,7 +172,7 @@ export default function AdminUsersPage() {
       const response = await apiCall(`/admin/users/${userId}`, {
         method: 'PUT',
         body: JSON.stringify({ isActive: !currentStatus })
-      });
+      }) as { success: boolean; error?: string };
       if (response.success) {
         fetchUsers();
       } else {
