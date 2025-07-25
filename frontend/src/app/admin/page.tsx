@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
         ]);
 
         setStats(statsData as DashboardStats);
-        setRecentArticles(articlesData.docs || []);
+        setRecentArticles((articlesData as { docs: RecentArticle[] }).docs || []);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
