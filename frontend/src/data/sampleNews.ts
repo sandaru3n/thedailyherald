@@ -2,7 +2,9 @@ import { NewsArticle } from '@/types/news';
 
 export const SAMPLE_NEWS: NewsArticle[] = [
   {
+    _id: '1',
     id: '1',
+    slug: 'global-climate-summit-agreement',
     title: 'Global Climate Summit Reaches Historic Agreement on Carbon Reduction',
     content: 'World leaders have reached a groundbreaking agreement at the Global Climate Summit, committing to ambitious carbon reduction targets for the next decade. The agreement includes specific timelines and financial commitments from developed nations to support developing countries in their transition to renewable energy.',
     excerpt: 'World leaders reach historic climate agreement with ambitious carbon reduction targets and financial commitments.',
@@ -15,7 +17,9 @@ export const SAMPLE_NEWS: NewsArticle[] = [
     readTime: 5
   },
   {
+    _id: '2',
     id: '2',
+    slug: 'tech-giants-report-record-profits',
     title: 'Tech Giants Report Record Profits Despite Economic Uncertainty',
     content: 'Major technology companies have reported record-breaking profits in the latest quarter, defying economic headwinds and showing resilience in the face of global uncertainty. The strong performance is attributed to continued demand for digital services and cloud computing.',
     excerpt: 'Technology companies show remarkable resilience with record profits amid global economic challenges.',
@@ -28,7 +32,9 @@ export const SAMPLE_NEWS: NewsArticle[] = [
     readTime: 3
   },
   {
+    _id: '3',
     id: '3',
+    slug: 'olympic-champion-sets-new-world-record',
     title: 'Olympic Champion Sets New World Record in Swimming',
     content: 'In a stunning display of athletic prowess, the defending Olympic champion has shattered the world record in the 100-meter freestyle, setting a new benchmark that many thought impossible. The achievement comes just months before the upcoming World Championships.',
     excerpt: 'Olympic swimming champion breaks world record in spectacular fashion ahead of World Championships.',
@@ -41,7 +47,9 @@ export const SAMPLE_NEWS: NewsArticle[] = [
     readTime: 4
   },
   {
+    _id: '4',
     id: '4',
+    slug: 'new-medical-breakthrough-cancer',
     title: 'New Medical Breakthrough Offers Hope for Cancer Patients',
     content: 'Researchers at leading medical institutions have announced a significant breakthrough in cancer treatment, with a new therapy showing remarkable success rates in clinical trials. The treatment targets specific cancer cells while leaving healthy tissue unharmed.',
     excerpt: 'Groundbreaking cancer therapy shows promising results in clinical trials, offering new hope for patients.',
@@ -54,7 +62,9 @@ export const SAMPLE_NEWS: NewsArticle[] = [
     readTime: 6
   },
   {
+    _id: '5',
     id: '5',
+    slug: 'stock-markets-rally-inflation-cooling',
     title: 'Stock Markets Rally as Inflation Shows Signs of Cooling',
     content: 'Global stock markets have surged following the release of inflation data that shows a significant cooling trend. Investors are optimistic about the economic outlook as central banks may be nearing the end of their aggressive interest rate hikes.',
     excerpt: 'Markets surge on positive inflation data, raising hopes for economic recovery and policy changes.',
@@ -67,7 +77,9 @@ export const SAMPLE_NEWS: NewsArticle[] = [
     readTime: 4
   },
   {
+    _id: '6',
     id: '6',
+    slug: 'hollywood-stars-unite-charity-gala',
     title: 'Hollywood Stars Unite for Charity Gala Supporting Education',
     content: 'A star-studded charity gala brought together Hollywood`s biggest names to raise funds for educational programs in underserved communities. The event raised over $10 million and highlighted the importance of equal access to quality education.',
     excerpt: 'Celebrity charity gala raises millions for education programs, bringing together Hollywood elite for a worthy cause.',
