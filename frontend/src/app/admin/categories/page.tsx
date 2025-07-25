@@ -54,7 +54,7 @@ export default function AdminCategoriesPage() {
     try {
       setLoading(true);
       const data = await apiCall('/categories');
-      setCategories(data);
+      setCategories(data as Category[]);
     } catch (error) {
       console.error('Error fetching categories:', error);
       setError('Failed to load categories');
