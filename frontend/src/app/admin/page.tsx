@@ -53,7 +53,7 @@ export default function AdminDashboardPage() {
         setError(null);
         
         // Fetch stats from the admin stats endpoint
-        const statsResponse = await apiCall('/admin/stats');
+        const statsResponse = await apiCall('/admin/stats') as { success: boolean; [key: string]: any };
         if (statsResponse.success) {
           setStats(statsResponse);
         } else {
@@ -61,7 +61,7 @@ export default function AdminDashboardPage() {
         }
 
         // Fetch recent articles
-        const articlesResponse = await apiCall('/articles?limit=5&sort=-createdAt');
+        const articlesResponse = await apiCall('/articles?limit=5&sort=-createdAt') as { success: boolean; docs?: RecentArticle[] };
         if (articlesResponse.success) {
           setRecentArticles(articlesResponse.docs || []);
         } else {
