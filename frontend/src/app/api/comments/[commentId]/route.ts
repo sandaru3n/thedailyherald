@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { commentId: string } }
+  { params }: { params: Promise<{ commentId: string }> }
 ) {
   try {
+    const { commentId } = await params;
     const authHeader = request.headers.get('authorization');
     
     if (!authHeader) {
@@ -15,7 +16,7 @@ export async function DELETE(
     }
 
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/comments/${params.commentId}`,
+      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/comments/${commentId}`,
       {
         method: 'DELETE',
         headers: {

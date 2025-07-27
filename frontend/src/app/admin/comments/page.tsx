@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MessageCircle, Check, X, Trash2, Eye, Filter, Search, RefreshCw, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -59,12 +59,7 @@ export default function CommentsManagementPage() {
   // Settings
   const [autoApprove, setAutoApprove] = useState(false);
 
-  useEffect(() => {
-    fetchComments();
-    fetchStats();
-  }, [statusFilter, page]);
-
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -99,7 +94,12 @@ export default function CommentsManagementPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, statusFilter, searchTerm]);
+
+  useEffect(() => {
+    fetchComments();
+    fetchStats();
+  }, [fetchComments]);
 
   const fetchStats = async () => {
     try {

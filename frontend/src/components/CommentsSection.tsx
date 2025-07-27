@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MessageCircle, Send, Reply, ThumbsUp, ThumbsDown, Clock, User, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -44,11 +44,7 @@ export default function CommentsSection({ articleId }: CommentsSectionProps) {
     authorEmail: ''
   });
 
-  useEffect(() => {
-    fetchComments();
-  }, [articleId]);
-
-  const fetchComments = async (pageNum = 1) => {
+  const fetchComments = useCallback(async (pageNum = 1) => {
     try {
       setLoading(true);
       const response = await fetch(`/api/comments/article/${articleId}?page=${pageNum}&limit=10`);
@@ -71,7 +67,11 @@ export default function CommentsSection({ articleId }: CommentsSectionProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [articleId]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

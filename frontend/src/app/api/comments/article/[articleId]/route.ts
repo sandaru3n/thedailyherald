@@ -2,15 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { articleId: string } }
+  { params }: { params: Promise<{ articleId: string }> }
 ) {
   try {
+    const { articleId } = await params;
     const { searchParams } = new URL(request.url);
     const page = searchParams.get('page') || '1';
     const limit = searchParams.get('limit') || '10';
 
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/comments/article/${params.articleId}?page=${page}&limit=${limit}`,
+      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/comments/article/${articleId}?page=${page}&limit=${limit}`,
       {
         method: 'GET',
         headers: {

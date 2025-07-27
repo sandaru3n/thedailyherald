@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Mail, Check, X, Trash2, Eye, Filter, RefreshCw, AlertCircle, Reply, Clock, User, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -77,12 +77,7 @@ export default function ContactManagementPage() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
 
-  useEffect(() => {
-    fetchContacts();
-    fetchStats();
-  }, [statusFilter, priorityFilter, page]);
-
-  const fetchContacts = async () => {
+  const fetchContacts = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -118,7 +113,12 @@ export default function ContactManagementPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, statusFilter, priorityFilter, searchTerm]);
+
+  useEffect(() => {
+    fetchContacts();
+    fetchStats();
+  }, [fetchContacts]);
 
   const fetchStats = async () => {
     try {
@@ -138,7 +138,7 @@ export default function ContactManagementPage() {
     }
   };
 
-  const handleStatusUpdate = async (contactId: string, status: string) => {
+  const handleStatusUpdate = async (contactId: string, status: 'unread' | 'read' | 'replied' | 'archived') => {
     try {
       setUpdating(contactId);
       setError(null);
@@ -159,7 +159,7 @@ export default function ContactManagementPage() {
         setContacts(prev => 
           prev.map(contact => 
             contact._id === contactId 
-              ? { ...contact, status: status as any, readBy: data.contact.readBy, readAt: data.contact.readAt }
+              ? { ...contact, status, readBy: data.contact.readBy, readAt: data.contact.readAt }
               : contact
           )
         );

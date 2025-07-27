@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { contactId: string } }
+  { params }: { params: Promise<{ contactId: string }> }
 ) {
   try {
+    const { contactId } = await params;
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return NextResponse.json(
@@ -14,7 +15,7 @@ export async function GET(
     }
 
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/contact/admin/${params.contactId}`,
+      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/contact/admin/${contactId}`,
       {
         method: 'GET',
         headers: {
@@ -45,9 +46,10 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { contactId: string } }
+  { params }: { params: Promise<{ contactId: string }> }
 ) {
   try {
+    const { contactId } = await params;
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return NextResponse.json(
@@ -57,7 +59,7 @@ export async function DELETE(
     }
 
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/contact/admin/${params.contactId}`,
+      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/contact/admin/${contactId}`,
       {
         method: 'DELETE',
         headers: {
