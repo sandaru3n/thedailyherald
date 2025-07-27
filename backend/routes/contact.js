@@ -112,14 +112,6 @@ router.get('/admin/stats', auth, async (req, res) => {
     const totalContacts = await Contact.countDocuments();
     const unreadContacts = await Contact.countDocuments({ status: 'unread' });
 
-    const statsObject = {
-      total: totalContacts,
-      unread: unreadContacts,
-      read: 0,
-      replied: 0,
-      archived: 0
-    };
-
     const priorityObject = {
       low: 0,
       medium: 0,
@@ -127,18 +119,26 @@ router.get('/admin/stats', auth, async (req, res) => {
       urgent: 0
     };
 
+    const statsObject = {
+      total: totalContacts,
+      unread: unreadContacts,
+      read: 0,
+      replied: 0,
+      archived: 0,
+      priority: priorityObject
+    };
+
     stats.forEach(stat => {
       statsObject[stat._id] = stat.count;
     });
 
     priorityStats.forEach(stat => {
-      priorityObject[stat._id] = stat.count;
+      statsObject.priority[stat._id] = stat.count;
     });
 
     res.json({
       success: true,
-      stats: statsObject,
-      priority: priorityObject
+      stats: statsObject
     });
   } catch (error) {
     console.error('Error fetching contact stats:', error);

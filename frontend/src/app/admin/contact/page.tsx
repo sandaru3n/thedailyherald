@@ -346,7 +346,7 @@ export default function ContactManagementPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Messages</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.total || 0}</p>
               </div>
               <Mail className="h-8 w-8 text-gray-400" />
             </div>
@@ -358,7 +358,7 @@ export default function ContactManagementPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Unread</p>
-                <p className="text-2xl font-bold text-red-600">{stats.unread}</p>
+                <p className="text-2xl font-bold text-red-600">{stats?.unread || 0}</p>
               </div>
               <Badge variant="secondary" className="bg-red-100 text-red-800">
                 New
@@ -372,7 +372,7 @@ export default function ContactManagementPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Read</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.read}</p>
+                <p className="text-2xl font-bold text-blue-600">{stats?.read || 0}</p>
               </div>
               <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                 Viewed
@@ -386,7 +386,7 @@ export default function ContactManagementPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Replied</p>
-                <p className="text-2xl font-bold text-green-600">{stats.replied}</p>
+                <p className="text-2xl font-bold text-green-600">{stats?.replied || 0}</p>
               </div>
               <Badge variant="secondary" className="bg-green-100 text-green-800">
                 Done
@@ -400,7 +400,7 @@ export default function ContactManagementPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Urgent</p>
-                <p className="text-2xl font-bold text-orange-600">{stats.priority.urgent}</p>
+                <p className="text-2xl font-bold text-orange-600">{stats?.priority?.urgent || 0}</p>
               </div>
               <Badge variant="secondary" className="bg-orange-100 text-orange-800">
                 Priority

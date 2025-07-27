@@ -258,7 +258,7 @@ export default function CommentsManagementPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Comments</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.total || 0}</p>
               </div>
               <MessageCircle className="h-8 w-8 text-gray-400" />
             </div>
@@ -270,7 +270,7 @@ export default function CommentsManagementPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+                <p className="text-2xl font-bold text-yellow-600">{stats?.pending || 0}</p>
               </div>
               <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
                 Review
@@ -284,7 +284,7 @@ export default function CommentsManagementPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Approved</p>
-                <p className="text-2xl font-bold text-green-600">{stats.approved}</p>
+                <p className="text-2xl font-bold text-green-600">{stats?.approved || 0}</p>
               </div>
               <Badge variant="secondary" className="bg-green-100 text-green-800">
                 Live
@@ -298,7 +298,7 @@ export default function CommentsManagementPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Rejected</p>
-                <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
+                <p className="text-2xl font-bold text-red-600">{stats?.rejected || 0}</p>
               </div>
               <Badge variant="secondary" className="bg-red-100 text-red-800">
                 Blocked
