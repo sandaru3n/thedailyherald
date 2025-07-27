@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { contactId: string } }
+  { params }: { params: Promise<{ contactId: string }> }
 ) {
   try {
+    const { contactId } = await params;
     const body = await request.json();
     const authHeader = request.headers.get('authorization');
     
@@ -16,7 +17,7 @@ export async function POST(
     }
 
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/contact/admin/${params.contactId}/reply`,
+      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/contact/admin/${contactId}/reply`,
       {
         method: 'POST',
         headers: {
