@@ -165,10 +165,13 @@ router.post('/', auth, requireRole(['admin', 'editor']), async (req, res) => {
       featuredImage,
       isFeatured,
       isBreaking,
+      status,
       seoTitle,
       seoDescription,
       metaKeywords
     } = req.body;
+
+    console.log('Received article data:', { title, status, category }); // Debug log
 
     // Validate required fields
     if (!title || !content || !category) {
@@ -196,10 +199,13 @@ router.post('/', auth, requireRole(['admin', 'editor']), async (req, res) => {
       featuredImage,
       isFeatured: isFeatured || false,
       isBreaking: isBreaking || false,
+      status: status || 'draft',
       seoTitle,
       seoDescription,
       metaKeywords: metaKeywords || []
     });
+
+    console.log('Article status before save:', article.status); // Debug log
 
     // Ensure slug is generated
     if (!article.slug) {
@@ -207,6 +213,8 @@ router.post('/', auth, requireRole(['admin', 'editor']), async (req, res) => {
     }
 
     await article.save();
+
+    console.log('Article saved with status:', article.status); // Debug log
 
     // Increment category article count
     await categoryExists.incrementArticleCount();

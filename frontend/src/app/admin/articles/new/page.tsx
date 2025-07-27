@@ -109,17 +109,21 @@ export default function NewArticlePage() {
     try {
       const articleData = {
         ...formData,
-        status: publish ? 'published' : formData.status,
+        // Use the status from the form, or 'published' if publish button is clicked and status is draft
+        status: publish && formData.status === 'draft' ? 'published' : formData.status,
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
         metaKeywords: formData.metaKeywords.split(',').map(keyword => keyword.trim()).filter(keyword => keyword)
       };
+
+      console.log('Sending article data:', articleData); // Debug log
 
       const response = await apiCall('/articles', {
         method: 'POST',
         body: JSON.stringify(articleData)
       });
 
-      setSuccess(publish ? 'Article published successfully!' : 'Article saved as draft!');
+      const isPublished = articleData.status === 'published';
+      setSuccess(isPublished ? 'Article published successfully!' : 'Article saved as draft!');
       
       // Redirect to articles list after a short delay
       setTimeout(() => {
