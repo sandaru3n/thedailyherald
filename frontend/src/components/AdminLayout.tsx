@@ -13,7 +13,9 @@ import {
   LogOut,
   Menu,
   X,
-  User
+  User,
+  MessageCircle,
+  Mail
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getAdminData, logout } from '@/lib/auth';
@@ -28,6 +30,8 @@ const navigation = [
   { name: 'Categories', href: '/admin/categories', icon: FolderOpen },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Navigation', href: '/admin/navigation', icon: Menu },
+  { name: 'Comments', href: '/admin/comments', icon: MessageCircle },
+  { name: 'Contact', href: '/admin/contact', icon: Mail },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];

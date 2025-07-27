@@ -1,304 +1,367 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { MessageCircle, Send, Reply, ThumbsUp, ThumbsDown, Clock, User, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  MessageCircle, 
-  User, 
-  Heart, 
-  Reply, 
-  MoreHorizontal,
-  Send,
-  ThumbsUp,
-  Flag
-} from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Comment {
-  id: string;
-  author: {
-    name: string;
-    avatar?: string;
-  };
+  _id: string;
   content: string;
-  timestamp: string;
+  authorName: string;
+  authorEmail: string;
+  createdAt: string;
   likes: number;
+  dislikes: number;
   replies: Comment[];
-  isLiked?: boolean;
+  replyCount: number;
 }
 
 interface CommentsSectionProps {
   articleId: string;
-  comments?: Comment[];
 }
 
-export default function CommentsSection({ articleId, comments = [] }: CommentsSectionProps) {
-  const [newComment, setNewComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [localComments, setLocalComments] = useState<Comment[]>(comments);
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [replyContent, setReplyContent] = useState('');
+export default function CommentsSection({ articleId }: CommentsSectionProps) {
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  const handleSubmitComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
+  // Form state
+  const [formData, setFormData] = useState({
+    content: '',
+    authorName: '',
+    authorEmail: ''
+  });
 
-    setIsSubmitting(true);
-    
+  useEffect(() => {
+    fetchComments();
+  }, [articleId]);
+
+  const fetchComments = async (pageNum = 1) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const comment: Comment = {
-        id: Date.now().toString(),
-        author: {
-          name: 'Anonymous User',
-        },
-        content: newComment,
-        timestamp: new Date().toISOString(),
-        likes: 0,
-        replies: [],
-        isLiked: false
-      };
+      setLoading(true);
+      const response = await fetch(`/api/comments/article/${articleId}?page=${pageNum}&limit=10`);
+      const data = await response.json();
 
-      setLocalComments(prev => [comment, ...prev]);
-      setNewComment('');
-    } catch (error) {
-      console.error('Error posting comment:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleLike = (commentId: string) => {
-    setLocalComments(prev => 
-      prev.map(comment => {
-        if (comment.id === commentId) {
-          return {
-            ...comment,
-            likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1,
-            isLiked: !comment.isLiked
-          };
+      if (data.success) {
+        if (pageNum === 1) {
+          setComments(data.comments);
+        } else {
+          setComments(prev => [...prev, ...data.comments]);
         }
-        return comment;
-      })
-    );
-  };
-
-  const handleReply = async (commentId: string) => {
-    if (!replyContent.trim()) return;
-
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const reply: Comment = {
-        id: Date.now().toString(),
-        author: {
-          name: 'Anonymous User',
-        },
-        content: replyContent,
-        timestamp: new Date().toISOString(),
-        likes: 0,
-        replies: [],
-        isLiked: false
-      };
-
-      setLocalComments(prev => 
-        prev.map(comment => {
-          if (comment.id === commentId) {
-            return {
-              ...comment,
-              replies: [...comment.replies, reply]
-            };
-          }
-          return comment;
-        })
-      );
-
-      setReplyContent('');
-      setReplyingTo(null);
+        setHasMore(data.pagination.hasMore);
+        setPage(pageNum);
+      } else {
+        setError('Failed to load comments');
+      }
     } catch (error) {
-      console.error('Error posting reply:', error);
+      console.error('Error fetching comments:', error);
+      setError('Failed to load comments');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-    return date.toLocaleDateString();
+    if (!formData.content.trim() || !formData.authorName.trim() || !formData.authorEmail.trim()) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setError(null);
+
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          articleId,
+          parentCommentId: replyTo
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSuccess(data.message);
+        setFormData({ content: '', authorName: '', authorEmail: '' });
+        setShowForm(false);
+        setReplyTo(null);
+        // Refresh comments after a short delay
+        setTimeout(() => {
+          fetchComments(1);
+        }, 1000);
+      } else {
+        setError(data.message || 'Failed to submit comment');
+      }
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      setError('Failed to submit comment. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const CommentItem = ({ comment, isReply = false }: { comment: Comment; isReply?: boolean }) => (
-    <div className={`${isReply ? 'ml-8 border-l-2 border-gray-200 pl-4' : ''}`}>
-      <div className="flex gap-3 mb-3">
-        <div className="flex-shrink-0">
-          {comment.author.avatar ? (
-            <img
-              src={comment.author.avatar}
-              alt={comment.author.name}
-              className="w-8 h-8 rounded-full"
-            />
-          ) : (
-            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-gray-600" />
-            </div>
-          )}
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-medium text-sm text-gray-900">{comment.author.name}</span>
-            <span className="text-xs text-gray-500">{formatTimestamp(comment.timestamp)}</span>
-          </div>
-          
-          <p className="text-sm text-gray-700 mb-2">{comment.content}</p>
-          
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => handleLike(comment.id)}
-              className={`flex items-center gap-1 text-xs transition-colors ${
-                comment.isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
-              }`}
-            >
-              <Heart className={`w-3 h-3 ${comment.isLiked ? 'fill-current' : ''}`} />
-              <span>{comment.likes}</span>
-            </button>
-            
-            <button
-              onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600 transition-colors"
-            >
-              <Reply className="w-3 h-3" />
-              <span>Reply</span>
-            </button>
-            
-            <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors">
-              <Flag className="w-3 h-3" />
-              <span>Report</span>
-            </button>
-          </div>
+  const handleReply = (commentId: string) => {
+    setReplyTo(commentId);
+    setShowForm(true);
+    setFormData({ content: '', authorName: '', authorEmail: '' });
+  };
 
-          {/* Reply Form */}
-          {replyingTo === comment.id && (
-            <div className="mt-3">
-              <Textarea
-                placeholder="Write a reply..."
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                className="mb-2"
-                rows={2}
-              />
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+
+    if (diffInHours < 1) {
+      return 'Just now';
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    }
+  };
+
+  const loadMoreComments = () => {
+    fetchComments(page + 1);
+  };
+
+  return (
+    <div className="mt-8 space-y-6">
+      <div className="flex items-center gap-2">
+        <MessageCircle className="h-5 w-5 text-gray-600" />
+        <h2 className="text-xl font-semibold text-gray-900">
+          Comments ({comments.length})
+        </h2>
+      </div>
+
+      {/* Success/Error Messages */}
+      {success && (
+        <Alert className="border-green-200 bg-green-50">
+          <AlertCircle className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-800">
+            {success}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {error && (
+        <Alert className="border-red-200 bg-red-50">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Comment Form */}
+      {!showForm && (
+        <Button
+          onClick={() => setShowForm(true)}
+          variant="outline"
+          className="w-full"
+        >
+          <MessageCircle className="h-4 w-4 mr-2" />
+          Write a comment
+        </Button>
+      )}
+
+      {showForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">
+              {replyTo ? 'Reply to comment' : 'Write a comment'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="content">Comment</Label>
+                <Textarea
+                  id="content"
+                  value={formData.content}
+                  onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                  placeholder="Share your thoughts..."
+                  rows={4}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="authorName">Name</Label>
+                  <Input
+                    id="authorName"
+                    type="text"
+                    value={formData.authorName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, authorName: e.target.value }))}
+                    placeholder="Your name"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="authorEmail">Email</Label>
+                  <Input
+                    id="authorEmail"
+                    type="email"
+                    value={formData.authorEmail}
+                    onChange={(e) => setFormData(prev => ({ ...prev, authorEmail: e.target.value }))}
+                    placeholder="your@email.com"
+                    required
+                  />
+                </div>
+              </div>
+
               <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => handleReply(comment.id)}
-                  disabled={!replyContent.trim()}
-                >
-                  <Send className="w-3 h-3 mr-1" />
-                  Reply
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? (
+                    <>
+                      <Clock className="h-4 w-4 mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Submit Comment
+                    </>
+                  )}
                 </Button>
                 <Button
+                  type="button"
                   variant="outline"
-                  size="sm"
                   onClick={() => {
-                    setReplyingTo(null);
-                    setReplyContent('');
+                    setShowForm(false);
+                    setReplyTo(null);
+                    setFormData({ content: '', authorName: '', authorEmail: '' });
                   }}
                 >
                   Cancel
                 </Button>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Replies */}
-      {comment.replies.length > 0 && (
-        <div className="space-y-3">
-          {comment.replies.map((reply) => (
-            <CommentItem key={reply.id} comment={reply} isReply />
-          ))}
-        </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
-    </div>
-  );
 
-  return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <MessageCircle className="w-5 h-5" />
-          <h3 className="text-lg font-semibold text-gray-900">Comments</h3>
-          <Badge variant="outline" className="text-xs">
-            {localComments.length} comments
-          </Badge>
-        </div>
-
-        {/* Comment Form */}
-        <form onSubmit={handleSubmitComment} className="mb-6">
-          <div className="flex gap-3">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-gray-600" />
-              </div>
-            </div>
-            <div className="flex-1">
-              <Textarea
-                placeholder="Share your thoughts..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                className="mb-3"
-                rows={3}
-              />
-              <div className="flex justify-between items-center">
-                <p className="text-xs text-gray-500">
-                  Be respectful and constructive in your comments
-                </p>
-                <Button
-                  type="submit"
-                  size="sm"
-                  disabled={!newComment.trim() || isSubmitting}
-                >
-                  {isSubmitting ? (
+      {/* Comments List */}
+      <div className="space-y-4">
+        {loading && page === 1 ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading comments...</p>
+          </div>
+        ) : comments.length === 0 ? (
+          <div className="text-center py-8">
+            <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-600">No comments yet. Be the first to comment!</p>
+          </div>
+        ) : (
+          <>
+            {comments.map((comment) => (
+              <Card key={comment._id} className="border-l-4 border-l-blue-500">
+                <CardContent className="pt-6">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Posting...
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <User className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{comment.authorName}</p>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <Clock className="h-3 w-3" />
+                          {formatDate(comment.createdAt)}
+                        </div>
+                      </div>
                     </div>
-                  ) : (
-                    <>
-                      <Send className="w-3 h-3 mr-1" />
-                      Post Comment
-                    </>
+                  </div>
+
+                  <p className="text-gray-700 mb-4 whitespace-pre-wrap">{comment.content}</p>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleReply(comment._id)}
+                        className="text-gray-600 hover:text-gray-900"
+                      >
+                        <Reply className="h-4 w-4 mr-1" />
+                        Reply
+                      </Button>
+                      
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <ThumbsUp className="h-4 w-4" />
+                        <span>{comment.likes}</span>
+                        <ThumbsDown className="h-4 w-4" />
+                        <span>{comment.dislikes}</span>
+                      </div>
+                    </div>
+
+                    {comment.replyCount > 0 && (
+                      <Badge variant="secondary">
+                        {comment.replyCount} repl{comment.replyCount === 1 ? 'y' : 'ies'}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Replies */}
+                  {comment.replies && comment.replies.length > 0 && (
+                    <div className="mt-4 ml-8 space-y-3">
+                      {comment.replies.map((reply) => (
+                        <div key={reply._id} className="border-l-2 border-gray-200 pl-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                              <User className="h-3 w-3 text-gray-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm text-gray-900">{reply.authorName}</p>
+                              <div className="flex items-center gap-1 text-xs text-gray-500">
+                                <Clock className="h-3 w-3" />
+                                {formatDate(reply.createdAt)}
+                              </div>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-700">{reply.content}</p>
+                        </div>
+                      ))}
+                    </div>
                   )}
+                </CardContent>
+              </Card>
+            ))}
+
+            {hasMore && (
+              <div className="text-center">
+                <Button
+                  onClick={loadMoreComments}
+                  variant="outline"
+                  disabled={loading}
+                >
+                  {loading ? 'Loading...' : 'Load More Comments'}
                 </Button>
               </div>
-            </div>
-          </div>
-        </form>
-
-        {/* Comments List */}
-        <div className="space-y-6">
-          {localComments.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <MessageCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p>No comments yet. Be the first to share your thoughts!</p>
-            </div>
-          ) : (
-            localComments.map((comment) => (
-              <CommentItem key={comment.id} comment={comment} />
-            ))
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            )}
+          </>
+        )}
+      </div>
+    </div>
   );
 } 
