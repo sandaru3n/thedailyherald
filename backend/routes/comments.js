@@ -4,6 +4,55 @@ const Comment = require('../models/Comment');
 const Article = require('../models/Article');
 const { auth } = require('../middleware/auth');
 
+// Comment settings storage (in production, this should be in a database)
+let commentSettings = {
+  autoApprove: false
+};
+
+// Get comment settings (admin only)
+router.get('/admin/settings', auth, async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      settings: commentSettings
+    });
+  } catch (error) {
+    console.error('Error fetching comment settings:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch comment settings'
+    });
+  }
+});
+
+// Update comment settings (admin only)
+router.patch('/admin/settings', auth, async (req, res) => {
+  try {
+    const { autoApprove } = req.body;
+    
+    if (typeof autoApprove !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        message: 'autoApprove must be a boolean value'
+      });
+    }
+
+    commentSettings.autoApprove = autoApprove;
+
+    res.json({
+      success: true,
+      message: 'Comment settings updated successfully',
+      settings: commentSettings
+    });
+  } catch (error) {
+    console.error('Error updating comment settings:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update comment settings'
+    });
+  }
+});
+
 // Get comments for an article (public)
 router.get('/article/:articleId', async (req, res) => {
   try {
@@ -83,6 +132,13 @@ router.post('/', async (req, res) => {
       commentData.parentComment = parentCommentId;
     }
 
+    // Check auto-approve setting
+    if (commentSettings.autoApprove) {
+      commentData.status = 'approved';
+      commentData.approvedAt = new Date();
+      commentData.approvedBy = null; // Auto-approved, no specific admin
+    }
+
     const comment = new Comment(commentData);
     await comment.save();
 
@@ -93,9 +149,13 @@ router.post('/', async (req, res) => {
       });
     }
 
+    const message = commentSettings.autoApprove 
+      ? 'Comment submitted and published successfully!' 
+      : 'Comment submitted successfully. It will be reviewed before publishing.';
+
     res.status(201).json({
       success: true,
-      message: 'Comment submitted successfully. It will be reviewed before publishing.',
+      message,
       comment
     });
   } catch (error) {

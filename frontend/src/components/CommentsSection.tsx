@@ -256,6 +256,11 @@ export default function CommentsSection({ articleId }: CommentsSectionProps) {
                   Cancel
                 </Button>
               </div>
+              
+              <div className="text-xs text-gray-500 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                Comments are moderated and may take time to appear.
+              </div>
             </form>
           </CardContent>
         </Card>

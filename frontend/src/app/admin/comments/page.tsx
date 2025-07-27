@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { MessageCircle, Check, X, Trash2, Eye, Filter, Search, RefreshCw, AlertCircle } from 'lucide-react';
+import { MessageCircle, Check, X, Trash2, Eye, Filter, Search, RefreshCw, AlertCircle, Settings } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 
 interface Comment {
   _id: string;
@@ -96,9 +97,52 @@ export default function CommentsManagementPage() {
     }
   }, [page, statusFilter, searchTerm]);
 
+  const fetchAutoApproveSetting = async () => {
+    try {
+      const response = await fetch('/api/comments/admin/settings', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        }
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setAutoApprove(data.settings.autoApprove);
+      }
+    } catch (error) {
+      console.error('Error fetching auto-approve setting:', error);
+    }
+  };
+
+  const handleAutoApproveToggle = async () => {
+    try {
+      const newValue = !autoApprove;
+      const response = await fetch('/api/comments/admin/settings', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: JSON.stringify({ autoApprove: newValue })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setAutoApprove(newValue);
+        setSuccess(`Auto-approve ${newValue ? 'enabled' : 'disabled'} successfully`);
+      } else {
+        setError(data.message || 'Failed to update auto-approve setting');
+      }
+    } catch (error) {
+      console.error('Error updating auto-approve setting:', error);
+      setError('Failed to update auto-approve setting');
+    }
+  };
+
   useEffect(() => {
     fetchComments();
     fetchStats();
+    fetchAutoApproveSetting();
   }, [fetchComments]);
 
   const fetchStats = async () => {
@@ -307,6 +351,36 @@ export default function CommentsManagementPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Auto-Approve Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Comment Settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-gray-900">Auto-Approve Comments</h3>
+              <p className="text-sm text-gray-600">
+                When enabled, new comments will be automatically approved and published without manual review.
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={autoApprove}
+                onCheckedChange={handleAutoApproveToggle}
+                className="data-[state=checked]:bg-green-600"
+              />
+              <span className="text-sm font-medium text-gray-900">
+                {autoApprove ? 'Enabled' : 'Disabled'}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filters */}
       <Card>
