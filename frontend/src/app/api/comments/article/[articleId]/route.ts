@@ -11,7 +11,7 @@ export async function GET(
     const limit = searchParams.get('limit') || '10';
 
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/comments/article/${articleId}?page=${page}&limit=${limit}`,
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/comments/article/${articleId}?page=${page}&limit=${limit}`,
       {
         method: 'GET',
         headers: {

@@ -17,7 +17,7 @@ export async function POST(
     }
 
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/contact/admin/${contactId}/reply`,
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contact/admin/${contactId}/reply`,
       {
         method: 'POST',
         headers: {

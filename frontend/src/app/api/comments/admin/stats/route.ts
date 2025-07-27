@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     }
 
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/comments/admin/stats`,
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/comments/admin/stats`,
       {
         method: 'GET',
         headers: {

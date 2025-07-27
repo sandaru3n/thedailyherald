@@ -15,7 +15,7 @@ export async function GET(
     }
 
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/contact/admin/${contactId}`,
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contact/admin/${contactId}`,
       {
         method: 'GET',
         headers: {
@@ -59,7 +59,7 @@ export async function DELETE(
     }
 
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/contact/admin/${contactId}`,
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contact/admin/${contactId}`,
       {
         method: 'DELETE',
         headers: {

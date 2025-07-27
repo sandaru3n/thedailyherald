@@ -17,7 +17,7 @@ export async function PATCH(
     }
 
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/contact/admin/${contactId}/status`,
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contact/admin/${contactId}/status`,
       {
         method: 'PATCH',
         headers: {

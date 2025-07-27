@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     if (priority) params.append('priority', priority);
 
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/contact/admin?${params}`,
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/contact/admin?${params}`,
       {
         method: 'GET',
         headers: {

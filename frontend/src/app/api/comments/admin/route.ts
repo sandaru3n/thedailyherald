@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     if (articleId) params.append('articleId', articleId);
 
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/comments/admin?${params}`,
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/comments/admin?${params}`,
       {
         method: 'GET',
         headers: {
