@@ -61,6 +61,22 @@ interface Admin {
   email: string;
 }
 
+interface RssFeedFormData {
+  name: string;
+  feedUrl: string;
+  categoryId: string;
+  defaultAuthorId: string;
+  minContentLength: number;
+  maxPostsPerDay: number;
+  settings: {
+    enableAiRewrite: boolean;
+    aiRewriteStyle: string;
+    includeOriginalSource: boolean;
+    autoPublish: boolean;
+    publishDelay: number;
+  };
+}
+
 export default function RssFeedsPage() {
   const [feeds, setFeeds] = useState<RssFeed[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -74,7 +90,7 @@ export default function RssFeedsPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RssFeedFormData>({
     name: '',
     feedUrl: '',
     categoryId: '',
@@ -89,6 +105,10 @@ export default function RssFeedsPage() {
       publishDelay: 0
     }
   });
+
+  const updateFormData = (updates: Partial<RssFeedFormData>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
+  };
 
   useEffect(() => {
     fetchFeeds();
@@ -346,14 +366,14 @@ export default function RssFeedsPage() {
               <DialogHeader>
                 <DialogTitle>Add New RSS Feed</DialogTitle>
               </DialogHeader>
-              <RssFeedForm
-                formData={formData}
-                setFormData={setFormData}
-                categories={categories}
-                admins={admins}
-                onSubmit={handleCreateFeed}
-                submitText="Create Feed"
-              />
+                      <RssFeedForm
+          formData={formData}
+          setFormData={updateFormData}
+          categories={categories}
+          admins={admins}
+          onSubmit={handleCreateFeed}
+          submitText="Create Feed"
+        />
             </DialogContent>
           </Dialog>
         </div>
@@ -505,7 +525,7 @@ export default function RssFeedsPage() {
           </DialogHeader>
           <RssFeedForm
             formData={formData}
-            setFormData={setFormData}
+            setFormData={updateFormData}
             categories={categories}
             admins={admins}
             onSubmit={handleUpdateFeed}
@@ -526,8 +546,8 @@ function RssFeedForm({
   onSubmit, 
   submitText 
 }: {
-  formData: any;
-  setFormData: (data: any) => void;
+  formData: RssFeedFormData;
+  setFormData: (updates: Partial<RssFeedFormData>) => void;
   categories: Category[];
   admins: Admin[];
   onSubmit: () => void;
@@ -541,7 +561,7 @@ function RssFeedForm({
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => setFormData({ name: e.target.value })}
             placeholder="Enter feed name"
           />
         </div>
@@ -550,7 +570,7 @@ function RssFeedForm({
           <Input
             id="feedUrl"
             value={formData.feedUrl}
-            onChange={(e) => setFormData({ ...formData, feedUrl: e.target.value })}
+            onChange={(e) => setFormData({ feedUrl: e.target.value })}
             placeholder="https://example.com/feed.xml"
           />
         </div>
@@ -561,7 +581,7 @@ function RssFeedForm({
           <Label htmlFor="category">Category</Label>
           <Select
             value={formData.categoryId}
-            onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
+            onValueChange={(value) => setFormData({ categoryId: value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select category" />
@@ -579,7 +599,7 @@ function RssFeedForm({
           <Label htmlFor="author">Default Author</Label>
           <Select
             value={formData.defaultAuthorId}
-            onValueChange={(value) => setFormData({ ...formData, defaultAuthorId: value })}
+            onValueChange={(value) => setFormData({ defaultAuthorId: value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select author" />
@@ -602,7 +622,7 @@ function RssFeedForm({
             id="minLength"
             type="number"
             value={formData.minContentLength}
-            onChange={(e) => setFormData({ ...formData, minContentLength: parseInt(e.target.value) })}
+            onChange={(e) => setFormData({ minContentLength: parseInt(e.target.value) })}
             min="50"
           />
         </div>
@@ -612,7 +632,7 @@ function RssFeedForm({
             id="maxPosts"
             type="number"
             value={formData.maxPostsPerDay}
-            onChange={(e) => setFormData({ ...formData, maxPostsPerDay: parseInt(e.target.value) })}
+            onChange={(e) => setFormData({ maxPostsPerDay: parseInt(e.target.value) })}
             min="1"
             max="50"
           />
@@ -631,7 +651,6 @@ function RssFeedForm({
             checked={formData.settings.enableAiRewrite}
             onCheckedChange={(checked) => 
               setFormData({ 
-                ...formData, 
                 settings: { ...formData.settings, enableAiRewrite: checked } 
               })
             }
@@ -645,7 +664,6 @@ function RssFeedForm({
               value={formData.settings.aiRewriteStyle}
               onValueChange={(value) => 
                 setFormData({ 
-                  ...formData, 
                   settings: { ...formData.settings, aiRewriteStyle: value } 
                 })
               }
@@ -670,7 +688,6 @@ function RssFeedForm({
             checked={formData.settings.includeOriginalSource}
             onCheckedChange={(checked) => 
               setFormData({ 
-                ...formData, 
                 settings: { ...formData.settings, includeOriginalSource: checked } 
               })
             }
@@ -684,7 +701,6 @@ function RssFeedForm({
             checked={formData.settings.autoPublish}
             onCheckedChange={(checked) => 
               setFormData({ 
-                ...formData, 
                 settings: { ...formData.settings, autoPublish: checked } 
               })
             }
@@ -699,7 +715,6 @@ function RssFeedForm({
             value={formData.settings.publishDelay}
             onChange={(e) => 
               setFormData({ 
-                ...formData, 
                 settings: { ...formData.settings, publishDelay: parseInt(e.target.value) } 
               })
             }
