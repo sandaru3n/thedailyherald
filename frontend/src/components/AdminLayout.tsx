@@ -15,7 +15,8 @@ import {
   X,
   User,
   MessageCircle,
-  Mail
+  Mail,
+  Rss
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getAdminData, logout } from '@/lib/auth';
@@ -28,6 +29,7 @@ const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Articles', href: '/admin/articles', icon: FileText },
   { name: 'Categories', href: '/admin/categories', icon: FolderOpen },
+  { name: 'RSS Feeds', href: '/admin/rss-feeds', icon: Rss },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Navigation', href: '/admin/navigation', icon: Menu },
   { name: 'Comments', href: '/admin/comments', icon: MessageCircle },

@@ -34,6 +34,7 @@ const adminRoutes = require('./routes/admin');
 const navigationRoutes = require('./routes/navigation');
 const commentRoutes = require('./routes/comments');
 const contactRoutes = require('./routes/contact');
+const rssFeedRoutes = require('./routes/rssFeeds');
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -43,6 +44,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/navigation', navigationRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/rss-feeds', rssFeedRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -69,8 +71,14 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+// Initialize cron service for RSS feeds
+const cronService = require('./services/cronService');
+
+app.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📰 The Daily Herald Admin API is ready!`);
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+  
+  // Initialize RSS feed cron jobs
+  await cronService.initialize();
 }); 
