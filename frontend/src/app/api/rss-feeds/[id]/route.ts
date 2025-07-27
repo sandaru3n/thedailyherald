@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.headers.get('authorization');
@@ -13,7 +13,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const response = await fetch(`${BACKEND_URL}/api/rss-feeds/${params.id}`, {
+    const resolvedParams = await params;
+    const response = await fetch(`${BACKEND_URL}/api/rss-feeds/${resolvedParams.id}`, {
       headers: {
         'Authorization': token,
         'Content-Type': 'application/json',
@@ -33,7 +34,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.headers.get('authorization');
@@ -43,7 +44,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const response = await fetch(`${BACKEND_URL}/api/rss-feeds/${params.id}`, {
+    const resolvedParams = await params;
+    const response = await fetch(`${BACKEND_URL}/api/rss-feeds/${resolvedParams.id}`, {
       method: 'PUT',
       headers: {
         'Authorization': token,
@@ -65,7 +67,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.headers.get('authorization');
@@ -74,7 +76,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const response = await fetch(`${BACKEND_URL}/api/rss-feeds/${params.id}`, {
+    const resolvedParams = await params;
+    const response = await fetch(`${BACKEND_URL}/api/rss-feeds/${resolvedParams.id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': token,

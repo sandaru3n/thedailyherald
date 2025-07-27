@@ -4,7 +4,7 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.headers.get('authorization');
@@ -13,7 +13,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const response = await fetch(`${BACKEND_URL}/api/rss-feeds/${params.id}/process`, {
+    const resolvedParams = await params;
+    const response = await fetch(`${BACKEND_URL}/api/rss-feeds/${resolvedParams.id}/process`, {
       method: 'POST',
       headers: {
         'Authorization': token,
