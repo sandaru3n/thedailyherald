@@ -1,48 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Search, Home, Newspaper } from 'lucide-react';
-import { API_ENDPOINTS } from '@/lib/config';
-
-interface Category {
-  _id: string;
-  name: string;
-  slug: string;
-  color?: string;
-}
+import { Menu, X, Search, Home, Info, FileText, Settings, Contact, Globe } from 'lucide-react';
+import { useNavigation } from '@/hooks/useNavigation';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { activeItems, loading } = useNavigation();
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        console.log('Fetching categories...');
-        const res = await fetch(API_ENDPOINTS.categories);
-        const data = await res.json() as Category[] | { success: boolean; categories?: Category[] };
-        console.log('Categories API response:', data);
-        
-        // Handle both old and new API response formats
-        if (Array.isArray(data)) {
-          console.log('Using new API format, categories:', data);
-          setCategories(data);
-        } else if (data.success && data.categories) {
-          console.log('Using old API format, categories:', data.categories);
-          setCategories(data.categories);
-        } else {
-          console.error('Invalid categories data format:', data);
-          setCategories([]);
-        }
-      } catch (err) {
-        console.error('Failed to fetch categories:', err);
-        setCategories([]);
-      }
+  const getIconComponent = (iconName: string) => {
+    const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
+      'home': Home,
+      'info': Info,
+      'file-text': FileText,
+      'settings': Settings,
+      'contact': Contact,
+      'globe': Globe,
     };
-    fetchCategories();
-  }, []);
+    return iconMap[iconName] || Home;
+  };
 
   return (
     <header className="bg-white shadow-lg sticky top-0 z-50">
@@ -53,7 +31,7 @@ export default function Header() {
           <div className="flex items-center">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
-                <Newspaper className="h-5 w-5 text-white" />
+                <FileText className="h-5 w-5 text-white" />
               </div>
               <h1 className="text-xl font-bold text-red-600">Newspaper</h1>
             </div>
@@ -93,20 +71,19 @@ export default function Header() {
           <div className="flex items-center justify-between py-4">
             {/* Desktop Navigation Menu */}
             <nav className="flex items-center space-x-8">
-              <Link href="/" className="flex items-center text-gray-700 hover:text-blue-600 font-semibold text-sm transition-all duration-200 hover:scale-105">
-                <Home className="h-4 w-4 mr-2" />
-                Home
-              </Link>
-              {categories.slice(0, 5).map((category) => (
-                <Link
-                  key={category._id}
-                  href={`/category/${category.slug}`}
-                  className="flex items-center text-gray-700 hover:text-blue-600 font-semibold text-sm transition-all duration-200 hover:scale-105"
-                >
-                  <Newspaper className="h-4 w-4 mr-2" />
-                  {category.name}
-                </Link>
-              ))}
+              {!loading && activeItems.slice(0, 5).map((item) => {
+                const IconComponent = getIconComponent(item.icon);
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.url}
+                    className="flex items-center text-gray-700 hover:text-blue-600 font-semibold text-sm transition-all duration-200 hover:scale-105"
+                  >
+                    <IconComponent className="h-4 w-4 mr-2" />
+                    {item.label}
+                  </Link>
+                );
+              })}
             </nav>
 
             {/* Desktop Search Bar */}
@@ -166,25 +143,20 @@ export default function Header() {
 
               {/* Navigation Links - smaller font and padding for mobile */}
               <div className="space-y-2">
-                <Link 
-                  href="/" 
-                  className="flex items-center text-gray-700 hover:text-blue-600 font-semibold text-base transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Home className="h-5 w-5 mr-2" />
-                  Home
-                </Link>
-                {categories.map((category) => (
-                  <Link
-                    key={category._id}
-                    href={`/category/${category.slug}`}
-                    className="flex items-center text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Newspaper className="h-5 w-5 mr-2" />
-                    {category.name}
-                  </Link>
-                ))}
+                {!loading && activeItems.map((item) => {
+                  const IconComponent = getIconComponent(item.icon);
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.url}
+                      className="flex items-center text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <IconComponent className="h-5 w-5 mr-2" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </div>

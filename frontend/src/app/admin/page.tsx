@@ -12,7 +12,8 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  BarChart3
+  BarChart3,
+  Menu
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -236,6 +237,12 @@ export default function AdminDashboardPage() {
               <Link href="/admin/categories">
                 <FolderOpen className="h-4 w-4 mr-2" />
                 Manage Categories
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full justify-start">
+              <Link href="/admin/navigation">
+                <Menu className="h-4 w-4 mr-2" />
+                Manage Navigation
               </Link>
             </Button>
             <Button asChild variant="outline" className="w-full justify-start">

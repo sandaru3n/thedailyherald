@@ -31,12 +31,14 @@ const authRoutes = require('./routes/auth');
 const articleRoutes = require('./routes/articles');
 const categoryRoutes = require('./routes/categories');
 const adminRoutes = require('./routes/admin');
+const navigationRoutes = require('./routes/navigation');
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/navigation', navigationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

@@ -27,6 +27,7 @@ const navigation = [
   { name: 'Articles', href: '/admin/articles', icon: FileText },
   { name: 'Categories', href: '/admin/categories', icon: FolderOpen },
   { name: 'Users', href: '/admin/users', icon: Users },
+  { name: 'Navigation', href: '/admin/navigation', icon: Menu },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
