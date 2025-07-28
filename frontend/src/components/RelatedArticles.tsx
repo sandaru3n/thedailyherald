@@ -49,8 +49,8 @@ export default function RelatedArticles({
     return article.category?.name || 'Uncategorized';
   };
 
-  const getArticleId = (article: Article) => {
-    return article._id || article.id;
+  const getArticleSlug = (article: Article) => {
+    return article.slug;
   };
 
   if (articles.length === 0) {
@@ -81,20 +81,20 @@ export default function RelatedArticles({
         <div className="space-y-4">
           {displayArticles.map((article) => (
             <div
-              key={getArticleId(article)}
+              key={getArticleSlug(article)}
               className="group cursor-pointer"
-              onMouseEnter={() => setHoveredId(getArticleId(article) || null)}
+              onMouseEnter={() => setHoveredId(getArticleSlug(article) || null)}
               onMouseLeave={() => setHoveredId(null)}
-              onClick={() => router.push(`/article/${getArticleId(article)}`)}
+              onClick={() => router.push(`/article/${getArticleSlug(article)}`)}
             >
               <div className="flex gap-3 p-3 rounded-lg transition-all duration-200 hover:bg-gray-50">
                 {/* Article Image */}
                 <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-lg">
                   <img
-                    src={article.featuredImage || article.imageUrl || '/placeholder.jpg'}
+                    src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
                     alt={article.title}
                     className={`w-full h-full object-cover transition-transform duration-300 ${
-                      hoveredId === getArticleId(article) ? 'scale-110' : 'scale-100'
+                      hoveredId === getArticleSlug(article) ? 'scale-110' : 'scale-100'
                     }`}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
@@ -138,7 +138,7 @@ export default function RelatedArticles({
 
                 {/* Arrow Icon */}
                 <div className={`flex items-center transition-transform duration-200 ${
-                  hoveredId === getArticleId(article) ? 'translate-x-1' : 'translate-x-0'
+                  hoveredId === getArticleSlug(article) ? 'translate-x-1' : 'translate-x-0'
                 }`}>
                   <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600" />
                 </div>

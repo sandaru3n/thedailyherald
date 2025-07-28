@@ -134,10 +134,10 @@ export default function CategoryPage() {
               {articles.length > 0 ? (
                 articles.map((article) => (
                   <div key={article._id} className="bg-white rounded-xl shadow hover:shadow-lg transition-shadow">
-                    <Link href={`/article/${article._id}`} className="block">
+                    <Link href={`/article/${article.slug}`} className="block">
                       <div className="overflow-hidden rounded-t-xl">
                         <img
-                          src={article.featuredImage || article.imageUrl || '/placeholder.jpg'}
+                          src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
                           alt={article.title}
                           className="w-full h-56 object-cover object-center transition-transform duration-300 hover:scale-105"
                         />
@@ -180,9 +180,9 @@ export default function CategoryPage() {
               <ul className="divide-y divide-gray-200">
                 {latestArticles.map((article) => (
                   <li key={article._id} className="flex items-center gap-3 px-6 py-4 hover:bg-gray-50 transition-colors">
-                    <Link href={`/article/${article._id}`} className="flex items-center gap-3 w-full">
+                    <Link href={`/article/${article.slug}`} className="flex items-center gap-3 w-full">
                       <img
-                        src={article.featuredImage || article.imageUrl || '/placeholder.jpg'}
+                        src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
                         alt={article.title}
                         className="w-16 h-16 object-cover rounded"
                       />

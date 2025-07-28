@@ -25,9 +25,9 @@ export function ArticleCard({ article, variant = 'default' }: ArticleCardProps) 
     return article.category?.name || 'Uncategorized';
   };
 
-  // Helper function to get article ID
-  const getArticleId = (article: Article) => {
-    return article._id || article.id;
+  // Helper function to get article slug
+  const getArticleSlug = (article: Article) => {
+    return article.slug;
   };
 
   if (variant === 'compact') {
@@ -35,7 +35,7 @@ export function ArticleCard({ article, variant = 'default' }: ArticleCardProps) 
       <div className="flex gap-3">
         <div className="relative w-16 h-16 flex-shrink-0">
           <img
-            src={article.featuredImage || article.imageUrl || '/placeholder.jpg'}
+            src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
             alt={article.title}
             className="w-full h-full object-cover rounded"
           />
@@ -55,10 +55,10 @@ export function ArticleCard({ article, variant = 'default' }: ArticleCardProps) 
   if (variant === 'featured') {
     return (
       <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-        <Link href={`/article/${getArticleId(article)}`}>
+        <Link href={`/article/${getArticleSlug(article)}`}>
           <div className="relative h-64 overflow-hidden">
             <img
-              src={article.featuredImage || article.imageUrl || '/placeholder.jpg'}
+              src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
               alt={article.title}
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
             />
@@ -80,10 +80,10 @@ export function ArticleCard({ article, variant = 'default' }: ArticleCardProps) 
   // Default variant
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      <Link href={`/article/${getArticleId(article)}`}>
+      <Link href={`/article/${getArticleSlug(article)}`}>
         <div className="relative h-48 overflow-hidden">
           <img
-            src={article.featuredImage || article.imageUrl || '/placeholder.jpg'}
+            src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
             alt={article.title}
             className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           />

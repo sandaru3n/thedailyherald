@@ -286,7 +286,7 @@ export default function AdminArticlesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/article/${article._id}`} className="flex items-center">
+                          <Link href={`/article/${article.slug}`} className="flex items-center">
                             <Eye className="h-4 w-4 mr-2" />
                             View
                           </Link>

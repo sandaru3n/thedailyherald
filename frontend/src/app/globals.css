@@ -68,6 +68,32 @@
     /* Improve mobile scrolling */
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
+    /* Performance optimizations */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Reduce layout shifts */
+    font-display: swap;
+  }
+  
+  /* Optimize images for better performance */
+  img {
+    max-width: 100%;
+    height: auto;
+    /* Prevent layout shifts */
+    aspect-ratio: attr(width) / attr(height);
+  }
+  
+  /* Optimize loading for critical content */
+  .article-content img {
+    loading: lazy;
+    decoding: async;
+  }
+  
+  /* Prioritize above-the-fold images */
+  .article-content img[loading="eager"] {
+    loading: eager;
+    decoding: sync;
   }
 
   /* Admin panel specific styles */

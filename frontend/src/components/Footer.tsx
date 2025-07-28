@@ -76,7 +76,7 @@ export default function Footer() {
             <h4 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Categories</h4>
             <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
               {NEWS_CATEGORIES.slice(0, 6).map((category) => (
-                <li key={category.id}>
+                <li key={category._id}>
                   <a
                     href={`#${category.slug}`}
                     className="text-gray-300 hover:text-white transition-colors"
