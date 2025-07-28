@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Plus, RefreshCw, Settings, Trash2, Edit, Play, AlertCircle, CheckCircle } from 'lucide-react';
+import { API_BASE_URL } from '@/lib/config';
 
 interface RssFeed {
   _id: string;
@@ -118,7 +119,7 @@ export default function RssFeedsPage() {
 
   const fetchFeeds = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/rss-feeds', {
+      const response = await fetch(`${API_BASE_URL}/api/rss-feeds`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
         }
@@ -135,7 +136,7 @@ export default function RssFeedsPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/categories');
+      const response = await fetch(`${API_BASE_URL}/api/categories`);
       const data = await response.json();
       setCategories(data.categories || []);
     } catch (error) {
@@ -145,7 +146,7 @@ export default function RssFeedsPage() {
 
   const fetchAdmins = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/admin/users', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
         }
@@ -159,7 +160,7 @@ export default function RssFeedsPage() {
 
   const handleCreateFeed = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/rss-feeds', {
+      const response = await fetch(`${API_BASE_URL}/api/rss-feeds`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -187,7 +188,7 @@ export default function RssFeedsPage() {
     if (!editingFeed) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/rss-feeds/${editingFeed._id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/rss-feeds/${editingFeed._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -216,7 +217,7 @@ export default function RssFeedsPage() {
     if (!confirm('Are you sure you want to delete this RSS feed?')) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/rss-feeds/${feedId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/rss-feeds/${feedId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
@@ -239,7 +240,7 @@ export default function RssFeedsPage() {
   const handleProcessFeed = async (feedId: string) => {
     setProcessing(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/rss-feeds/${feedId}/process`, {
+      const response = await fetch(`${API_BASE_URL}/api/rss-feeds/${feedId}/process`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
@@ -268,7 +269,7 @@ export default function RssFeedsPage() {
   const handleProcessAllFeeds = async () => {
     setProcessing(true);
     try {
-      const response = await fetch('http://localhost:5000/api/rss-feeds/process/all', {
+      const response = await fetch(`${API_BASE_URL}/api/rss-feeds/process/all`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
