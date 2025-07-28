@@ -9,9 +9,10 @@ import ArticleSkeleton from '@/components/ArticleSkeleton';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
 
 // Generate metadata for SEO
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/articles/slug/${params.slug}`, {
+    const { slug } = await params;
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/articles/slug/${slug}`, {
       next: { revalidate: 60 }, // Cache for 1 minute
     });
     
@@ -98,8 +99,9 @@ async function getRelatedArticles(categoryId: string, excludeId: string): Promis
   }
 }
 
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
-  const article = await getArticle(params.slug);
+export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const article = await getArticle(slug);
 
   if (!article) {
     notFound();
@@ -118,7 +120,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
           <ArticleContent 
             article={article} 
             relatedArticles={relatedArticles}
-            slug={params.slug}
+            slug={slug}
           />
         </Suspense>
       </main>
