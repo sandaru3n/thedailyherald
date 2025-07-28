@@ -10,6 +10,7 @@ const nextConfig = {
   
   // Reduce Fast Refresh messages in development
   ...(process.env.NODE_ENV === 'development' && {
+    // @ts-expect-error - webpack config type is complex and varies by Next.js version
     webpack: (config, { dev, isServer }) => {
       if (dev && !isServer) {
         // Reduce console output during development
