@@ -15,25 +15,43 @@ class CronService {
     try {
       console.log('🕐 Initializing RSS feed cron jobs...');
       
-      // Process all active feeds every 30 minutes
+      // Check if there are any active RSS feeds
+      const activeFeedsCount = await RssFeed.countDocuments({ isActive: true });
+      console.log(`📊 Found ${activeFeedsCount} active RSS feeds`);
+      
+      if (activeFeedsCount === 0) {
+        console.log('⚠️ No active RSS feeds found. Cron jobs will still be scheduled but won\'t process anything.');
+      }
+      
+      // Process all active feeds based on schedule
       this.scheduleRssProcessing();
       
-      // Reset daily counts at midnight
+      // Reset daily counts based on schedule
       this.scheduleDailyReset();
       
       this.isInitialized = true;
       console.log('✅ RSS feed cron jobs initialized successfully');
     } catch (error) {
       console.error('❌ Error initializing cron jobs:', error);
+      throw error;
     }
   }
 
   // Schedule RSS feed processing
   scheduleRssProcessing() {
-    // Process RSS feeds every 30 minutes
-    const job = cron.schedule('*/30 * * * *', async () => {
+    // Process RSS feeds based on environment variable or default to every 30 minutes
+    const schedule = process.env.RSS_PROCESSING_SCHEDULE || '*/30 * * * *';
+    const job = cron.schedule(schedule, async () => {
       try {
         console.log('🔄 Processing RSS feeds...');
+        
+        // Check if there are any active feeds before processing
+        const activeFeedsCount = await RssFeed.countDocuments({ isActive: true });
+        if (activeFeedsCount === 0) {
+          console.log('ℹ️ No active RSS feeds to process');
+          return;
+        }
+        
         const results = await rssService.processAllActiveFeeds();
         
         const totalProcessed = results.reduce((sum, result) => sum + (result.processed || 0), 0);
@@ -48,6 +66,7 @@ class CronService {
         }
       } catch (error) {
         console.error('❌ Error in RSS processing cron job:', error);
+        // Don't throw the error to prevent the cron job from stopping
       }
     }, {
       scheduled: true,
@@ -55,13 +74,14 @@ class CronService {
     });
 
     this.jobs.set('rssProcessing', job);
-    console.log('📅 Scheduled RSS feed processing every 30 minutes');
+    console.log(`📅 Scheduled RSS feed processing with schedule: ${schedule}`);
   }
 
   // Schedule daily reset of post counts
   scheduleDailyReset() {
-    // Reset daily counts at midnight UTC
-    const job = cron.schedule('0 0 * * *', async () => {
+    // Reset daily counts based on environment variable or default to midnight UTC
+    const schedule = process.env.RSS_DAILY_RESET_SCHEDULE || '0 0 * * *';
+    const job = cron.schedule(schedule, async () => {
       try {
         console.log('🔄 Resetting daily RSS feed counts...');
         
@@ -83,7 +103,7 @@ class CronService {
     });
 
     this.jobs.set('dailyReset', job);
-    console.log('📅 Scheduled daily reset at midnight UTC');
+    console.log(`📅 Scheduled daily reset with schedule: ${schedule}`);
   }
 
   // Manually trigger RSS processing
