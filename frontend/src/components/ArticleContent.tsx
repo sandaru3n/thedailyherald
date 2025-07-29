@@ -143,9 +143,6 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
 
               <div className="border-b border-gray-200 mb-6"></div>
               
-              {/* Excerpt */}
-              <p className="text-xl text-gray-600 leading-relaxed mb-6">{article.excerpt}</p>
-              
               {/* Featured Image */}
               <div className="flex justify-center mb-8">
                 <div className="relative w-full max-w-2xl aspect-[16/9] rounded-xl overflow-hidden shadow-md">
