@@ -11,18 +11,13 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, RefreshCw, Settings, Trash2, Edit, Play, AlertCircle, CheckCircle } from 'lucide-react';
+import { Plus, RefreshCw, Settings, Trash2, Edit, Play, AlertCircle, CheckCircle, Brain } from 'lucide-react';
 import { API_BASE_URL } from '@/lib/config';
 
 interface RssFeed {
   _id: string;
   name: string;
   feedUrl: string;
-  category: {
-    _id: string;
-    name: string;
-    slug: string;
-  };
   defaultAuthor: {
     _id: string;
     name: string;
@@ -41,6 +36,7 @@ interface RssFeed {
     includeOriginalSource: boolean;
     autoPublish: boolean;
     publishDelay: number;
+    enableAutoCategory: boolean;
   };
   errorLog: Array<{
     message: string;
@@ -48,12 +44,6 @@ interface RssFeed {
     type: string;
   }>;
   createdAt: string;
-}
-
-interface Category {
-  _id: string;
-  name: string;
-  slug: string;
 }
 
 interface Admin {
@@ -65,7 +55,6 @@ interface Admin {
 interface RssFeedFormData {
   name: string;
   feedUrl: string;
-  categoryId: string;
   defaultAuthorId: string;
   minContentLength: number;
   maxPostsPerDay: number;
@@ -75,12 +64,12 @@ interface RssFeedFormData {
     includeOriginalSource: boolean;
     autoPublish: boolean;
     publishDelay: number;
+    enableAutoCategory: boolean;
   };
 }
 
 export default function RssFeedsPage() {
   const [feeds, setFeeds] = useState<RssFeed[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -94,7 +83,6 @@ export default function RssFeedsPage() {
   const [formData, setFormData] = useState<RssFeedFormData>({
     name: '',
     feedUrl: '',
-    categoryId: '',
     defaultAuthorId: '',
     minContentLength: 100,
     maxPostsPerDay: 5,
@@ -103,7 +91,8 @@ export default function RssFeedsPage() {
       aiRewriteStyle: 'professional',
       includeOriginalSource: true,
       autoPublish: true,
-      publishDelay: 0
+      publishDelay: 0,
+      enableAutoCategory: true
     }
   });
 
@@ -113,7 +102,6 @@ export default function RssFeedsPage() {
 
   useEffect(() => {
     fetchFeeds();
-    fetchCategories();
     fetchAdmins();
   }, []);
 
@@ -131,16 +119,6 @@ export default function RssFeedsPage() {
       setMessage({ type: 'error', text: 'Failed to fetch RSS feeds' });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/categories`);
-      const data = await response.json();
-      setCategories(data.categories || []);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
     }
   };
 
@@ -299,7 +277,6 @@ export default function RssFeedsPage() {
     setFormData({
       name: '',
       feedUrl: '',
-      categoryId: '',
       defaultAuthorId: '',
       minContentLength: 100,
       maxPostsPerDay: 5,
@@ -308,7 +285,8 @@ export default function RssFeedsPage() {
         aiRewriteStyle: 'professional',
         includeOriginalSource: true,
         autoPublish: true,
-        publishDelay: 0
+        publishDelay: 0,
+        enableAutoCategory: true
       }
     });
   };
@@ -318,7 +296,6 @@ export default function RssFeedsPage() {
     setFormData({
       name: feed.name,
       feedUrl: feed.feedUrl,
-      categoryId: feed.category._id,
       defaultAuthorId: feed.defaultAuthor._id,
       minContentLength: feed.minContentLength,
       maxPostsPerDay: feed.maxPostsPerDay,
@@ -345,7 +322,7 @@ export default function RssFeedsPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">RSS Feeds</h1>
-          <p className="text-gray-600">Manage automatic news publishing from RSS feeds</p>
+          <p className="text-gray-600">Manage automatic news publishing from RSS feeds with AI-powered category identification</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -367,14 +344,13 @@ export default function RssFeedsPage() {
               <DialogHeader>
                 <DialogTitle>Add New RSS Feed</DialogTitle>
               </DialogHeader>
-                      <RssFeedForm
-          formData={formData}
-          setFormData={updateFormData}
-          categories={categories}
-          admins={admins}
-          onSubmit={handleCreateFeed}
-          submitText="Create Feed"
-        />
+              <RssFeedForm
+                formData={formData}
+                setFormData={updateFormData}
+                admins={admins}
+                onSubmit={handleCreateFeed}
+                submitText="Create Feed"
+              />
             </DialogContent>
           </Dialog>
         </div>
@@ -411,6 +387,12 @@ export default function RssFeedsPage() {
                     <Badge variant={feed.isActive ? 'default' : 'secondary'}>
                       {feed.isActive ? 'Active' : 'Inactive'}
                     </Badge>
+                    {feed.settings.enableAutoCategory && (
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <Brain className="h-3 w-3" />
+                        Auto-Category
+                      </Badge>
+                    )}
                   </CardTitle>
                   <p className="text-sm text-gray-600 mt-1">{feed.feedUrl}</p>
                 </div>
@@ -443,10 +425,6 @@ export default function RssFeedsPage() {
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <span className="font-medium">Category:</span>
-                  <p className="text-gray-600">{feed.category.name}</p>
-                </div>
-                <div>
                   <span className="font-medium">Author:</span>
                   <p className="text-gray-600">{feed.defaultAuthor.name}</p>
                 </div>
@@ -457,6 +435,10 @@ export default function RssFeedsPage() {
                 <div>
                   <span className="font-medium">Total Published:</span>
                   <p className="text-gray-600">{feed.totalPostsPublished}</p>
+                </div>
+                <div>
+                  <span className="font-medium">Auto-Category:</span>
+                  <p className="text-gray-600">{feed.settings.enableAutoCategory ? 'Enabled' : 'Disabled'}</p>
                 </div>
               </div>
               
@@ -527,7 +509,6 @@ export default function RssFeedsPage() {
           <RssFeedForm
             formData={formData}
             setFormData={updateFormData}
-            categories={categories}
             admins={admins}
             onSubmit={handleUpdateFeed}
             submitText="Update Feed"
@@ -542,18 +523,52 @@ export default function RssFeedsPage() {
 function RssFeedForm({ 
   formData, 
   setFormData, 
-  categories, 
   admins, 
   onSubmit, 
   submitText 
 }: {
   formData: RssFeedFormData;
   setFormData: (updates: Partial<RssFeedFormData>) => void;
-  categories: Category[];
   admins: Admin[];
   onSubmit: () => void;
   submitText: string;
 }) {
+  const [testTitle, setTestTitle] = useState('');
+  const [testContent, setTestContent] = useState('');
+  const [testResult, setTestResult] = useState<{ category: { name: string; description: string } } | null>(null);
+  const [testing, setTesting] = useState(false);
+
+  const handleTestCategory = async () => {
+    if (!testTitle || !testContent) {
+      alert('Please enter both title and content to test category identification');
+      return;
+    }
+
+    setTesting(true);
+    try {
+      const response = await fetch('/api/rss-feeds/test-category', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: JSON.stringify({ title: testTitle, content: testContent })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setTestResult(data);
+      } else {
+        alert(data.error || 'Failed to test category identification');
+      }
+    } catch (error) {
+      console.error('Error testing category identification:', error);
+      alert('Failed to test category identification');
+    } finally {
+      setTesting(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
@@ -577,43 +592,23 @@ function RssFeedForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="category">Category</Label>
-          <Select
-            value={formData.categoryId}
-            onValueChange={(value) => setFormData({ categoryId: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category._id} value={category._id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="author">Default Author</Label>
-          <Select
-            value={formData.defaultAuthorId}
-            onValueChange={(value) => setFormData({ defaultAuthorId: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select author" />
-            </SelectTrigger>
-            <SelectContent>
-              {admins.map((admin) => (
-                <SelectItem key={admin._id} value={admin._id}>
-                  {admin.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div>
+        <Label htmlFor="author">Default Author</Label>
+        <Select
+          value={formData.defaultAuthorId}
+          onValueChange={(value) => setFormData({ defaultAuthorId: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select author" />
+          </SelectTrigger>
+          <SelectContent>
+            {admins.map((admin) => (
+              <SelectItem key={admin._id} value={admin._id}>
+                {admin.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -645,6 +640,77 @@ function RssFeedForm({
       <div className="space-y-4">
         <h3 className="font-medium">AI Settings</h3>
         
+        <div className="flex items-center justify-between">
+          <Label htmlFor="autoCategory">Enable Automatic Category Identification</Label>
+          <Switch
+            id="autoCategory"
+            checked={formData.settings.enableAutoCategory}
+            onCheckedChange={(checked) => 
+              setFormData({ 
+                settings: { ...formData.settings, enableAutoCategory: checked } 
+              })
+            }
+          />
+        </div>
+
+        {/* Category Identification Test */}
+        {formData.settings.enableAutoCategory && (
+          <div className="border rounded-lg p-4 bg-gray-50">
+            <h4 className="font-medium mb-3 flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              Test Category Identification
+            </h4>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="testTitle">Test Title</Label>
+                <Input
+                  id="testTitle"
+                  value={testTitle}
+                  onChange={(e) => setTestTitle(e.target.value)}
+                  placeholder="Enter a sample article title"
+                />
+              </div>
+              <div>
+                <Label htmlFor="testContent">Test Content</Label>
+                <textarea
+                  id="testContent"
+                  value={testContent}
+                  onChange={(e) => setTestContent(e.target.value)}
+                  placeholder="Enter sample article content"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleTestCategory}
+                disabled={testing || !testTitle || !testContent}
+                className="w-full"
+              >
+                {testing ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
+                    Testing...
+                  </>
+                ) : (
+                  'Test Category Identification'
+                )}
+              </Button>
+              {testResult && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-sm font-medium text-green-800">
+                    Identified Category: <span className="font-bold">{testResult.category.name}</span>
+                  </p>
+                  {testResult.category.description && (
+                    <p className="text-xs text-green-600 mt-1">{testResult.category.description}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <Label htmlFor="aiRewrite">Enable AI Content Rewriting</Label>
           <Switch

@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const RssFeed = require('../models/RssFeed');
-const Category = require('../models/Category');
 const Admin = require('../models/Admin');
 const rssService = require('../services/rssService');
 const { auth } = require('../middleware/auth');
@@ -17,7 +16,6 @@ router.get('/', auth, async (req, res) => {
     }
 
     const feeds = await RssFeed.find(query)
-      .populate('category', 'name slug')
       .populate('defaultAuthor', 'name email')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
@@ -42,7 +40,6 @@ router.get('/', auth, async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
   try {
     const feed = await RssFeed.findById(req.params.id)
-      .populate('category', 'name slug')
       .populate('defaultAuthor', 'name email');
 
     if (!feed) {
@@ -62,7 +59,6 @@ router.post('/', auth, async (req, res) => {
     const {
       name,
       feedUrl,
-      categoryId,
       defaultAuthorId,
       minContentLength,
       maxPostsPerDay,
@@ -70,16 +66,10 @@ router.post('/', auth, async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!name || !feedUrl || !categoryId || !defaultAuthorId) {
+    if (!name || !feedUrl || !defaultAuthorId) {
       return res.status(400).json({ 
-        message: 'Name, feed URL, category, and default author are required' 
+        message: 'Name, feed URL, and default author are required' 
       });
-    }
-
-    // Validate category exists
-    const category = await Category.findById(categoryId);
-    if (!category) {
-      return res.status(400).json({ message: 'Category not found' });
     }
 
     // Validate author exists
@@ -100,7 +90,6 @@ router.post('/', auth, async (req, res) => {
     const feed = new RssFeed({
       name,
       feedUrl,
-      category: categoryId,
       defaultAuthor: defaultAuthorId,
       minContentLength: minContentLength || 100,
       maxPostsPerDay: maxPostsPerDay || 5,
@@ -109,14 +98,14 @@ router.post('/', auth, async (req, res) => {
         aiRewriteStyle: settings?.aiRewriteStyle || 'professional',
         includeOriginalSource: settings?.includeOriginalSource ?? true,
         autoPublish: settings?.autoPublish ?? true,
-        publishDelay: settings?.publishDelay || 0
+        publishDelay: settings?.publishDelay || 0,
+        enableAutoCategory: settings?.enableAutoCategory ?? true
       }
     });
 
     await feed.save();
 
     const populatedFeed = await RssFeed.findById(feed._id)
-      .populate('category', 'name slug')
       .populate('defaultAuthor', 'name email');
 
     res.status(201).json(populatedFeed);
@@ -132,7 +121,6 @@ router.put('/:id', auth, async (req, res) => {
     const {
       name,
       feedUrl,
-      categoryId,
       defaultAuthorId,
       minContentLength,
       maxPostsPerDay,
@@ -143,15 +131,6 @@ router.put('/:id', auth, async (req, res) => {
     const feed = await RssFeed.findById(req.params.id);
     if (!feed) {
       return res.status(404).json({ message: 'RSS feed not found' });
-    }
-
-    // Validate category if provided
-    if (categoryId) {
-      const category = await Category.findById(categoryId);
-      if (!category) {
-        return res.status(400).json({ message: 'Category not found' });
-      }
-      feed.category = categoryId;
     }
 
     // Validate author if provided
@@ -191,7 +170,6 @@ router.put('/:id', auth, async (req, res) => {
     await feed.save();
 
     const updatedFeed = await RssFeed.findById(feed._id)
-      .populate('category', 'name slug')
       .populate('defaultAuthor', 'name email');
 
     res.json(updatedFeed);
@@ -284,6 +262,35 @@ router.post('/test', auth, async (req, res) => {
     console.error('Error testing RSS feed:', error);
     res.status(400).json({ 
       message: 'Invalid RSS feed or not accessible',
+      error: error.message 
+    });
+  }
+});
+
+// Test category identification
+router.post('/test-category', auth, async (req, res) => {
+  try {
+    const { title, content } = req.body;
+    
+    if (!title || !content) {
+      return res.status(400).json({ message: 'Title and content are required' });
+    }
+
+    const categoryIdentificationService = require('../services/categoryIdentificationService');
+    const identifiedCategory = await categoryIdentificationService.identifyCategory(title, content);
+    
+    res.json({
+      message: 'Category identified successfully',
+      category: {
+        _id: identifiedCategory._id,
+        name: identifiedCategory.name,
+        description: identifiedCategory.description
+      }
+    });
+  } catch (error) {
+    console.error('Error testing category identification:', error);
+    res.status(500).json({ 
+      message: 'Error identifying category',
       error: error.message 
     });
   }

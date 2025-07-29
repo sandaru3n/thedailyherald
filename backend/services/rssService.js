@@ -3,6 +3,7 @@ const RssFeed = require('../models/RssFeed');
 const Article = require('../models/Article');
 const Category = require('../models/Category');
 const Admin = require('../models/Admin');
+const categoryIdentificationService = require('./categoryIdentificationService');
 
 class RssService {
   constructor() {
@@ -239,7 +240,6 @@ Please provide only the rewritten content without any additional commentary or f
   async processRssFeed(feedId) {
     try {
       const feed = await RssFeed.findById(feedId)
-        .populate('category')
         .populate('defaultAuthor');
 
       if (!feed || !feed.isActive) {
@@ -285,6 +285,31 @@ Please provide only the rewritten content without any additional commentary or f
             continue;
           }
 
+          // Identify category automatically
+          let identifiedCategory;
+          if (feed.settings.enableAutoCategory) {
+            try {
+              identifiedCategory = await categoryIdentificationService.identifyCategory(
+                extractedData.title, 
+                extractedData.content
+              );
+              console.log(`Auto-identified category for "${extractedData.title}": ${identifiedCategory.name}`);
+            } catch (categoryError) {
+              console.error('Error identifying category:', categoryError);
+              // Use first available category as fallback
+              identifiedCategory = await Category.findOne({ isActive: true }).sort({ order: 1 });
+              if (!identifiedCategory) {
+                throw new Error('No active categories available');
+              }
+            }
+          } else {
+            // Use first available category if auto-category is disabled
+            identifiedCategory = await Category.findOne({ isActive: true }).sort({ order: 1 });
+            if (!identifiedCategory) {
+              throw new Error('No active categories available');
+            }
+          }
+
           // Rewrite content with AI if enabled
           let finalContent = extractedData.content;
           if (feed.settings.enableAiRewrite) {
@@ -317,7 +342,7 @@ Please provide only the rewritten content without any additional commentary or f
             title: extractedData.title,
             slug: slug,
             content: finalContent,
-            category: feed.category._id,
+            category: identifiedCategory._id,
             author: feed.defaultAuthor._id,
             featuredImage: extractedData.image,
             status: feed.settings.autoPublish ? 'published' : 'draft',

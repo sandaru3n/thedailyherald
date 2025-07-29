@@ -12,11 +12,6 @@ const rssFeedSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  category: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category',
-    required: true
-  },
   defaultAuthor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Admin',
@@ -74,6 +69,10 @@ const rssFeedSchema = new mongoose.Schema({
     publishDelay: {
       type: Number, // minutes
       default: 0
+    },
+    enableAutoCategory: {
+      type: Boolean,
+      default: true
     }
   },
   errorLog: [{
@@ -138,7 +137,6 @@ rssFeedSchema.methods.clearErrorLogs = function() {
 
 // Index for better query performance
 rssFeedSchema.index({ isActive: 1, lastFetched: 1 });
-rssFeedSchema.index({ category: 1 });
 rssFeedSchema.index({ feedUrl: 1 });
 
 module.exports = mongoose.model('RssFeed', rssFeedSchema); 
