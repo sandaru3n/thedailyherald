@@ -115,7 +115,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     <div className="min-h-screen bg-gray-50">
       <PerformanceMonitor pageName="Article" />
       <Header />
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-4 py-12">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-4 py-4">
         <Suspense fallback={<ArticleSkeleton />}>
           <ArticleContent 
             article={article} 

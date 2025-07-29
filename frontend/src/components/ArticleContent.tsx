@@ -75,7 +75,7 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
       />
       
       {/* Breadcrumb */}
-      <nav className="mb-6">
+      <nav className="mb-4">
         <ol className="flex items-center space-x-2 text-sm text-gray-600">
           <li>
             <button 
