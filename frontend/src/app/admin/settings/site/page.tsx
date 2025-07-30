@@ -25,6 +25,36 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { apiCall } from '@/lib/auth';
 
+interface ApiResponse {
+  success: boolean;
+  settings?: {
+    siteName?: string;
+    siteDescription?: string;
+    siteUrl?: string;
+    siteLogo?: string;
+    publisherName?: string;
+    publisherUrl?: string;
+    publisherLogo?: string;
+    socialMedia?: {
+      facebook?: string;
+      twitter?: string;
+      youtube?: string;
+      instagram?: string;
+    };
+    contactInfo?: {
+      email?: string;
+      phone?: string;
+      address?: string;
+    };
+    seoSettings?: {
+      defaultTitle?: string;
+      defaultDescription?: string;
+      googleAnalyticsId?: string;
+      googleSearchConsole?: string;
+    };
+  };
+}
+
 interface SiteSettings {
   siteName: string;
   siteDescription: string;
@@ -90,7 +120,7 @@ export default function SiteSettingsPage() {
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const data = await apiCall('/settings') as any;
+      const data = await apiCall('/settings') as ApiResponse;
       if (data?.success && data?.settings) {
         // Ensure all nested objects have default values
         const fetchedSettings = data.settings;
