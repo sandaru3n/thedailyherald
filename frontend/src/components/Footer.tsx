@@ -38,9 +38,9 @@ export default function Footer() {
           {/* About Section */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              {settings?.siteLogo && (
+              {settings?.publisherLogo && (
                 <Image 
-                  src={settings.siteLogo} 
+                  src={settings.publisherLogo} 
                   alt="" 
                   width={48}
                   height={48}
