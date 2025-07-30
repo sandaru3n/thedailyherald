@@ -421,4 +421,36 @@ router.put('/:id/unpublish', auth, requireRole(['admin', 'editor']), async (req,
   }
 });
 
+// @route   GET /api/articles/sitemap
+// @desc    Get articles for sitemap (optimized for speed)
+// @access  Public
+router.get('/sitemap', async (req, res) => {
+  try {
+    const { page = 1, limit = 100 } = req.query;
+
+    const query = { status: 'published' };
+    
+    const options = {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      sort: '-publishedAt',
+      // Only select fields needed for sitemap
+      select: 'slug publishedAt updatedAt'
+    };
+
+    const articles = await Article.paginate(query, options);
+
+    res.json({
+      success: true,
+      ...articles
+    });
+
+  } catch (error) {
+    console.error('Get articles for sitemap error:', error);
+    res.status(500).json({
+      error: 'Server error'
+    });
+  }
+});
+
 module.exports = router; 
