@@ -7,195 +7,212 @@ import { NEWS_CATEGORIES } from '@/types/news';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { FaFacebook, FaTwitter, FaInstagram, FaYoutube } from 'react-icons/fa';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import Image from 'next/image';
 
 export default function Footer() {
-  const { settings, loading } = useSiteSettings();
   const [mounted, setMounted] = useState(false);
+  const { settings } = useSiteSettings();
+  const currentYear = 2025;
+
+  // Stable defaults
+  const siteName = mounted && settings?.siteName ? settings.siteName : 'The Daily Herald';
+  const siteDescription = mounted && settings?.siteDescription ? settings.siteDescription : 'Your trusted source for news';
+  const socialMedia = mounted && settings?.socialMedia ? settings.socialMedia : {};
+  const contactInfo = mounted && settings?.contactInfo ? settings.contactInfo : {};
+  const hasContactInfo = mounted && contactInfo && (contactInfo.address || contactInfo.phone || contactInfo.email);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Use stable default values for server-side rendering
-  const siteName = mounted && settings?.siteName ? settings.siteName : 'The Daily Herald';
-  const siteDescription = mounted && settings?.siteDescription ? settings.siteDescription : 'Your trusted source for breaking news, in-depth analysis, and comprehensive coverage of local and global events. Committed to delivering truth with integrity.';
-  const socialMedia = mounted && settings?.socialMedia ? settings.socialMedia : {};
-  const contactInfo = mounted && settings?.contactInfo ? settings.contactInfo : {};
-  
-  // Ensure consistent rendering by using stable defaults
-  const hasContactInfo = mounted && contactInfo && (
-    contactInfo.address || contactInfo.phone || contactInfo.email
-  );
-  
-  // Use a stable year to avoid hydration issues
-  const currentYear = 2025;
-
   return (
-    <footer className="bg-slate-900 text-white mt-12 sm:mt-16">
-      <div className="container mx-auto px-4 py-8 sm:py-12">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+    <footer 
+      role="contentinfo" 
+      aria-label="Site footer"
+      className="bg-gradient-to-b from-gray-900 to-gray-950 text-gray-300 pt-8 pb-6 px-4 sm:px-6"
+    >
+      <div className="max-w-7xl mx-auto">
+        {/* Main Content */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+          
           {/* About Section */}
-          <div>
-            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">{siteName}</h3>
-            <p className="text-gray-300 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed break-words hyphens-auto max-h-24 overflow-hidden">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              {settings?.siteLogo && (
+                <Image 
+                  src={settings.siteLogo} 
+                  alt="" 
+                  width={48}
+                  height={48}
+                  className="rounded-lg"
+                  aria-hidden="true"
+                />
+              )}
+              <h2 className="text-xl font-bold text-white">{siteName}</h2>
+            </div>
+            <p className="text-sm leading-relaxed line-clamp-3 text-ellipsis overflow-hidden">
               {siteDescription}
             </p>
-                         <div className="flex space-x-2 sm:space-x-3">
-               {socialMedia.facebook && (
-                 <a href={socialMedia.facebook} target="_blank" rel="noopener noreferrer">
-                   <Button size="sm" variant="ghost" className="p-1.5 sm:p-2 hover:bg-gray-700">
-                     <FaFacebook className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
-                   </Button>
-                 </a>
-               )}
-               {socialMedia.twitter && (
-                 <a href={socialMedia.twitter} target="_blank" rel="noopener noreferrer">
-                   <Button size="sm" variant="ghost" className="p-1.5 sm:p-2 hover:bg-gray-700">
-                     <FaTwitter className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
-                   </Button>
-                 </a>
-               )}
-               {socialMedia.instagram && (
-                 <a href={socialMedia.instagram} target="_blank" rel="noopener noreferrer">
-                   <Button size="sm" variant="ghost" className="p-1.5 sm:p-2 hover:bg-gray-700">
-                     <FaInstagram className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
-                   </Button>
-                 </a>
-               )}
-               {socialMedia.youtube && (
-                 <a href={socialMedia.youtube} target="_blank" rel="noopener noreferrer">
-                   <Button size="sm" variant="ghost" className="p-1.5 sm:p-2 hover:bg-gray-700">
-                     <FaYoutube className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
-                   </Button>
-                 </a>
-               )}
-             </div>
+            
+            {/* Social Media */}
+            {Object.keys(socialMedia).length > 0 && (
+              <div className="flex space-x-4 pt-2">
+                {socialMedia.facebook && (
+                  <a 
+                    href={socialMedia.facebook}
+                    aria-label="Facebook"
+                    className="p-2 text-gray-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                  >
+                    <FaFacebook className="w-5 h-5" />
+                  </a>
+                )}
+                {socialMedia.twitter && (
+                  <a 
+                    href={socialMedia.twitter}
+                    aria-label="Twitter"
+                    className="p-2 text-gray-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                  >
+                    <FaTwitter className="w-5 h-5" />
+                  </a>
+                )}
+                {socialMedia.instagram && (
+                  <a 
+                    href={socialMedia.instagram}
+                    aria-label="Instagram"
+                    className="p-2 text-gray-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                  >
+                    <FaInstagram className="w-5 h-5" />
+                  </a>
+                )}
+                {socialMedia.youtube && (
+                  <a 
+                    href={socialMedia.youtube}
+                    aria-label="YouTube"
+                    className="p-2 text-gray-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                  >
+                    <FaYoutube className="w-5 h-5" />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h4 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Quick Links</h4>
-            <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  About Us
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  Contact Us
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  Terms of Service
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  Advertise With Us
-                </a>
-              </li>
-              <li>
-                <a href="/feed/" className="text-gray-300 hover:text-white transition-colors">
-                  RSS Feed
-                </a>
-              </li>
+          {/* Quick Links - Mobile Accessible */}
+          <nav aria-label="Quick links">
+            <h3 className="text-lg font-semibold text-white mb-4 pb-2 border-b border-gray-800">
+              Quick Links
+            </h3>
+            <ul className="space-y-3">
+              {[
+                { href: '/', text: 'Home' },
+                { href: '/about', text: 'About Us' },
+                { href: '/contact', text: 'Contact' },
+                { href: '/privacy', text: 'Privacy Policy' },
+                { href: '/terms', text: 'Terms of Service' },
+                { href: '/feed', text: 'RSS Feed' }
+              ].map((link) => (
+                <li key={link.href}>
+                  <a 
+                    href={link.href}
+                    className="block py-2 hover:text-white transition-colors focus:outline-none focus:underline"
+                  >
+                    {link.text}
+                  </a>
+                </li>
+              ))}
             </ul>
-          </div>
+          </nav>
 
           {/* Categories */}
-          <div>
-            <h4 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Categories</h4>
-            <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+          <nav aria-label="Article categories">
+            <h3 className="text-lg font-semibold text-white mb-4 pb-2 border-b border-gray-800">
+              Categories
+            </h3>
+            <ul className="space-y-3">
               {NEWS_CATEGORIES.slice(0, 6).map((category) => (
                 <li key={category._id}>
-                  <a
+                  <a 
                     href={`/category/${category.slug}`}
-                    className="text-gray-300 hover:text-white transition-colors"
+                    className="block py-2 hover:text-white transition-colors focus:outline-none focus:underline"
                   >
                     {category.name}
                   </a>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
           {/* Contact Info */}
           <div>
-            {hasContactInfo && (
-              <>
-                <h4 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Contact Info</h4>
-                <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
-                  {contactInfo.address && (
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">
-                        {contactInfo.address}
-                      </span>
-                    </div>
-                  )}
-                  {contactInfo.phone && (
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <Phone className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
-                      <a href={`tel:${contactInfo.phone}`} className="text-gray-300 hover:text-white transition-colors">
-                        {contactInfo.phone}
-                      </a>
-                    </div>
-                  )}
-                  {contactInfo.email && (
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <Mail className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
-                      <a href={`mailto:${contactInfo.email}`} className="text-gray-300 hover:text-white transition-colors">
-                        {contactInfo.email}
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </>
+            <h3 className="text-lg font-semibold text-white mb-4 pb-2 border-b border-gray-800">
+              Contact Us
+            </h3>
+            {hasContactInfo ? (
+              <address className="not-italic space-y-3">
+                {contactInfo.address && (
+                  <div className="flex items-start space-x-3">
+                    <MapPin className="flex-shrink-0 w-5 h-5 mt-0.5 text-gray-400" aria-hidden="true" />
+                    <span>{contactInfo.address}</span>
+                  </div>
+                )}
+                {contactInfo.phone && (
+                  <div className="flex items-center space-x-3">
+                    <Phone className="flex-shrink-0 w-5 h-5 text-gray-400" aria-hidden="true" />
+                    <a 
+                      href={`tel:${contactInfo.phone}`}
+                      className="hover:text-white transition-colors focus:outline-none focus:underline"
+                    >
+                      {contactInfo.phone}
+                    </a>
+                  </div>
+                )}
+                {contactInfo.email && (
+                  <div className="flex items-center space-x-3">
+                    <Mail className="flex-shrink-0 w-5 h-5 text-gray-400" aria-hidden="true" />
+                    <a 
+                      href={`mailto:${contactInfo.email}`}
+                      className="hover:text-white transition-colors focus:outline-none focus:underline"
+                    >
+                      {contactInfo.email}
+                    </a>
+                  </div>
+                )}
+              </address>
+            ) : (
+              <p className="text-sm text-gray-500">Contact information not available</p>
             )}
 
-            {/* Newsletter */}
-            <div className="mt-4 sm:mt-6">
-              <h5 className="font-medium mb-2 text-xs sm:text-sm">Daily Newsletter</h5>
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="Your email"
-                  className="flex-1 px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-800 border border-gray-600 rounded text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5">
-                  Subscribe
-                </Button>
-              </div>
+            {/* Newsletter - Accessible Form */}
+            <div className="mt-6">
+              <h3 className="text-sm font-medium mb-3">Subscribe to Newsletter</h3>
+              <form>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <label htmlFor="newsletter-email" className="sr-only">Email address</label>
+                  <input
+                    id="newsletter-email"
+                    type="email"
+                    placeholder="Your email"
+                    className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                  <button 
+                    type="submit"
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Subscribe
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
 
-        <Separator className="my-6 sm:my-8 bg-gray-700" />
-
-        {/* Bottom Footer */}
-        <div className="flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm text-gray-400">
-          <div className="text-center sm:text-left mb-3 sm:mb-0">
-            © {currentYear} {siteName}. All rights reserved.
-          </div>
-          <div className="flex space-x-4 sm:space-x-6">
-            <a href="#" className="hover:text-white transition-colors">
-              Privacy Policy
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
-              Terms of Service
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
-              Cookie Policy
-            </a>
-          </div>
+        {/* Copyright */}
+        <div 
+          className="pt-6 mt-6 border-t border-gray-800 text-center text-sm text-gray-400"
+          aria-label="Copyright information"
+        >
+          <p>© {currentYear} {siteName}. All rights reserved.</p>
         </div>
       </div>
     </footer>
