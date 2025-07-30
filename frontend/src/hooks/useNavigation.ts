@@ -1,89 +1,103 @@
 import { useState, useEffect } from 'react';
+import { apiCall } from '@/lib/auth';
 
-export interface NavigationItem {
-  id: string;
+interface NavigationItem {
+  _id?: string;
   label: string;
   url: string;
   icon: string;
   type: 'link' | 'category';
   order: number;
   isActive: boolean;
+  isExternal?: boolean;
+  target?: '_self' | '_blank';
+}
+
+interface Navigation {
+  _id?: string;
+  name: string;
+  items: NavigationItem[];
+  isActive: boolean;
 }
 
 export function useNavigation() {
-  const [navigationItems, setNavigationItems] = useState<NavigationItem[]>([]);
+  const [navigation, setNavigation] = useState<Navigation | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadNavigation = () => {
-      try {
-        const savedNavigation = localStorage.getItem('customNavigation');
-        if (savedNavigation) {
-          const items = JSON.parse(savedNavigation) as NavigationItem[];
-          // Sort by order
-          const sortedItems = items.sort((a, b) => a.order - b.order);
-          setNavigationItems(sortedItems);
-        } else {
-          // Default navigation items
-          const defaultItems: NavigationItem[] = [
+    fetchNavigation();
+  }, []);
+
+  const fetchNavigation = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await apiCall('/navigation');
+      
+      if (response.success && response.navigation) {
+        setNavigation(response.navigation);
+      } else {
+        // Set default navigation if none exists
+        setNavigation({
+          name: 'main',
+          items: [
             {
-              id: 'home',
+              _id: 'default-home',
               label: 'Home',
               url: '/',
               icon: 'home',
               type: 'link',
               order: 1,
-              isActive: true
-            },
-            {
-              id: 'about',
-              label: 'About',
-              url: '/about',
-              icon: 'info',
-              type: 'link',
-              order: 2,
-              isActive: true
-            },
-            {
-              id: 'contact',
-              label: 'Contact',
-              url: '/contact',
-              icon: 'contact',
-              type: 'link',
-              order: 3,
-              isActive: true
+              isActive: true,
+              isExternal: false,
+              target: '_self'
             }
-          ];
-          setNavigationItems(defaultItems);
-        }
-      } catch (error) {
-        console.error('Error loading navigation:', error);
-        setNavigationItems([]);
-      } finally {
-        setLoading(false);
+          ],
+          isActive: true
+        });
       }
-    };
+    } catch (err) {
+      console.error('Error fetching navigation:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch navigation');
+      
+      // Set default navigation on error
+      setNavigation({
+        name: 'main',
+        items: [
+          {
+            _id: 'default-home',
+            label: 'Home',
+            url: '/',
+            icon: 'home',
+            type: 'link',
+            order: 1,
+            isActive: true,
+            isExternal: false,
+            target: '_self'
+          }
+        ],
+        isActive: true
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    loadNavigation();
-
-    // Listen for storage changes
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'customNavigation') {
-        loadNavigation();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  const getActiveItems = () => {
-    return navigationItems.filter(item => item.isActive);
+  const getActiveItems = (): NavigationItem[] => {
+    if (!navigation || !navigation.items) return [];
+    
+    return navigation.items
+      .filter(item => item && item.isActive && item.label && item.url)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
   };
 
   return {
-    navigationItems,
+    navigation,
     activeItems: getActiveItems(),
-    loading
+    loading,
+    error,
+    refetch: fetchNavigation
   };
 } 

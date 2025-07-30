@@ -472,7 +472,7 @@ export default function RssFeedsPage() {
                   </div>
                   <div className="mt-2 space-y-1">
                     {feed.errorLog.slice(-3).map((error, index) => (
-                      <p key={index} className="text-xs text-red-600">
+                      <p key={`${feed._id}-error-${index}-${error.timestamp}`} className="text-xs text-red-600">
                         {new Date(error.timestamp).toLocaleString()}: {error.message}
                       </p>
                     ))}

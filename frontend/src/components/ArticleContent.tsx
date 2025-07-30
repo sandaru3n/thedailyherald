@@ -140,7 +140,7 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
                 <div className="mb-6">
                   <div className="flex flex-wrap gap-2">
                     {article.tags.map((tag, index) => (
-                      <Badge key={index} variant="outline" className="hover:bg-gray-100">
+                      <Badge key={`${article._id || article.id}-tag-${index}-${tag}`} variant="outline" className="hover:bg-gray-100">
                         #{tag}
                       </Badge>
                     ))}

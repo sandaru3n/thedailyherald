@@ -76,17 +76,22 @@ export default function Header() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between py-4">
             {/* Desktop Navigation Menu */}
-            <nav className="flex items-center space-x-8">
-              {!loading && activeItems.slice(0, 5).map((item) => {
+            <nav className="flex items-center space-x-4 lg:space-x-6 xl:space-x-8 flex-wrap">
+              {!loading && activeItems && activeItems.length > 0 && activeItems.map((item) => {
+                if (!item || !item.label) return null;
                 const IconComponent = getIconComponent(item.icon);
                 return (
                   <Link
-                    key={item.id}
-                    href={item.url}
-                    className="flex items-center text-gray-700 hover:text-blue-600 font-semibold text-sm transition-all duration-200 hover:scale-105"
+                    key={item._id || item.label}
+                    href={item.url || '#'}
+                    target={item.target || '_self'}
+                    className="flex items-center text-gray-700 hover:text-blue-600 font-semibold text-sm transition-all duration-200 hover:scale-105 whitespace-nowrap"
                   >
                     <IconComponent className="h-4 w-4 mr-2" />
                     {item.label}
+                    {item.isExternal && (
+                      <Globe className="h-3 w-3 ml-1" />
+                    )}
                   </Link>
                 );
               })}
@@ -159,17 +164,22 @@ export default function Header() {
 
               {/* Navigation Links - smaller font and padding for mobile */}
               <nav className="space-y-2">
-                {!loading && activeItems.map((item) => {
+                {!loading && activeItems && activeItems.length > 0 && activeItems.map((item) => {
+                  if (!item || !item.label) return null;
                   const IconComponent = getIconComponent(item.icon);
                   return (
                     <Link
-                      key={item.id}
-                      href={item.url}
+                      key={item._id || item.label}
+                      href={item.url || '#'}
+                      target={item.target || '_self'}
                       className="flex items-center text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <IconComponent className="h-5 w-5 mr-2" />
                       {item.label}
+                      {item.isExternal && (
+                        <Globe className="h-4 w-4 ml-auto" />
+                      )}
                     </Link>
                   );
                 })}
