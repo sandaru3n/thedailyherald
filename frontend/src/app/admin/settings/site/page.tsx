@@ -164,7 +164,7 @@ export default function SiteSettingsPage() {
       ...prev,
       [section]: {
         ...((typeof prev[section as keyof SiteSettings] === 'object' && prev[section as keyof SiteSettings] !== null)
-          ? prev[section as keyof SiteSettings]
+          ? (prev[section as keyof SiteSettings] as Record<string, string>)
           : {}),
         [field]: value
       }
