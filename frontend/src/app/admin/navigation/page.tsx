@@ -96,14 +96,14 @@ export default function NavigationManagementPage() {
       setLoading(true);
       
       // Fetch navigation items
-      const navigationResponse = await apiCall('/navigation/admin');
+      const navigationResponse = await apiCall('/navigation/admin') as { success: boolean; navigation?: { items: NavigationItem[] } };
       if (navigationResponse.success && navigationResponse.navigation) {
         setNavigationItems(navigationResponse.navigation.items || []);
       }
 
       // Fetch categories
       try {
-        const categoriesResponse = await apiCall('/categories');
+        const categoriesResponse = await apiCall('/categories') as Category[] | { success: boolean; categories?: Category[] };
         if (Array.isArray(categoriesResponse)) {
           setCategories(categoriesResponse);
         } else if (categoriesResponse.success && categoriesResponse.categories) {
@@ -132,7 +132,7 @@ export default function NavigationManagementPage() {
       const response = await apiCall('/navigation', {
         method: 'POST',
         body: JSON.stringify({ items: navigationItems })
-      });
+      }) as { success: boolean; message?: string };
       
       if (response.success) {
         setMessage({ type: 'success', text: 'Navigation saved successfully!' });
@@ -185,7 +185,7 @@ export default function NavigationManagementPage() {
       const response = await apiCall(`/navigation/${itemId}`, {
         method: 'PUT',
         body: JSON.stringify(updateData)
-      });
+      }) as { success: boolean; message?: string };
       
       if (response.success) {
         setNavigationItems(navigationItems.map(item => 
@@ -210,7 +210,7 @@ export default function NavigationManagementPage() {
     try {
       const response = await apiCall(`/navigation/${itemId}`, {
         method: 'DELETE'
-      });
+      }) as { success: boolean; message?: string };
       
       if (response.success) {
         setNavigationItems(navigationItems.filter(item => item._id !== itemId));
@@ -253,7 +253,7 @@ export default function NavigationManagementPage() {
         body: JSON.stringify({ 
           itemIds: updatedItems.map(item => item._id) 
         })
-      });
+      }) as { success: boolean; message?: string };
       
       if (response.success) {
         setMessage({ type: 'success', text: 'Order updated successfully!' });

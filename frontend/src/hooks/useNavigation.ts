@@ -34,7 +34,7 @@ export function useNavigation() {
       setLoading(true);
       setError(null);
       
-      const response = await apiCall('/navigation');
+      const response = await apiCall('/navigation') as { success: boolean; navigation?: Navigation };
       
       if (response.success && response.navigation) {
         setNavigation(response.navigation);
