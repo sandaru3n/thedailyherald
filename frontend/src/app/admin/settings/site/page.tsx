@@ -163,7 +163,7 @@ export default function SiteSettingsPage() {
     setSettings(prev => ({
       ...prev,
       [section]: {
-        ...prev[section as keyof SiteSettings],
+        ...(prev[section as keyof SiteSettings] || {}),
         [field]: value
       }
     }));
