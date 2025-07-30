@@ -22,6 +22,8 @@ const eslintConfig = [
       "react/no-unescaped-entities": "off",
       "@next/next/no-img-element": "off",
       "jsx-a11y/alt-text": "off",
+      // Allow CSS files to be imported
+      "@next/next/no-css-tags": "off",
     },
   },
 ];

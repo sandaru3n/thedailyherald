@@ -84,12 +84,9 @@ export default function NewsletterSignup({
   return (
     <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
       <CardContent className="p-6">
-        <div className="text-center mb-4">
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <Mail className="w-6 h-6 text-blue-600" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-          <p className="text-gray-600 text-sm">{description}</p>
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">{title}</h2>
+          <p className="text-gray-600 text-sm mb-4">{description}</p>
         </div>
 
         {status === 'success' ? (

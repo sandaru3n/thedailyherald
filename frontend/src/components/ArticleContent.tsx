@@ -80,12 +80,13 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
       />
       
       {/* Breadcrumb */}
-      <nav className="mb-4">
+      <nav className="mb-4" aria-label="Breadcrumb">
         <ol className="flex items-center space-x-2 text-sm text-gray-600">
           <li>
             <button 
               onClick={() => router.push('/')}
               className="hover:text-blue-600 transition-colors"
+              aria-label="Go to homepage"
             >
               Home
             </button>
@@ -95,6 +96,7 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
             <button 
               onClick={() => router.push(`/category/${categoryName.toLowerCase()}`)}
               className="hover:text-blue-600 transition-colors"
+              aria-label={`Go to ${categoryName} category`}
             >
               {categoryName}
             </button>
@@ -174,6 +176,7 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
                     size="sm"
                     className="absolute top-4 right-4 bg-white/90 hover:bg-white"
                     onClick={() => setIsBookmarked(!isBookmarked)}
+                    aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}
                   >
                     <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
                   </Button>
@@ -228,9 +231,9 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
             <Card>
               <CardContent className="p-6">
                 <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
-                  <div className="text-center text-gray-500">
+                  <div className="text-center text-gray-700">
                     <ExternalLink className="w-8 h-8 mx-auto mb-2" />
-                    <p className="text-sm">Advertisement Space</p>
+                    <p className="text-sm font-medium">Advertisement Space</p>
                   </div>
                 </div>
               </CardContent>

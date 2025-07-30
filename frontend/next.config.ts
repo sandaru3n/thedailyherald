@@ -30,6 +30,9 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   
+  // Source maps for better debugging
+  productionBrowserSourceMaps: true,
+  
   // Reduce Fast Refresh messages in development
   ...(process.env.NODE_ENV === 'development' && {
     // @ts-expect-error - webpack config type is complex and varies by Next.js version
