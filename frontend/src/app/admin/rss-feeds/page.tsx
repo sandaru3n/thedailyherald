@@ -535,7 +535,17 @@ function RssFeedForm({
 }) {
   const [testTitle, setTestTitle] = useState('');
   const [testContent, setTestContent] = useState('');
-  const [testResult, setTestResult] = useState<{ category: { name: string; description: string } } | null>(null);
+  const [testResult, setTestResult] = useState<{ 
+    category: { name: string; description: string }; 
+    confidence: number;
+    confidencePercentage: string;
+    method: string;
+    analysis: {
+      title: string;
+      contentPreview: string;
+      totalWords: number;
+    };
+  } | null>(null);
   const [testing, setTesting] = useState(false);
 
   const handleTestCategory = async () => {
@@ -699,12 +709,32 @@ function RssFeedForm({
               </Button>
               {testResult && (
                 <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-                  <p className="text-sm font-medium text-green-800">
-                    Identified Category: <span className="font-bold">{testResult.category.name}</span>
-                  </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-green-800">
+                      Identified Category: <span className="font-bold">{testResult.category.name}</span>
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        parseFloat(testResult.confidencePercentage) >= 80 
+                          ? 'bg-green-100 text-green-800' 
+                          : parseFloat(testResult.confidencePercentage) >= 60 
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {testResult.confidencePercentage}% confidence
+                      </span>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                        {testResult.method}
+                      </span>
+                    </div>
+                  </div>
                   {testResult.category.description && (
-                    <p className="text-xs text-green-600 mt-1">{testResult.category.description}</p>
+                    <p className="text-xs text-green-600 mb-2">{testResult.category.description}</p>
                   )}
+                  <div className="text-xs text-gray-600 space-y-1">
+                    <p><strong>Analysis:</strong> {testResult.analysis.totalWords} words analyzed</p>
+                    <p><strong>Method:</strong> {testResult.method === 'ai' ? 'AI Analysis' : testResult.method === 'fallback' ? 'Keyword Matching' : 'Manual'}</p>
+                  </div>
                 </div>
               )}
             </div>

@@ -82,23 +82,36 @@ class CategoryIdentificationService {
   // Generate prompt for category identification
   generateCategoryIdentificationPrompt(title, content, categoryNames, categoryDescriptions) {
     return `
-You are a news categorization expert. Analyze the following article and identify the most appropriate category from the available options.
+You are an expert news categorization specialist with deep knowledge of journalism and content classification. Your task is to accurately categorize news articles based on their primary topic and focus.
 
 Available categories:
 ${categoryDescriptions}
 
 Article Title: ${title}
 
-Article Content: ${content.substring(0, 1000)}${content.length > 1000 ? '...' : ''}
+Article Content: ${content.substring(0, 1500)}${content.length > 1500 ? '...' : ''}
 
-Instructions:
-1. Analyze the title and content to understand the topic and theme
-2. Consider the subject matter, tone, and target audience
-3. Choose the most appropriate category from the provided list
-4. Respond with ONLY the exact category name (case-sensitive)
-5. If no category fits perfectly, choose the closest match
+CRITICAL INSTRUCTIONS:
+1. **Primary Focus Analysis**: Identify the MAIN topic and primary focus of the article
+2. **Context Evaluation**: Consider the broader context, not just individual keywords
+3. **Audience Perspective**: Think about how readers would categorize this content
+4. **Exact Match Requirement**: Respond with ONLY the exact category name from the provided list
+5. **Case Sensitivity**: Use the exact case as shown in the category list
+6. **Confidence Check**: If you're unsure, choose the most logical category based on the primary theme
 
-Respond with only the category name, nothing else.
+ANALYSIS GUIDELINES:
+- Technology: Focus on tech innovations, software, hardware, digital trends, AI, programming
+- Politics: Government actions, elections, policy decisions, political figures, legislation
+- Business: Economic news, corporate developments, market trends, financial reports
+- Sports: Athletic events, sports teams, athletes, competitions, sports industry
+- Entertainment: Movies, music, celebrities, arts, media, cultural events
+- Health: Medical news, healthcare, wellness, medical research, public health
+- Science: Scientific discoveries, research studies, academic findings, space exploration
+- World: International relations, global events, foreign policy, international conflicts
+- Education: Academic news, educational policy, student affairs, learning trends
+- Environment: Climate change, environmental policy, conservation, natural resources
+
+Respond with ONLY the exact category name, nothing else.
 `;
   }
 
@@ -115,11 +128,14 @@ Respond with only the category name, nothing else.
       return exactMatch;
     }
 
-    // Find partial match
-    const partialMatch = categories.find(cat => 
-      cleanResponse.includes(cat.name.toLowerCase()) ||
-      cat.name.toLowerCase().includes(cleanResponse)
-    );
+    // Find partial match with improved logic
+    const partialMatch = categories.find(cat => {
+      const categoryName = cat.name.toLowerCase();
+      return cleanResponse.includes(categoryName) ||
+             categoryName.includes(cleanResponse) ||
+             cleanResponse.split(' ').some(word => categoryName.includes(word)) ||
+             categoryName.split(' ').some(word => cleanResponse.includes(word));
+    });
     
     if (partialMatch) {
       return partialMatch;
@@ -130,7 +146,7 @@ Respond with only the category name, nothing else.
     return categories[0];
   }
 
-  // Fallback category identification using keyword matching
+  // Enhanced fallback category identification using improved keyword matching
   async fallbackCategoryIdentification(title, content) {
     try {
       const categories = await Category.find({ isActive: true }).sort({ order: 1, name: 1 });
@@ -141,32 +157,74 @@ Respond with only the category name, nothing else.
 
       const text = `${title} ${content}`.toLowerCase();
       
-      // Define keyword mappings for each category
+      // Enhanced keyword mappings with weighted scoring
       const categoryKeywords = {
-        'Technology': ['tech', 'technology', 'software', 'hardware', 'ai', 'artificial intelligence', 'machine learning', 'programming', 'coding', 'startup', 'innovation', 'digital', 'computer', 'internet', 'web', 'app', 'mobile', 'cybersecurity'],
-        'Politics': ['politics', 'political', 'government', 'election', 'vote', 'democrat', 'republican', 'congress', 'senate', 'president', 'policy', 'legislation', 'law', 'bill', 'campaign', 'politician'],
-        'Business': ['business', 'economy', 'market', 'stock', 'finance', 'financial', 'investment', 'company', 'corporate', 'entrepreneur', 'startup', 'revenue', 'profit', 'trade', 'commerce', 'industry'],
-        'Sports': ['sports', 'football', 'basketball', 'baseball', 'soccer', 'tennis', 'golf', 'olympics', 'championship', 'tournament', 'game', 'match', 'player', 'team', 'coach', 'athlete'],
-        'Entertainment': ['entertainment', 'movie', 'film', 'music', 'celebrity', 'actor', 'actress', 'singer', 'artist', 'hollywood', 'tv', 'television', 'show', 'concert', 'award', 'oscar', 'grammy'],
-        'Health': ['health', 'medical', 'medicine', 'doctor', 'hospital', 'disease', 'treatment', 'vaccine', 'covid', 'coronavirus', 'wellness', 'fitness', 'nutrition', 'mental health', 'therapy'],
-        'Science': ['science', 'scientific', 'research', 'study', 'discovery', 'experiment', 'laboratory', 'scientist', 'physics', 'chemistry', 'biology', 'space', 'astronomy', 'climate', 'environment'],
-        'World': ['world', 'international', 'global', 'foreign', 'country', 'nation', 'diplomacy', 'foreign policy', 'immigration', 'refugee', 'war', 'conflict', 'peace', 'treaty'],
-        'Education': ['education', 'school', 'university', 'college', 'student', 'teacher', 'academic', 'learning', 'curriculum', 'degree', 'scholarship', 'research', 'study'],
-        'Environment': ['environment', 'climate', 'weather', 'pollution', 'renewable', 'solar', 'wind', 'energy', 'conservation', 'wildlife', 'nature', 'forest', 'ocean', 'sustainability']
+        'Technology': {
+          primary: ['technology', 'tech', 'software', 'hardware', 'ai', 'artificial intelligence', 'machine learning', 'programming', 'coding', 'startup', 'innovation', 'digital', 'computer', 'internet', 'web', 'app', 'mobile', 'cybersecurity', 'blockchain', 'cryptocurrency', 'bitcoin', 'ethereum', 'metaverse', 'vr', 'ar', 'virtual reality', 'augmented reality'],
+          secondary: ['algorithm', 'data', 'cloud', 'database', 'server', 'network', 'wireless', '5g', 'smartphone', 'laptop', 'gaming', 'esports', 'streaming', 'social media', 'facebook', 'twitter', 'instagram', 'tiktok', 'youtube', 'netflix', 'amazon', 'google', 'apple', 'microsoft', 'tesla', 'spacex', 'nvidia', 'amd', 'intel']
+        },
+        'Politics': {
+          primary: ['politics', 'political', 'government', 'election', 'vote', 'democrat', 'republican', 'congress', 'senate', 'president', 'policy', 'legislation', 'law', 'bill', 'campaign', 'politician', 'senator', 'representative', 'governor', 'mayor', 'biden', 'trump', 'obama', 'clinton'],
+          secondary: ['democracy', 'republic', 'constitution', 'amendment', 'federal', 'state', 'local', 'bipartisan', 'partisan', 'lobbyist', 'lobbying', 'polls', 'polling', 'debate', 'rally', 'convention', 'inauguration', 'impeachment', 'veto', 'executive order', 'supreme court', 'judiciary', 'attorney general', 'secretary', 'cabinet']
+        },
+        'Business': {
+          primary: ['business', 'economy', 'market', 'stock', 'finance', 'financial', 'investment', 'company', 'corporate', 'entrepreneur', 'startup', 'revenue', 'profit', 'trade', 'commerce', 'industry', 'wall street', 'nasdaq', 'dow jones', 's&p 500', 'federal reserve', 'fed', 'interest rate', 'inflation', 'recession', 'gdp'],
+          secondary: ['earnings', 'quarterly', 'annual', 'merger', 'acquisition', 'ipo', 'initial public offering', 'venture capital', 'private equity', 'hedge fund', 'mutual fund', 'etf', 'bond', 'treasury', 'commodity', 'oil', 'gas', 'gold', 'silver', 'real estate', 'mortgage', 'loan', 'credit', 'debt', 'bankruptcy', 'layoff', 'hiring', 'unemployment']
+        },
+        'Sports': {
+          primary: ['sports', 'football', 'basketball', 'baseball', 'soccer', 'tennis', 'golf', 'olympics', 'championship', 'tournament', 'game', 'match', 'player', 'team', 'coach', 'athlete', 'nfl', 'nba', 'mlb', 'nhl', 'mls', 'ncaa', 'college football', 'college basketball', 'super bowl', 'world series', 'stanley cup', 'nba finals'],
+          secondary: ['quarterback', 'running back', 'wide receiver', 'point guard', 'shooting guard', 'pitcher', 'batter', 'goalie', 'forward', 'defender', 'midfielder', 'striker', 'referee', 'umpire', 'foul', 'penalty', 'touchdown', 'home run', 'goal', 'assist', 'rebound', 'steal', 'block', 'draft', 'free agency', 'trade deadline', 'playoff', 'championship']
+        },
+        'Entertainment': {
+          primary: ['entertainment', 'movie', 'film', 'music', 'celebrity', 'actor', 'actress', 'singer', 'artist', 'hollywood', 'tv', 'television', 'show', 'concert', 'award', 'oscar', 'grammy', 'emmy', 'tony', 'golden globe', 'billboard', 'chart', 'album', 'single', 'tour', 'performance', 'red carpet', 'premiere'],
+          secondary: ['director', 'producer', 'screenwriter', 'composer', 'lyricist', 'dancer', 'choreographer', 'comedian', 'stand-up', 'podcast', 'streaming', 'netflix', 'hulu', 'disney+', 'hbo', 'amazon prime', 'youtube', 'tiktok', 'instagram', 'twitter', 'social media', 'influencer', 'youtuber', 'streamer', 'gaming', 'esports']
+        },
+        'Health': {
+          primary: ['health', 'medical', 'medicine', 'doctor', 'hospital', 'disease', 'treatment', 'vaccine', 'covid', 'coronavirus', 'wellness', 'fitness', 'nutrition', 'mental health', 'therapy', 'pharmaceutical', 'drug', 'medication', 'surgery', 'diagnosis', 'symptom', 'patient', 'clinic', 'emergency room', 'icu', 'nurse', 'pharmacist'],
+          secondary: ['cancer', 'diabetes', 'heart disease', 'stroke', 'alzheimer', 'dementia', 'depression', 'anxiety', 'ptsd', 'addiction', 'rehabilitation', 'physical therapy', 'occupational therapy', 'psychology', 'psychiatry', 'pediatric', 'geriatric', 'obstetric', 'gynecologic', 'cardiology', 'neurology', 'oncology', 'dermatology', 'orthopedic']
+        },
+        'Science': {
+          primary: ['science', 'scientific', 'research', 'study', 'discovery', 'experiment', 'laboratory', 'scientist', 'physics', 'chemistry', 'biology', 'space', 'astronomy', 'climate', 'environment', 'nasa', 'space station', 'mars', 'moon', 'planet', 'galaxy', 'universe', 'dna', 'gene', 'molecule', 'atom', 'particle'],
+          secondary: ['quantum', 'relativity', 'evolution', 'genetics', 'microbiology', 'biochemistry', 'neuroscience', 'psychology', 'anthropology', 'archaeology', 'geology', 'meteorology', 'oceanography', 'botany', 'zoology', 'paleontology', 'fossil', 'extinction', 'biodiversity', 'ecosystem', 'species', 'mutation', 'protein', 'enzyme', 'hormone']
+        },
+        'World': {
+          primary: ['world', 'international', 'global', 'foreign', 'country', 'nation', 'diplomacy', 'foreign policy', 'immigration', 'refugee', 'war', 'conflict', 'peace', 'treaty', 'united nations', 'un', 'nato', 'european union', 'eu', 'brexit', 'china', 'russia', 'iran', 'north korea', 'syria', 'ukraine', 'israel', 'palestine'],
+          secondary: ['embassy', 'ambassador', 'diplomat', 'sanction', 'tariff', 'trade war', 'nuclear', 'missile', 'weapon', 'terrorism', 'terrorist', 'extremist', 'radical', 'protest', 'demonstration', 'revolution', 'coup', 'dictator', 'democracy', 'authoritarian', 'human rights', 'genocide', 'ethnic cleansing', 'civil war', 'insurgency']
+        },
+        'Education': {
+          primary: ['education', 'school', 'university', 'college', 'student', 'teacher', 'academic', 'learning', 'curriculum', 'degree', 'scholarship', 'research', 'study', 'professor', 'lecturer', 'dean', 'principal', 'superintendent', 'board of education', 'department of education', 'federal student aid', 'pell grant'],
+          secondary: ['kindergarten', 'elementary', 'middle school', 'high school', 'community college', 'graduate school', 'phd', 'masters', 'bachelors', 'associate', 'diploma', 'certificate', 'online learning', 'distance education', 'homeschooling', 'charter school', 'private school', 'public school', 'tuition', 'financial aid', 'loan forgiveness']
+        },
+        'Environment': {
+          primary: ['environment', 'climate', 'weather', 'pollution', 'renewable', 'solar', 'wind', 'energy', 'conservation', 'wildlife', 'nature', 'forest', 'ocean', 'sustainability', 'global warming', 'climate change', 'greenhouse gas', 'carbon', 'emission', 'fossil fuel', 'clean energy', 'electric vehicle', 'ev', 'tesla'],
+          secondary: ['recycling', 'plastic', 'waste', 'landfill', 'compost', 'organic', 'biodiversity', 'endangered species', 'extinction', 'deforestation', 'desertification', 'drought', 'flood', 'hurricane', 'tornado', 'tsunami', 'earthquake', 'volcano', 'wildfire', 'air quality', 'water quality', 'soil', 'agriculture', 'farming', 'organic farming']
+        }
       };
 
-      // Calculate scores for each category
+      // Calculate weighted scores for each category
       const categoryScores = {};
       
       categories.forEach(category => {
-        const keywords = categoryKeywords[category.name] || [];
+        const keywords = categoryKeywords[category.name];
+        if (!keywords) return;
+        
         let score = 0;
         
-        keywords.forEach(keyword => {
+        // Primary keywords get higher weight
+        keywords.primary.forEach(keyword => {
           const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
           const matches = text.match(regex);
           if (matches) {
-            score += matches.length;
+            score += matches.length * 3; // Primary keywords worth 3 points
+          }
+        });
+        
+        // Secondary keywords get lower weight
+        keywords.secondary.forEach(keyword => {
+          const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+          const matches = text.match(regex);
+          if (matches) {
+            score += matches.length * 1; // Secondary keywords worth 1 point
           }
         });
         
@@ -184,6 +242,10 @@ Respond with only the category name, nothing else.
         }
       });
 
+      // Log the scoring for debugging
+      console.log('Category identification scores:', categoryScores);
+      console.log('Selected category:', bestCategory.name, 'with score:', highestScore);
+
       return bestCategory;
     } catch (error) {
       console.error('Error in fallback category identification:', error);
@@ -197,10 +259,65 @@ Respond with only the category name, nothing else.
   async getCategoryConfidence(title, content, categoryId) {
     try {
       const identifiedCategory = await this.identifyCategory(title, content);
-      return identifiedCategory._id.toString() === categoryId.toString() ? 1.0 : 0.0;
+      const confidence = identifiedCategory._id.toString() === categoryId.toString() ? 1.0 : 0.0;
+      
+      // Additional confidence factors
+      const text = `${title} ${content}`.toLowerCase();
+      const categoryName = identifiedCategory.name.toLowerCase();
+      
+      // Check for strong keyword matches
+      const strongKeywords = this.getStrongKeywordsForCategory(categoryName);
+      const strongMatches = strongKeywords.filter(keyword => 
+        text.includes(keyword.toLowerCase())
+      ).length;
+      
+      // Calculate confidence based on keyword density
+      const keywordDensity = strongMatches / Math.max(1, text.split(' ').length);
+      const finalConfidence = Math.min(1.0, confidence + keywordDensity * 0.3);
+      
+      return finalConfidence;
     } catch (error) {
       console.error('Error getting category confidence:', error);
       return 0.5; // Default confidence
+    }
+  }
+
+  // Get strong keywords for a specific category
+  getStrongKeywordsForCategory(categoryName) {
+    const strongKeywords = {
+      'technology': ['artificial intelligence', 'machine learning', 'blockchain', 'cryptocurrency', 'software', 'hardware', 'programming', 'cybersecurity'],
+      'politics': ['election', 'congress', 'senate', 'president', 'legislation', 'policy', 'government', 'democrat', 'republican'],
+      'business': ['stock market', 'earnings', 'revenue', 'profit', 'investment', 'wall street', 'federal reserve', 'economy'],
+      'sports': ['nfl', 'nba', 'mlb', 'nhl', 'olympics', 'championship', 'tournament', 'athlete', 'team'],
+      'entertainment': ['movie', 'film', 'music', 'celebrity', 'hollywood', 'award', 'oscar', 'grammy', 'concert'],
+      'health': ['medical', 'hospital', 'doctor', 'treatment', 'vaccine', 'disease', 'patient', 'surgery'],
+      'science': ['research', 'discovery', 'experiment', 'laboratory', 'scientist', 'nasa', 'space', 'study'],
+      'world': ['international', 'foreign', 'diplomacy', 'united nations', 'war', 'conflict', 'global'],
+      'education': ['university', 'college', 'student', 'teacher', 'academic', 'curriculum', 'degree'],
+      'environment': ['climate change', 'global warming', 'pollution', 'renewable', 'conservation', 'sustainability']
+    };
+    
+    return strongKeywords[categoryName.toLowerCase()] || [];
+  }
+
+  // Enhanced category identification with confidence scoring
+  async identifyCategoryWithConfidence(title, content) {
+    try {
+      const identifiedCategory = await this.identifyCategory(title, content);
+      const confidence = await this.getCategoryConfidence(title, content, identifiedCategory._id);
+      
+      return {
+        category: identifiedCategory,
+        confidence: confidence,
+        method: 'ai' // or 'fallback' if AI failed
+      };
+    } catch (error) {
+      console.error('Error in category identification with confidence:', error);
+      return {
+        category: null,
+        confidence: 0.0,
+        method: 'error'
+      };
     }
   }
 }

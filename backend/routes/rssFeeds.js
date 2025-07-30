@@ -277,14 +277,29 @@ router.post('/test-category', auth, async (req, res) => {
     }
 
     const categoryIdentificationService = require('../services/categoryIdentificationService');
-    const identifiedCategory = await categoryIdentificationService.identifyCategory(title, content);
+    const result = await categoryIdentificationService.identifyCategoryWithConfidence(title, content);
+    
+    if (!result.category) {
+      return res.status(500).json({ 
+        message: 'Failed to identify category',
+        error: 'No category could be determined'
+      });
+    }
     
     res.json({
       message: 'Category identified successfully',
       category: {
-        _id: identifiedCategory._id,
-        name: identifiedCategory.name,
-        description: identifiedCategory.description
+        _id: result.category._id,
+        name: result.category.name,
+        description: result.category.description
+      },
+      confidence: result.confidence,
+      confidencePercentage: (result.confidence * 100).toFixed(1),
+      method: result.method,
+      analysis: {
+        title: title,
+        contentPreview: content.substring(0, 200) + '...',
+        totalWords: content.split(' ').length
       }
     });
   } catch (error) {

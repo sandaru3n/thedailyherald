@@ -287,13 +287,29 @@ Please provide only the rewritten content without any additional commentary or f
 
           // Identify category automatically
           let identifiedCategory;
+          let categoryConfidence = 0.0;
+          let identificationMethod = 'fallback';
+          
           if (feed.settings.enableAutoCategory) {
             try {
-              identifiedCategory = await categoryIdentificationService.identifyCategory(
+              const categoryResult = await categoryIdentificationService.identifyCategoryWithConfidence(
                 extractedData.title, 
                 extractedData.content
               );
-              console.log(`Auto-identified category for "${extractedData.title}": ${identifiedCategory.name}`);
+              
+              if (categoryResult.category) {
+                identifiedCategory = categoryResult.category;
+                categoryConfidence = categoryResult.confidence;
+                identificationMethod = categoryResult.method;
+                console.log(`Auto-identified category for "${extractedData.title}": ${identifiedCategory.name} (confidence: ${(categoryConfidence * 100).toFixed(1)}%, method: ${identificationMethod})`);
+                
+                // Log low confidence identifications for review
+                if (categoryConfidence < 0.6) {
+                  console.warn(`Low confidence category identification (${(categoryConfidence * 100).toFixed(1)}%) for article: "${extractedData.title}" -> ${identifiedCategory.name}`);
+                }
+              } else {
+                throw new Error('No category identified');
+              }
             } catch (categoryError) {
               console.error('Error identifying category:', categoryError);
               // Use first available category as fallback
@@ -301,6 +317,7 @@ Please provide only the rewritten content without any additional commentary or f
               if (!identifiedCategory) {
                 throw new Error('No active categories available');
               }
+              identificationMethod = 'fallback';
             }
           } else {
             // Use first available category if auto-category is disabled
@@ -308,6 +325,7 @@ Please provide only the rewritten content without any additional commentary or f
             if (!identifiedCategory) {
               throw new Error('No active categories available');
             }
+            identificationMethod = 'disabled';
           }
 
           // Rewrite content with AI if enabled
