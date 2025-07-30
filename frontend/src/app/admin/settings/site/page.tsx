@@ -163,7 +163,9 @@ export default function SiteSettingsPage() {
     setSettings(prev => ({
       ...prev,
       [section]: {
-        ...(prev[section as keyof SiteSettings] || {}),
+        ...((typeof prev[section as keyof SiteSettings] === 'object' && prev[section as keyof SiteSettings] !== null)
+          ? prev[section as keyof SiteSettings]
+          : {}),
         [field]: value
       }
     }));
