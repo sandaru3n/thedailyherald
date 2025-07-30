@@ -1,10 +1,34 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { NEWS_CATEGORIES } from '@/types/news';
-import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
+import { FaFacebook, FaTwitter, FaInstagram, FaYoutube } from 'react-icons/fa';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
+  const { settings, loading } = useSiteSettings();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Use stable default values for server-side rendering
+  const siteName = mounted && settings?.siteName ? settings.siteName : 'The Daily Herald';
+  const siteDescription = mounted && settings?.siteDescription ? settings.siteDescription : 'Your trusted source for breaking news, in-depth analysis, and comprehensive coverage of local and global events. Committed to delivering truth with integrity.';
+  const socialMedia = mounted && settings?.socialMedia ? settings.socialMedia : {};
+  const contactInfo = mounted && settings?.contactInfo ? settings.contactInfo : {};
+  
+  // Ensure consistent rendering by using stable defaults
+  const hasContactInfo = mounted && contactInfo && (
+    contactInfo.address || contactInfo.phone || contactInfo.email
+  );
+  
+  // Use a stable year to avoid hydration issues
+  const currentYear = 2025;
 
   return (
     <footer className="bg-slate-900 text-white mt-12 sm:mt-16">
@@ -13,25 +37,40 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* About Section */}
           <div>
-            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">THE DAILY HERALD</h3>
-            <p className="text-gray-300 text-xs sm:text-sm mb-3 sm:mb-4">
-              Your trusted source for breaking news, in-depth analysis, and comprehensive coverage
-              of local and global events. Committed to delivering truth with integrity.
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">{siteName}</h3>
+            <p className="text-gray-300 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed break-words hyphens-auto max-h-24 overflow-hidden">
+              {siteDescription}
             </p>
-            <div className="flex space-x-2 sm:space-x-3">
-              <Button size="sm" variant="ghost" className="p-1.5 sm:p-2 hover:bg-gray-700">
-                <Facebook className="h-3 w-3 sm:h-4 sm:w-4" />
-              </Button>
-              <Button size="sm" variant="ghost" className="p-1.5 sm:p-2 hover:bg-gray-700">
-                <Twitter className="h-3 w-3 sm:h-4 sm:w-4" />
-              </Button>
-              <Button size="sm" variant="ghost" className="p-1.5 sm:p-2 hover:bg-gray-700">
-                <Instagram className="h-3 w-3 sm:h-4 sm:w-4" />
-              </Button>
-              <Button size="sm" variant="ghost" className="p-1.5 sm:p-2 hover:bg-gray-700">
-                <Youtube className="h-3 w-3 sm:h-4 sm:w-4" />
-              </Button>
-            </div>
+                         <div className="flex space-x-2 sm:space-x-3">
+               {socialMedia.facebook && (
+                 <a href={socialMedia.facebook} target="_blank" rel="noopener noreferrer">
+                   <Button size="sm" variant="ghost" className="p-1.5 sm:p-2 hover:bg-gray-700">
+                     <FaFacebook className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                   </Button>
+                 </a>
+               )}
+               {socialMedia.twitter && (
+                 <a href={socialMedia.twitter} target="_blank" rel="noopener noreferrer">
+                   <Button size="sm" variant="ghost" className="p-1.5 sm:p-2 hover:bg-gray-700">
+                     <FaTwitter className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                   </Button>
+                 </a>
+               )}
+               {socialMedia.instagram && (
+                 <a href={socialMedia.instagram} target="_blank" rel="noopener noreferrer">
+                   <Button size="sm" variant="ghost" className="p-1.5 sm:p-2 hover:bg-gray-700">
+                     <FaInstagram className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                   </Button>
+                 </a>
+               )}
+               {socialMedia.youtube && (
+                 <a href={socialMedia.youtube} target="_blank" rel="noopener noreferrer">
+                   <Button size="sm" variant="ghost" className="p-1.5 sm:p-2 hover:bg-gray-700">
+                     <FaYoutube className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                   </Button>
+                 </a>
+               )}
+             </div>
           </div>
 
           {/* Quick Links */}
@@ -78,7 +117,7 @@ export default function Footer() {
               {NEWS_CATEGORIES.slice(0, 6).map((category) => (
                 <li key={category._id}>
                   <a
-                    href={`#${category.slug}`}
+                    href={`/category/${category.slug}`}
                     className="text-gray-300 hover:text-white transition-colors"
                   >
                     {category.name}
@@ -90,27 +129,37 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h4 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Contact Info</h4>
-            <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
-              <div className="flex items-start gap-2 sm:gap-3">
-                <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-300">
-                  123 News Street, Media City, NY 10001
-                </span>
-              </div>
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Phone className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
-                <span className="text-gray-300">
-                  +1 (555) 123-4567
-                </span>
-              </div>
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Mail className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
-                <span className="text-gray-300">
-                  news@dailyherald.com
-                </span>
-              </div>
-            </div>
+            {hasContactInfo && (
+              <>
+                <h4 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Contact Info</h4>
+                <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
+                  {contactInfo.address && (
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">
+                        {contactInfo.address}
+                      </span>
+                    </div>
+                  )}
+                  {contactInfo.phone && (
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Phone className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
+                      <a href={`tel:${contactInfo.phone}`} className="text-gray-300 hover:text-white transition-colors">
+                        {contactInfo.phone}
+                      </a>
+                    </div>
+                  )}
+                  {contactInfo.email && (
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Mail className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
+                      <a href={`mailto:${contactInfo.email}`} className="text-gray-300 hover:text-white transition-colors">
+                        {contactInfo.email}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
             {/* Newsletter */}
             <div className="mt-4 sm:mt-6">
@@ -134,7 +183,7 @@ export default function Footer() {
         {/* Bottom Footer */}
         <div className="flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm text-gray-400">
           <div className="text-center sm:text-left mb-3 sm:mb-0">
-            © {currentYear} The Daily Herald. All rights reserved.
+            © {currentYear} {siteName}. All rights reserved.
           </div>
           <div className="flex space-x-4 sm:space-x-6">
             <a href="#" className="hover:text-white transition-colors">
