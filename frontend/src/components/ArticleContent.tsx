@@ -11,6 +11,8 @@ import NewsletterSignup from '@/components/NewsletterSignup';
 import RelatedArticles from '@/components/RelatedArticles';
 import CommentsSection from '@/components/CommentsSection';
 import CategoriesList from '@/components/CategoriesList';
+import StructuredData from '@/components/StructuredData';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,6 +38,7 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
   const router = useRouter();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const { settings } = useSiteSettings();
 
   // Hydration safety
   useEffect(() => {
@@ -66,6 +69,7 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
 
   return (
     <>
+      <StructuredData article={article} settings={settings} />
       <ScrollToTop />
       <ReadingProgress />
       <FloatingShare 

@@ -35,6 +35,7 @@ const navigationRoutes = require('./routes/navigation');
 const commentRoutes = require('./routes/comments');
 const contactRoutes = require('./routes/contact');
 const rssFeedRoutes = require('./routes/rssFeeds');
+const settingsRoutes = require('./routes/settings');
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -45,6 +46,7 @@ app.use('/api/navigation', navigationRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/rss-feeds', rssFeedRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
