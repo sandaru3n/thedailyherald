@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { NewsArticle } from '@/types/news';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +11,13 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ trendingNews }: SidebarProps) {
-  const popularTags = ['Politics', 'Technology', 'Sports', 'Business', 'Health'];
+  const popularTags = [
+    { name: 'Politics', slug: 'politics' },
+    { name: 'Technology', slug: 'technology' },
+    { name: 'Sports', slug: 'sports' },
+    { name: 'Business', slug: 'business' },
+    { name: 'Health', slug: 'health' }
+  ];
 
   // Helper function to get author name
   const getAuthorName = (article: NewsArticle) => {
@@ -23,6 +30,11 @@ export default function Sidebar({ trendingNews }: SidebarProps) {
   // Helper function to get article ID
   const getArticleId = (article: NewsArticle) => {
     return article._id || article.id;
+  };
+
+  // Helper function to get article slug
+  const getArticleSlug = (article: NewsArticle) => {
+    return article.slug;
   };
 
   return (
@@ -43,15 +55,17 @@ export default function Sidebar({ trendingNews }: SidebarProps) {
                   {index + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-xs sm:text-sm leading-tight mb-1 hover:text-blue-600 cursor-pointer transition-colors line-clamp-2">
-                    {article.title}
-                  </h4>
-                  <div className="flex items-center gap-1 sm:gap-2 text-xs text-gray-500">
-                    <span className="hidden sm:inline">{getAuthorName(article)}</span>
-                    <span className="sm:hidden">{getAuthorName(article).split(' ')[0]}</span>
-                    <span className="hidden sm:inline">•</span>
-                    <span>{new Date(article.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                  </div>
+                  <Link href={`/article/${getArticleSlug(article)}`} className="block">
+                    <h4 className="font-semibold text-xs sm:text-sm leading-tight mb-1 hover:text-blue-600 cursor-pointer transition-colors line-clamp-2">
+                      {article.title}
+                    </h4>
+                    <div className="flex items-center gap-1 sm:gap-2 text-xs text-gray-500">
+                      <span className="hidden sm:inline">{getAuthorName(article)}</span>
+                      <span className="sm:hidden">{getAuthorName(article).split(' ')[0]}</span>
+                      <span className="hidden sm:inline">•</span>
+                      <span>{new Date(article.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    </div>
+                  </Link>
                 </div>
               </div>
               {index < trendingNews.length - 1 && <Separator className="mt-3 sm:mt-4" />}
@@ -86,13 +100,14 @@ export default function Sidebar({ trendingNews }: SidebarProps) {
         <CardContent>
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {popularTags.map((tag, index) => (
-              <Badge
-                key={tag}
-                variant="outline"
-                className="cursor-pointer hover:bg-slate-100 transition-colors text-xs"
-              >
-                {tag}
-              </Badge>
+              <Link key={tag.slug} href={`/category/${tag.slug}`}>
+                <Badge
+                  variant="outline"
+                  className="cursor-pointer hover:bg-slate-100 transition-colors text-xs"
+                >
+                  {tag.name}
+                </Badge>
+              </Link>
             ))}
           </div>
         </CardContent>

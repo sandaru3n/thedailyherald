@@ -32,23 +32,25 @@ export function ArticleCard({ article, variant = 'default' }: ArticleCardProps) 
 
   if (variant === 'compact') {
     return (
-      <div className="flex gap-3">
-        <div className="relative w-16 h-16 flex-shrink-0">
-          <img
-            src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
-            alt={article.title}
-            className="w-full h-full object-cover rounded"
-          />
+      <Link href={`/article/${getArticleSlug(article)}`} className="block">
+        <div className="flex gap-3">
+          <div className="relative w-16 h-16 flex-shrink-0">
+            <img
+              src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
+              alt={article.title}
+              className="w-full h-full object-cover rounded"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-sm leading-tight mb-1 line-clamp-2 hover:text-blue-600 transition-colors">
+              {article.title}
+            </h3>
+            <p className="text-gray-500 text-xs">
+              {new Date(article.publishedAt).toLocaleDateString()}
+            </p>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm leading-tight mb-1 line-clamp-2 hover:text-blue-600 transition-colors">
-            {article.title}
-          </h3>
-          <p className="text-gray-500 text-xs">
-            {new Date(article.publishedAt).toLocaleDateString()}
-          </p>
-        </div>
-      </div>
+      </Link>
     );
   }
 
