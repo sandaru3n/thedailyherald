@@ -1,8 +1,40 @@
 import React from 'react';
+import { Metadata } from 'next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, Award, Globe, Target } from 'lucide-react';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'About Us - The Daily Herald',
+  description: 'Learn about The Daily Herald, your trusted source for comprehensive news coverage. Discover our mission, values, and commitment to delivering accurate and timely journalism.',
+  keywords: 'about us, daily herald, journalism, news, mission, values, trusted news source',
+  alternates: {
+    canonical: '/about',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    title: 'About Us - The Daily Herald',
+    description: 'Learn about The Daily Herald, your trusted source for comprehensive news coverage. Discover our mission, values, and commitment to delivering accurate and timely journalism.',
+    type: 'website',
+    url: '/about',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About Us - The Daily Herald',
+    description: 'Learn about The Daily Herald, your trusted source for comprehensive news coverage.',
+  },
+};
 
 export default function AboutPage() {
   return (

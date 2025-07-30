@@ -1,7 +1,4 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { Metadata } from 'next';
 import Link from 'next/link';
 import { Article } from '@/types/news';
 import { API_ENDPOINTS } from '@/lib/config';
@@ -29,83 +26,134 @@ interface PaginatedResponse {
   prevPage: number | null;
 }
 
-export default function CategoryPage() {
-  const params = useParams();
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [category, setCategory] = useState<CategoryData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [latestArticles, setLatestArticles] = useState<Article[]>([]);
-
-  useEffect(() => {
-    const fetchCategoryData = async () => {
-      try {
-        setLoading(true);
-        // Fetch category details
-        const categoryRes = await fetch(`${API_ENDPOINTS.categories}`);
-        const categoryData = await categoryRes.json();
-        
-        // Handle both old and new API response formats
-        let categories;
-        if (Array.isArray(categoryData)) {
-          categories = categoryData;
-        } else if (categoryData.success && categoryData.categories) {
-          categories = categoryData.categories;
-        } else {
-          categories = [];
-        }
-        
-        const currentCategory = categories.find((cat: CategoryData) => cat.slug === params.category);
-        setCategory(currentCategory || null);
-
-        // Fetch articles for this category
-        const articlesRes = await fetch(`${API_ENDPOINTS.articles}?category=${params.category}&limit=20`);
-        const articlesData = await articlesRes.json();
-        if (articlesData.success) {
-          setArticles(articlesData.docs || []);
-        } else {
-          setError('No articles found in this category');
-        }
-
-        // Fetch latest articles (all categories)
-        const latestRes = await fetch(`${API_ENDPOINTS.articles}?page=1&limit=4&sort=-publishedAt`);
-        const latestData = await latestRes.json();
-        setLatestArticles(latestData.docs || []);
-      } catch (err) {
-        setError('Failed to load category data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (params.category) {
-      fetchCategoryData();
+// Generate metadata for SEO
+export async function generateMetadata({ params }: { params: Promise<{ category: string }> }): Promise<Metadata> {
+  try {
+    const { category } = await params;
+    
+    // Fetch category details
+    const categoryRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/categories`, {
+      next: { revalidate: 300 }, // Cache for 5 minutes
+    });
+    
+    const categoryData = await categoryRes.json();
+    let categories;
+    if (Array.isArray(categoryData)) {
+      categories = categoryData;
+    } else if (categoryData.success && categoryData.categories) {
+      categories = categoryData.categories;
+    } else {
+      categories = [];
     }
-  }, [params.category]);
+    
+    const currentCategory = categories.find((cat: CategoryData) => cat.slug === category);
+    
+    if (!currentCategory) {
+      return {
+        title: 'Category Not Found - The Daily Herald',
+        description: 'The category you are looking for does not exist.',
+        robots: {
+          index: false,
+          follow: false,
+        },
+      };
+    }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse">
-            <div className="h-12 bg-gray-200 rounded-lg mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-white rounded-lg shadow-md p-4">
-                  <div className="h-56 bg-gray-200 rounded mb-4"></div>
-                  <div className="h-5 bg-gray-200 rounded mb-2 w-3/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const canonicalUrl = `${siteUrl}/category/${category}`;
+
+    return {
+      title: `${currentCategory.name} News - The Daily Herald`,
+      description: currentCategory.description || `Latest ${currentCategory.name} news and articles from The Daily Herald. Stay updated with breaking news and in-depth coverage.`,
+      keywords: `${currentCategory.name}, news, articles, ${currentCategory.name} news, latest news`,
+      alternates: {
+        canonical: canonicalUrl,
+      },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          'max-video-preview': -1,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+        },
+      },
+      openGraph: {
+        title: `${currentCategory.name} News - The Daily Herald`,
+        description: currentCategory.description || `Latest ${currentCategory.name} news and articles from The Daily Herald.`,
+        type: 'website',
+        url: canonicalUrl,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${currentCategory.name} News - The Daily Herald`,
+        description: currentCategory.description || `Latest ${currentCategory.name} news and articles from The Daily Herald.`,
+      },
+    };
+  } catch (error) {
+    return {
+      title: 'Category - The Daily Herald',
+      description: 'Loading category...',
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
   }
+}
 
-  if (error || !category) {
+// Fetch category data
+async function getCategoryData(categorySlug: string) {
+  try {
+    // Fetch category details
+    const categoryRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/categories`, {
+      next: { revalidate: 300 }, // Cache for 5 minutes
+    });
+    
+    const categoryData = await categoryRes.json();
+    let categories;
+    if (Array.isArray(categoryData)) {
+      categories = categoryData;
+    } else if (categoryData.success && categoryData.categories) {
+      categories = categoryData.categories;
+    } else {
+      categories = [];
+    }
+    
+    const currentCategory = categories.find((cat: CategoryData) => cat.slug === categorySlug);
+    
+    if (!currentCategory) {
+      return { category: null, articles: [], latestArticles: [] };
+    }
+
+    // Fetch articles for this category
+    const articlesRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/articles?category=${categorySlug}&limit=20`, {
+      next: { revalidate: 60 }, // Cache for 1 minute
+    });
+    const articlesData = await articlesRes.json();
+    const articles = articlesData.success ? (articlesData.docs || []) : [];
+
+    // Fetch latest articles (all categories)
+    const latestRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/articles?page=1&limit=4&sort=-publishedAt`, {
+      next: { revalidate: 300 }, // Cache for 5 minutes
+    });
+    const latestData = await latestRes.json();
+    const latestArticles = latestData.docs || [];
+
+    return { category: currentCategory, articles, latestArticles };
+  } catch (error) {
+    console.error('Error fetching category data:', error);
+    return { category: null, articles: [], latestArticles: [] };
+  }
+}
+
+export default async function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
+  const { category } = await params;
+  const { category: categoryData, articles, latestArticles } = await getCategoryData(category);
+
+  if (!categoryData) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -126,13 +174,13 @@ export default function CategoryPage() {
       <Header />
       <div className="container mx-auto px-4 py-8">
         {/* Category Title */}
-        <h1 className="text-4xl font-extrabold mb-8 mt-4 text-gray-900">{category.name}</h1>
+        <h1 className="text-4xl font-extrabold mb-8 mt-4 text-gray-900">{categoryData.name}</h1>
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content: 2-column grid */}
           <div className="flex-1">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {articles.length > 0 ? (
-                articles.map((article) => (
+                articles.map((article: Article) => (
                   <div key={article._id} className="bg-white rounded-xl shadow hover:shadow-lg transition-shadow">
                     <Link href={`/article/${article.slug}`} className="block">
                       <div className="overflow-hidden rounded-t-xl">
@@ -178,7 +226,7 @@ export default function CategoryPage() {
             <div className="bg-white rounded-lg shadow p-0 overflow-hidden">
               <div className="bg-red-600 text-white text-lg font-bold px-6 py-3">Latest Post</div>
               <ul className="divide-y divide-gray-200">
-                {latestArticles.map((article) => (
+                {latestArticles.map((article: Article) => (
                   <li key={article._id} className="flex items-center gap-3 px-6 py-4 hover:bg-gray-50 transition-colors">
                     <Link href={`/article/${article.slug}`} className="flex items-center gap-3 w-full">
                       <img
