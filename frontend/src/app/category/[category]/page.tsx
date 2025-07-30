@@ -4,6 +4,7 @@ import { Article } from '@/types/news';
 import { API_ENDPOINTS } from '@/lib/config';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import OptimizedImage from '@/components/OptimizedImage';
 
 interface CategoryData {
   _id: string;
@@ -184,10 +185,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
                   <div key={article._id} className="bg-white rounded-xl shadow hover:shadow-lg transition-shadow">
                     <Link href={`/article/${article.slug}`} className="block">
                       <div className="overflow-hidden rounded-t-xl">
-                        <img
+                        <OptimizedImage
                           src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
                           alt={article.title}
-                          className="w-full h-56 object-cover object-center transition-transform duration-300 hover:scale-105"
+                          fill
+                          className="transition-transform duration-300 hover:scale-105"
+                          priority={false}
+                          sizes="(max-width: 768px) 100vw, 50vw"
                         />
                       </div>
                       <div className="p-5">
@@ -229,11 +233,16 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
                 {latestArticles.map((article: Article) => (
                   <li key={article._id} className="flex items-center gap-3 px-6 py-4 hover:bg-gray-50 transition-colors">
                     <Link href={`/article/${article.slug}`} className="flex items-center gap-3 w-full">
-                      <img
-                        src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
-                        alt={article.title}
-                        className="w-16 h-16 object-cover rounded"
-                      />
+                      <div className="relative w-16 h-16 flex-shrink-0">
+                        <OptimizedImage
+                          src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
+                          alt={article.title}
+                          width={64}
+                          height={64}
+                          className="object-cover rounded"
+                          priority={false}
+                        />
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-gray-900 text-sm line-clamp-2 mb-1">{article.title}</div>
                         <div className="text-xs text-gray-500">Published On: {new Date(article.publishedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</div>

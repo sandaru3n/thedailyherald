@@ -5,7 +5,30 @@ const nextConfig = {
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    optimizeCss: true,
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
   },
+  
+  // Image optimization
+  images: {
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
+  
+  // Compression and optimization
+  compress: true,
+  poweredByHeader: false,
   
   // Reduce Fast Refresh messages in development
   ...(process.env.NODE_ENV === 'development' && {
@@ -31,97 +54,135 @@ const nextConfig = {
                 test: /[\\/]node_modules[\\/]/,
                 name: 'vendors',
                 chunks: 'all',
+                priority: 10,
               },
               common: {
                 name: 'common',
                 minChunks: 2,
                 chunks: 'all',
                 enforce: true,
+                priority: 5,
+              },
+              // Separate React and Next.js chunks
+              react: {
+                test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+                name: 'react',
+                chunks: 'all',
+                priority: 20,
+              },
+              // Separate UI library chunks
+              ui: {
+                test: /[\\/]node_modules[\\/](@radix-ui|lucide-react)[\\/]/,
+                name: 'ui',
+                chunks: 'all',
+                priority: 15,
               },
             },
           },
+          // Enable tree shaking
+          usedExports: true,
+          sideEffects: false,
+        };
+      }
+      
+      // Optimize images
+      config.module.rules.push({
+        test: /\.(png|jpe?g|gif|svg|webp|avif)$/i,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 8192,
+              fallback: 'file-loader',
+              publicPath: '/_next/static/images/',
+              outputPath: 'static/images/',
+            },
+          },
+        ],
+      });
+      
+      return config;
+    },
+  }),
+  
+  // Production optimizations
+  ...(process.env.NODE_ENV === 'production' && {
+    // @ts-expect-error - webpack config type is complex and varies by Next.js version
+    webpack: (config, { isServer }) => {
+      if (!isServer) {
+        // Enable aggressive code splitting
+        config.optimization = {
+          ...config.optimization,
+          splitChunks: {
+            chunks: 'all',
+            cacheGroups: {
+              vendor: {
+                test: /[\\/]node_modules[\\/]/,
+                name: 'vendors',
+                chunks: 'all',
+                priority: 10,
+                enforce: true,
+              },
+              common: {
+                name: 'common',
+                minChunks: 2,
+                chunks: 'all',
+                enforce: true,
+                priority: 5,
+              },
+              // Separate critical chunks
+              critical: {
+                test: /[\\/]src[\\/]components[\\/](Header|Footer|ArticleContent)[\\/]/,
+                name: 'critical',
+                chunks: 'all',
+                priority: 30,
+                enforce: true,
+              },
+            },
+          },
+          // Enable tree shaking
+          usedExports: true,
+          sideEffects: false,
+          // Minimize bundle size
+          minimize: true,
         };
       }
       
       return config;
     },
-    // Suppress development logging
-    logging: {
-      fetches: {
-        fullUrl: false,
-      },
-    },
   }),
   
-  // API rewrites
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/:path*`,
-      },
-    ];
-  },
-  
-  // Image optimization
-  images: {
-    unoptimized: true,
-    domains: [
-      "source.unsplash.com",
-      "images.unsplash.com",
-      "ext.same-assets.com",
-      "ugc.same-assets.com",
-    ],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "source.unsplash.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "ext.same-assets.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "ugc.same-assets.com",
-        pathname: "/**",
-      },
-    ],
-  },
-  
-  // Compression and caching
-  compress: true,
-  
-  // Generate static pages for better performance
-  generateBuildId: async () => {
-    return 'build-' + Date.now();
-  },
-  
-  // Headers for caching
+  // Headers for performance
   async headers() {
     return [
       {
-        source: '/article/:slug*',
+        source: '/(.*)',
         headers: [
           {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          // Cache static assets
+          {
             key: 'Cache-Control',
-            value: 'public, max-age=300, stale-while-revalidate=600',
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },
       {
-        source: '/api/articles/:slug*',
+        source: '/api/(.*)',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=60, stale-while-revalidate=300',
+            value: 'public, max-age=60, s-maxage=300',
           },
         ],
       },
@@ -129,4 +190,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

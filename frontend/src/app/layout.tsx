@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientBody from "./ClientBody";
 import Script from "next/script";
+import ResourcePreloader from "@/components/ResourcePreloader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -81,6 +82,11 @@ export default function RootLayout({
         <link rel="alternate" type="application/rss+xml" title="Entertainment RSS Feed" href="/feed/category/entertainment/" />
       </head>
       <body suppressHydrationWarning className="antialiased">
+        <ResourcePreloader 
+          criticalFonts={[
+            'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
+          ]}
+        />
         <ClientBody>{children}</ClientBody>
       </body>
     </html>

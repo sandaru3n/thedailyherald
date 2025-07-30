@@ -12,6 +12,7 @@ import RelatedArticles from '@/components/RelatedArticles';
 import CommentsSection from '@/components/CommentsSection';
 import CategoriesList from '@/components/CategoriesList';
 import StructuredData from '@/components/StructuredData';
+import OptimizedImage from '@/components/OptimizedImage';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -150,12 +151,14 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
               {/* Featured Image */}
               <div className="flex justify-center mb-8">
                 <div className="relative w-full max-w-2xl aspect-[16/9] rounded-xl overflow-hidden shadow-md">
-                                     <img
-                     src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
-                     alt={article.title}
-                     className="w-full h-full object-cover rounded-xl"
-                     loading="eager"
-                   />
+                  <OptimizedImage
+                    src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
+                    alt={article.title}
+                    fill
+                    className="rounded-xl"
+                    priority={true}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-xl" />
                   
                   {/* Category Badge */}
