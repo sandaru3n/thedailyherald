@@ -90,8 +90,8 @@ export default function SiteSettingsPage() {
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const data = await apiCall('/settings');
-      if (data.success) {
+      const data = await apiCall('/settings') as any;
+      if (data?.success && data?.settings) {
         // Ensure all nested objects have default values
         const fetchedSettings = data.settings;
         setSettings({
