@@ -77,7 +77,9 @@ export default function SiteSettingsPage() {
     },
     seoSettings: {
       defaultTitle: 'The Daily Herald - Latest News',
-      defaultDescription: 'Stay informed with the latest news, breaking stories, and in-depth coverage from The Daily Herald.'
+      defaultDescription: 'Stay informed with the latest news, breaking stories, and in-depth coverage from The Daily Herald.',
+      googleAnalyticsId: '',
+      googleSearchConsole: ''
     }
   });
 
