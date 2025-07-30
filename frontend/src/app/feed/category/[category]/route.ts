@@ -46,11 +46,11 @@ interface SiteConfig {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { category: string } }
+  { params }: { params: Promise<{ category: string }> }
 ) {
+  const { category: categorySlug } = await params;
   try {
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-    const categorySlug = params.category;
     
     // Fetch category details
     const categoriesResponse = await fetch(`${API_BASE_URL}/api/categories`);
