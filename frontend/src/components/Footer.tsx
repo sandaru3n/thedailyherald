@@ -64,7 +64,7 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <a href="/feed/" className="text-gray-300 hover:text-white transition-colors">
                   RSS Feed
                 </a>
               </li>
