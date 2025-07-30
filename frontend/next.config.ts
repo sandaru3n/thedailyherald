@@ -24,6 +24,44 @@ const nextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Fallback domains for older Next.js versions
+    domains: ['localhost', 'flashnewslk.com', 'www.flashnewslk.com'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'flashnewslk.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.flashnewslk.com',
+        pathname: '/**',
+      },
+    ],
   },
   
   // Compression and optimization
