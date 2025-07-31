@@ -23,6 +23,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
+import FileUpload from '@/components/ui/file-upload';
 import { apiCall } from '@/lib/auth';
 
 interface ApiResponse {
@@ -32,6 +33,7 @@ interface ApiResponse {
     siteDescription?: string;
     siteUrl?: string;
     siteLogo?: string;
+    siteFavicon?: string;
     publisherName?: string;
     publisherUrl?: string;
     publisherLogo?: string;
@@ -59,6 +61,7 @@ interface SiteSettings {
   siteName: string;
   siteDescription: string;
   siteLogo?: string;
+  siteFavicon?: string;
   siteUrl: string;
   publisherName: string;
   publisherUrl: string;
@@ -132,6 +135,7 @@ export default function SiteSettingsPage() {
           publisherUrl: fetchedSettings.publisherUrl || '',
           publisherLogo: fetchedSettings.publisherLogo || '',
           siteLogo: fetchedSettings.siteLogo || '',
+          siteFavicon: fetchedSettings.siteFavicon || '',
           socialMedia: {
             facebook: fetchedSettings.socialMedia?.facebook || '',
             twitter: fetchedSettings.socialMedia?.twitter || '',
@@ -204,9 +208,12 @@ export default function SiteSettingsPage() {
       setError('');
       setSuccess('');
 
+      // Remove favicon from settings since it's handled by upload route
+      const { siteFavicon, ...settingsToUpdate } = settings;
+      
       await apiCall('/settings', {
         method: 'PUT',
-        body: JSON.stringify(settings)
+        body: JSON.stringify(settingsToUpdate)
       });
 
       setSuccess('Site settings updated successfully!');
@@ -317,6 +324,15 @@ export default function SiteSettingsPage() {
                   className="mt-1"
                 />
               </div>
+
+              <FileUpload
+                label="Site Favicon"
+                accept=".ico,.png,.svg,.jpg,.jpeg,image/x-icon,image/png,image/svg+xml,image/jpeg,image/jpg"
+                maxSize={2}
+                currentFileUrl={settings.siteFavicon}
+                onUploadSuccess={(fileUrl) => setSettings(prev => ({ ...prev, siteFavicon: fileUrl }))}
+                onUploadError={(error) => setError(error)}
+              />
             </CardContent>
           </Card>
 

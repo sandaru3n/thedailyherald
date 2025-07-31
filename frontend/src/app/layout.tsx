@@ -4,6 +4,7 @@ import "./globals.css";
 import ClientBody from "./ClientBody";
 import Script from "next/script";
 import ResourcePreloader from "@/components/ResourcePreloader";
+import FaviconProvider from "@/components/FaviconProvider";
 import { generateMetadata as generateSiteMetadata } from "@/lib/metadata";
 
 const geistSans = Geist({
@@ -51,6 +52,7 @@ export default function RootLayout({
             'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
           ]}
         />
+        <FaviconProvider />
         <ClientBody>{children}</ClientBody>
       </body>
     </html>

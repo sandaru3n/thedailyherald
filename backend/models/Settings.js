@@ -18,6 +18,10 @@ const settingsSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  siteFavicon: {
+    type: String,
+    trim: true
+  },
   siteUrl: {
     type: String,
     required: true,

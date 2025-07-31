@@ -36,6 +36,7 @@ const commentRoutes = require('./routes/comments');
 const contactRoutes = require('./routes/contact');
 const rssFeedRoutes = require('./routes/rssFeeds');
 const settingsRoutes = require('./routes/settings');
+const uploadRoutes = require('./routes/upload');
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -47,6 +48,7 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/rss-feeds', rssFeedRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

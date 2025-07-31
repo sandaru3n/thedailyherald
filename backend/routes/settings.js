@@ -51,6 +51,7 @@ router.put('/', auth, requireRole('admin'), async (req, res) => {
     if (siteName !== undefined) settings.siteName = siteName;
     if (siteDescription !== undefined) settings.siteDescription = siteDescription;
     if (siteLogo !== undefined) settings.siteLogo = siteLogo;
+    // Note: siteFavicon is handled by the upload route, not here
     if (siteUrl !== undefined) settings.siteUrl = siteUrl;
     if (publisherName !== undefined) settings.publisherName = publisherName;
     if (publisherUrl !== undefined) settings.publisherUrl = publisherUrl;
@@ -87,6 +88,7 @@ router.get('/public', async (req, res) => {
       siteName: settings.siteName,
       siteDescription: settings.siteDescription,
       siteUrl: settings.siteUrl,
+      siteFavicon: settings.siteFavicon,
       publisherName: settings.publisherName,
       publisherUrl: settings.publisherUrl,
       publisherLogo: settings.publisherLogo,
