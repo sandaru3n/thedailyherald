@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Search, Home, Info, FileText, Settings, Contact, Globe } from 'lucide-react';
 import { useNavigation } from '@/hooks/useNavigation';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { activeItems, loading } = useNavigation();
+  const { settings } = useSiteSettings();
 
   const getIconComponent = (iconName: string) => {
     const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
@@ -33,7 +35,9 @@ export default function Header() {
               <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
                 <FileText className="h-5 w-5 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-red-600">Newspaper</h1>
+              <h1 className="text-xl font-bold text-red-600">
+                {settings?.siteName || 'The Daily Herald'}
+              </h1>
             </div>
           </div>
           
