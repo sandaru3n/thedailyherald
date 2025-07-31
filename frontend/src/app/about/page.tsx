@@ -1,19 +1,11 @@
+'use client';
+
 import React from 'react';
-import { Metadata } from 'next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, Award, Globe, Target } from 'lucide-react';
 import Link from 'next/link';
-import { generatePageMetadata } from '@/lib/metadata';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-
-export async function generateMetadata(): Promise<Metadata> {
-  return generatePageMetadata(
-    'About Us',
-    'Learn about our trusted source for comprehensive news coverage. Discover our mission, values, and commitment to delivering accurate and timely journalism.',
-    '/about'
-  );
-}
 
 export default function AboutPage() {
   const { settings } = useSiteSettings();
