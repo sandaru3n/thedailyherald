@@ -13,6 +13,7 @@ import { useSiteSettings } from '@/hooks/useSiteSettings';
 export default function ContactPage() {
   const { settings } = useSiteSettings();
   const siteName = settings?.siteName || 'The Daily Herald';
+  const contactInfo = settings?.contactInfo || {};
   
   const [formData, setFormData] = useState({
     name: '',
@@ -86,33 +87,54 @@ export default function ContactPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Mail className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="font-medium">Email</p>
-                    <p className="text-gray-600">info@thedailyherald.com</p>
+                {contactInfo.email && (
+                  <div className="flex items-center space-x-3">
+                    <Mail className="h-5 w-5 text-blue-600" />
+                    <div>
+                      <p className="font-medium">Email</p>
+                      <a 
+                        href={`mailto:${contactInfo.email}`}
+                        className="text-gray-600 hover:text-blue-600 transition-colors"
+                      >
+                        {contactInfo.email}
+                      </a>
+                    </div>
                   </div>
-                </div>
+                )}
                 
-                <div className="flex items-center space-x-3">
-                  <Phone className="h-5 w-5 text-green-600" />
-                  <div>
-                    <p className="font-medium">Phone</p>
-                    <p className="text-gray-600">+1 (555) 123-4567</p>
+                {contactInfo.phone && (
+                  <div className="flex items-center space-x-3">
+                    <Phone className="h-5 w-5 text-green-600" />
+                    <div>
+                      <p className="font-medium">Phone</p>
+                      <a 
+                        href={`tel:${contactInfo.phone}`}
+                        className="text-gray-600 hover:text-green-600 transition-colors"
+                      >
+                        {contactInfo.phone}
+                      </a>
+                    </div>
                   </div>
-                </div>
+                )}
                 
-                <div className="flex items-center space-x-3">
-                  <MapPin className="h-5 w-5 text-red-600" />
-                  <div>
-                    <p className="font-medium">Address</p>
-                    <p className="text-gray-600">
-                      123 News Street<br />
-                      Media City, MC 12345<br />
-                      United States
-                    </p>
+                {contactInfo.address && (
+                  <div className="flex items-center space-x-3">
+                    <MapPin className="h-5 w-5 text-red-600" />
+                    <div>
+                      <p className="font-medium">Address</p>
+                      <p className="text-gray-600 whitespace-pre-line">
+                        {contactInfo.address}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
+                
+                {!contactInfo.email && !contactInfo.phone && !contactInfo.address && (
+                  <div className="text-center py-4">
+                    <p className="text-gray-500 text-sm">Contact information not available</p>
+                    <p className="text-gray-400 text-xs mt-1">Please use the contact form below</p>
+                  </div>
+                )}
                 
                 <div className="flex items-center space-x-3">
                   <Clock className="h-5 w-5 text-purple-600" />

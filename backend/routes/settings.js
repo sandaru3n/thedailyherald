@@ -102,7 +102,8 @@ router.get('/public', async (req, res) => {
       publisherName: settings.publisherName,
       publisherUrl: settings.publisherUrl,
       publisherLogo: settings.publisherLogo,
-      socialMedia: settings.socialMedia
+      socialMedia: settings.socialMedia,
+      contactInfo: settings.contactInfo
     };
 
     res.json({
