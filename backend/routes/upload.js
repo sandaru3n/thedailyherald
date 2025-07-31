@@ -35,7 +35,7 @@ router.post('/favicon', auth, requireRole('admin'), (req, res) => {
 
     try {
       // Generate the file URL
-      const baseUrl = process.env.SITE_URL || 'http://localhost:5000';
+      const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
       const fileUrl = `${baseUrl}/api/upload/uploads/${req.file.filename}`;
 
       // Update settings with new favicon URL

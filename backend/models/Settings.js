@@ -20,7 +20,8 @@ const settingsSchema = new mongoose.Schema({
   },
   siteFavicon: {
     type: String,
-    trim: true
+    trim: true,
+    default: process.env.DEFAULT_FAVICON_URL || '/uploads/favicon.ico'
   },
   siteUrl: {
     type: String,
@@ -108,12 +109,16 @@ settingsSchema.statics.getSettings = async function() {
   
   if (!settings) {
     // Create default settings if none exist
+    const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
+    const defaultFavicon = process.env.DEFAULT_FAVICON_URL || `${baseUrl}/uploads/favicon.ico`;
+    
     settings = await this.create({
       siteName: 'The Daily Herald',
       siteDescription: 'Your trusted source for the latest news and updates',
       siteUrl: process.env.SITE_URL || 'http://localhost:3000',
       publisherName: 'The Daily Herald',
-      publisherUrl: process.env.SITE_URL || 'http://localhost:3000'
+      publisherUrl: process.env.SITE_URL || 'http://localhost:3000',
+      siteFavicon: defaultFavicon
     });
   }
   

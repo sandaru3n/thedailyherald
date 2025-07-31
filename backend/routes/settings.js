@@ -83,12 +83,21 @@ router.get('/public', async (req, res) => {
   try {
     const settings = await Settings.getSettings();
     
+    // Get base URL for favicon
+    const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
+    let faviconUrl = process.env.DEFAULT_FAVICON_URL || settings.siteFavicon;
+    
+    // If favicon URL is relative, make it absolute using base URL
+    if (faviconUrl && faviconUrl.startsWith('/')) {
+      faviconUrl = `${baseUrl}${faviconUrl}`;
+    }
+    
     // Return only public settings for structured data
     const publicSettings = {
       siteName: settings.siteName,
       siteDescription: settings.siteDescription,
       siteUrl: settings.siteUrl,
-      siteFavicon: settings.siteFavicon,
+      siteFavicon: faviconUrl,
       publisherName: settings.publisherName,
       publisherUrl: settings.publisherUrl,
       publisherLogo: settings.publisherLogo,
