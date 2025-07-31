@@ -38,6 +38,7 @@ const navigation = [
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
   { name: 'Site Settings', href: '/admin/settings/site', icon: Settings },
+  { name: 'Google Indexing', href: '/admin/settings/google-indexing', icon: Settings },
 ];
 
 export default function AdminLayout({ children }: AdminLayoutProps) {

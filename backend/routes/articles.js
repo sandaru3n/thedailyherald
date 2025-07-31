@@ -1,9 +1,32 @@
 const express = require('express');
 const Article = require('../models/Article');
 const Category = require('../models/Category');
+const Settings = require('../models/Settings');
 const { auth, requireRole } = require('../middleware/auth');
+const googleInstantIndexingService = require('../services/googleInstantIndexingService');
 
 const router = express.Router();
+
+// Helper function to submit article for instant indexing
+async function submitArticleForIndexing(article, settings) {
+  try {
+    if (!settings.googleInstantIndexing?.enabled) {
+      return;
+    }
+
+    const articleUrl = `${settings.siteUrl}/article/${article.slug}`;
+    const result = await googleInstantIndexingService.submitUrl(articleUrl, 'URL_UPDATED');
+    
+    if (result.success) {
+      await googleInstantIndexingService.updateStats(1);
+      console.log(`Article submitted for instant indexing: ${articleUrl}`);
+    } else {
+      console.error(`Failed to submit article for indexing: ${result.error}`);
+    }
+  } catch (error) {
+    console.error('Error submitting article for instant indexing:', error);
+  }
+}
 
 // @route   GET /api/articles
 // @desc    Get all articles (with pagination and filters)
@@ -223,6 +246,12 @@ router.post('/', auth, requireRole(['admin', 'editor']), async (req, res) => {
     await article.populate('category', 'name color');
     await article.populate('author', 'name');
 
+    // Submit for instant indexing if article is published
+    if (article.status === 'published') {
+      const settings = await Settings.getSettings();
+      await submitArticleForIndexing(article, settings);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Article created successfully',
@@ -298,6 +327,12 @@ router.put('/:id', auth, requireRole(['admin', 'editor']), async (req, res) => {
 
     const updatedArticle = await article.save();
     await updatedArticle.populate('category', 'name color');
+
+    // Submit for instant indexing if article status changed to published
+    if (status === 'published' && article.status !== 'published') {
+      const settings = await Settings.getSettings();
+      await submitArticleForIndexing(updatedArticle, settings);
+    }
     await updatedArticle.populate('author', 'name');
 
     // Update category article counts if category changed

@@ -95,6 +95,27 @@ const settingsSchema = new mongoose.Schema({
       trim: true
     }
   },
+  googleInstantIndexing: {
+    enabled: {
+      type: Boolean,
+      default: false
+    },
+    serviceAccountJson: {
+      type: String,
+      trim: true
+    },
+    projectId: {
+      type: String,
+      trim: true
+    },
+    lastIndexedAt: {
+      type: Date
+    },
+    totalIndexed: {
+      type: Number,
+      default: 0
+    }
+  },
   isActive: {
     type: Boolean,
     default: true
