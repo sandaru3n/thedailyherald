@@ -5,6 +5,9 @@ import { API_ENDPOINTS } from '@/lib/config';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import OptimizedImage from '@/components/OptimizedImage';
+import Breadcrumb from '@/components/Breadcrumb';
+import CategoryCard from '@/components/CategoryCard';
+import Pagination from '@/components/Pagination';
 import { generatePageMetadata } from '@/lib/metadata';
 
 interface CategoryData {
@@ -73,8 +76,8 @@ export async function generateMetadata({ params }: { params: Promise<{ category:
   }
 }
 
-// Fetch category data
-async function getCategoryData(categorySlug: string) {
+// Fetch category data with pagination
+async function getCategoryData(categorySlug: string, page: number = 1) {
   try {
     // Fetch category details
     const categoryRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/categories`, {
@@ -94,15 +97,32 @@ async function getCategoryData(categorySlug: string) {
     const currentCategory = categories.find((cat: CategoryData) => cat.slug === categorySlug);
     
     if (!currentCategory) {
-      return { category: null, articles: [], latestArticles: [] };
+      return { category: null, articles: [], latestArticles: [], pagination: null };
     }
 
-    // Fetch articles for this category
-    const articlesRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/articles?category=${categorySlug}&limit=20`, {
+    // Fetch articles for this category with pagination
+    const articlesRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/articles?category=${categorySlug}&page=${page}&limit=16`, {
       next: { revalidate: 60 }, // Cache for 1 minute
     });
     const articlesData = await articlesRes.json();
-    const articles = articlesData.success ? (articlesData.docs || []) : [];
+    
+    let articles: Article[] = [];
+    let pagination: PaginatedResponse | null = null;
+    
+    if (articlesData.success) {
+      articles = articlesData.docs || [];
+      pagination = {
+        docs: articlesData.docs || [],
+        totalDocs: articlesData.totalDocs || 0,
+        limit: articlesData.limit || 16,
+        page: articlesData.page || 1,
+        totalPages: articlesData.totalPages || 1,
+        hasNextPage: articlesData.hasNextPage || false,
+        hasPrevPage: articlesData.hasPrevPage || false,
+        nextPage: articlesData.nextPage || null,
+        prevPage: articlesData.prevPage || null,
+      };
+    }
 
     // Fetch latest articles (all categories)
     const latestRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/articles?page=1&limit=4&sort=-publishedAt`, {
@@ -111,26 +131,41 @@ async function getCategoryData(categorySlug: string) {
     const latestData = await latestRes.json();
     const latestArticles = latestData.docs || [];
 
-    return { category: currentCategory, articles, latestArticles };
+    return { category: currentCategory, articles, latestArticles, pagination };
   } catch (error) {
     console.error('Error fetching category data:', error);
-    return { category: null, articles: [], latestArticles: [] };
+    return { category: null, articles: [], latestArticles: [], pagination: null };
   }
 }
 
-export default async function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
+export default async function CategoryPage({ 
+  params, 
+  searchParams 
+}: { 
+  params: Promise<{ category: string }>;
+  searchParams: Promise<{ page?: string }>;
+}) {
   const { category } = await params;
-  const { category: categoryData, articles, latestArticles } = await getCategoryData(category);
+  const { page } = await searchParams;
+  const currentPage = page ? parseInt(page) : 1;
+  
+  const { category: categoryData, articles, latestArticles, pagination } = await getCategoryData(category, currentPage);
 
   if (!categoryData) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Category Not Found</h1>
-            <p className="text-gray-600 mb-6">The category you're looking for doesn't exist.</p>
-            <Link href="/" className="inline-block px-6 py-2 bg-blue-600 text-white rounded font-semibold">Go Back Home</Link>
+        <div className="container mx-auto px-4 py-8">
+          <Breadcrumb items={[
+            { label: 'Categories', href: '/categories' },
+            { label: 'Category Not Found' }
+          ]} />
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-gray-800 mb-4">Category Not Found</h1>
+              <p className="text-gray-600 mb-6">The category you're looking for doesn't exist.</p>
+              <Link href="/" className="inline-block px-6 py-2 bg-blue-600 text-white rounded font-semibold">Go Back Home</Link>
+            </div>
           </div>
         </div>
         <Footer />
@@ -142,58 +177,71 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
     <div className="min-h-screen bg-gray-50">
       <Header />
       <div className="container mx-auto px-4 py-8">
-        {/* Category Title */}
-        <h1 className="text-4xl font-extrabold mb-8 mt-4 text-gray-900">{categoryData.name}</h1>
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Main Content: 2-column grid */}
-          <div className="flex-1">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {articles.length > 0 ? (
-                articles.map((article: Article) => (
-                  <div key={article._id} className="bg-white rounded-xl shadow hover:shadow-lg transition-shadow">
-                    <Link href={`/article/${article.slug}`} className="block">
-                      <div className="overflow-hidden rounded-t-xl">
-                        <OptimizedImage
-                          src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
-                          alt={article.title}
-                          fill
-                          className="transition-transform duration-300 hover:scale-105"
-                          priority={false}
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                        />
-                      </div>
-                      <div className="p-5">
-                        <h2 className="text-xl font-extrabold mb-2 leading-tight text-gray-900 line-clamp-2">
-                          {article.title}
-                        </h2>
-                        <div className="flex items-center gap-2 text-sm text-gray-600 font-semibold mb-1">
-                          By {typeof article.author === 'string' ? article.author : article.author?.name || 'Unknown'}
-                          <span className="mx-1">•</span>
-                          {new Date(article.publishedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-2 text-center py-12">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No articles found</h3>
-                  <p className="text-gray-500">There are no articles in this category yet.</p>
-                </div>
-              )}
-            </div>
+        {/* Breadcrumbs */}
+        <Breadcrumb items={[
+          { label: 'Categories', href: '/categories' },
+          { label: categoryData.name }
+        ]} />
+        
+        {/* Category Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-extrabold mb-4 text-gray-900">{categoryData.name}</h1>
+          {categoryData.description && (
+            <p className="text-lg text-gray-600 mb-4">{categoryData.description}</p>
+          )}
+          <div className="flex items-center gap-4 text-sm text-gray-500">
+            <span>{pagination?.totalDocs || articles.length} articles</span>
+            {categoryData.articleCount && (
+              <span>• {categoryData.articleCount} total in category</span>
+            )}
+            {pagination && pagination.totalPages > 1 && (
+              <span>• Page {currentPage} of {pagination.totalPages}</span>
+            )}
           </div>
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Main Content: Small Image Cards Grid */}
+          <div className="flex-1">
+            {articles.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {articles.map((article: Article) => (
+                    <CategoryCard key={article._id} article={article} />
+                  ))}
+                </div>
+                
+                {/* Pagination */}
+                {pagination && pagination.totalPages > 1 && (
+                  <Pagination
+                    currentPage={pagination.page}
+                    totalPages={pagination.totalPages}
+                    baseUrl={`/category/${category}`}
+                    hasNextPage={pagination.hasNextPage}
+                    hasPrevPage={pagination.hasPrevPage}
+                  />
+                )}
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-gray-400 mb-4">
+                  <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No articles found</h3>
+                <p className="text-gray-500">There are no articles in this category yet.</p>
+              </div>
+            )}
+          </div>
+          
           {/* Sidebar */}
-          <aside className="w-full lg:w-96 flex-shrink-0 space-y-8">
+          <aside className="w-full lg:w-80 flex-shrink-0 space-y-6">
             {/* Advertisement Box */}
             <div className="bg-gray-100 rounded-lg flex items-center justify-center h-56 text-gray-500 text-lg font-semibold border border-gray-200">
               ---Advertisement---
             </div>
+            
             {/* Latest Post Section */}
             <div className="bg-white rounded-lg shadow p-0 overflow-hidden">
               <div className="bg-red-600 text-white text-lg font-bold px-6 py-3">Latest Post</div>
