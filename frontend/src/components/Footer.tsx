@@ -7,7 +7,6 @@ import { NEWS_CATEGORIES } from '@/types/news';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { FaFacebook, FaTwitter, FaInstagram, FaYoutube } from 'react-icons/fa';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import Image from 'next/image';
 
 export default function Footer() {
   const [mounted, setMounted] = useState(false);
@@ -39,12 +38,12 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
               {settings?.publisherLogo && (
-                <Image 
+                <img 
                   src={settings.publisherLogo} 
                   alt="" 
                   width={48}
                   height={48}
-                  className="rounded-lg"
+                  className="rounded-lg w-12 h-12 object-cover"
                   aria-hidden="true"
                 />
               )}

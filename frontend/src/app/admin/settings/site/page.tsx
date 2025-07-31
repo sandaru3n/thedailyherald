@@ -61,6 +61,8 @@ interface SiteSettings {
   siteName: string;
   siteDescription: string;
   siteLogo?: string;
+  adminPanelLogo?: string;
+  headerLogo?: string;
   siteFavicon?: string;
   siteUrl: string;
   publisherName: string;
@@ -333,6 +335,16 @@ export default function SiteSettingsPage() {
                 onUploadSuccess={(fileUrl) => setSettings(prev => ({ ...prev, siteFavicon: fileUrl }))}
                 onUploadError={(error) => setError(error)}
               />
+
+              {/* Logo Usage Information */}
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h3 className="text-sm font-semibold text-blue-900 mb-2">Logo Usage</h3>
+                <div className="space-y-2 text-sm text-blue-800">
+                  <p>• <strong>Site Logo:</strong> Used in Admin Panel header and main website header</p>
+                  <p>• <strong>Publisher Logo:</strong> Used for publisher branding and structured data</p>
+                  <p>• <strong>Site Favicon:</strong> Used as browser tab icon</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 

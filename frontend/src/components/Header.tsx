@@ -32,9 +32,17 @@ export default function Header() {
           {/* Logo on the left */}
           <div className="flex items-center">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
-                <FileText className="h-5 w-5 text-white" />
-              </div>
+              {settings?.siteLogo ? (
+                <img 
+                  src={settings.siteLogo} 
+                  alt="Site Logo" 
+                  className="w-8 h-8 object-contain"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+              )}
               <h1 className="text-xl font-bold text-red-600">
                 {settings?.siteName || 'The Daily Herald'}
               </h1>

@@ -25,7 +25,7 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     // Fallback domains for older Next.js versions
-    domains: ['localhost', 'flashnewslk.com', 'www.flashnewslk.com'],
+    domains: ['localhost', 'flashnewslk.com', 'www.flashnewslk.com', 'thedailyherald.onrender.com'],
     remotePatterns: [
       {
         protocol: 'http',
@@ -59,6 +59,11 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'www.flashnewslk.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'thedailyherald.onrender.com',
         pathname: '/**',
       },
     ],

@@ -97,6 +97,7 @@ router.get('/public', async (req, res) => {
       siteName: settings.siteName,
       siteDescription: settings.siteDescription,
       siteUrl: settings.siteUrl,
+      siteLogo: settings.siteLogo,
       siteFavicon: faviconUrl,
       publisherName: settings.publisherName,
       publisherUrl: settings.publisherUrl,

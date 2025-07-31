@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getAdminData, logout } from '@/lib/auth';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -43,6 +44,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const adminData = getAdminData();
+  const { settings } = useSiteSettings();
 
   const handleLogout = () => {
     logout();
@@ -67,9 +69,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                <FileText className="h-5 w-5 text-white" />
-              </div>
+              {settings?.siteLogo ? (
+                <img 
+                  src={settings.siteLogo} 
+                  alt="Admin Panel Logo" 
+                  className="w-8 h-8 object-contain"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+              )}
               <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
             </div>
             <button

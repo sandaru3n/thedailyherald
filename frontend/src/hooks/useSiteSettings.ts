@@ -6,6 +6,7 @@ interface SiteSettings {
   siteName: string;
   siteDescription: string;
   siteUrl: string;
+  siteLogo?: string;
   siteFavicon?: string;
   publisherName: string;
   publisherUrl: string;
