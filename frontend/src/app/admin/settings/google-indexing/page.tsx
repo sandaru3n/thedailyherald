@@ -90,9 +90,9 @@ export default function GoogleIndexingPage() {
 
   const fetchStats = async () => {
     try {
-      const data = await apiCall('/settings/google-indexing/stats');
+      const data = await apiCall('/settings/google-indexing/stats') as { success: boolean; stats?: GoogleIndexingStats };
       if (data?.success) {
-        setStats(data.stats);
+        setStats(data.stats || null);
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -131,7 +131,7 @@ export default function GoogleIndexingPage() {
 
       const data = await apiCall('/settings/google-indexing/test', {
         method: 'POST'
-      });
+      }) as { success: boolean; message?: string };
 
       if (data?.success) {
         setSuccess(data.message || 'Configuration test successful!');
