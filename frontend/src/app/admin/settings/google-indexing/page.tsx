@@ -39,6 +39,13 @@ interface ApiResponse {
   };
 }
 
+interface GoogleIndexingStats {
+  enabled: boolean;
+  lastIndexedAt: string | null;
+  totalIndexed: number;
+  projectId: string | null;
+}
+
 export default function GoogleIndexingPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -46,7 +53,7 @@ export default function GoogleIndexingPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showJson, setShowJson] = useState(false);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<GoogleIndexingStats | null>(null);
 
   const [settings, setSettings] = useState<GoogleIndexingSettings>({
     enabled: false,
