@@ -5,7 +5,6 @@ import { API_ENDPOINTS } from '@/lib/config';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import OptimizedImage from '@/components/OptimizedImage';
-import Breadcrumb from '@/components/Breadcrumb';
 import CategoryCard from '@/components/CategoryCard';
 import Pagination from '@/components/Pagination';
 import { generatePageMetadata } from '@/lib/metadata';
@@ -156,10 +155,6 @@ export default async function CategoryPage({
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="container mx-auto px-4 py-8">
-          <Breadcrumb items={[
-            { label: 'Categories', href: '/categories' },
-            { label: 'Category Not Found' }
-          ]} />
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
               <h1 className="text-2xl font-bold text-gray-800 mb-4">Category Not Found</h1>
@@ -177,12 +172,6 @@ export default async function CategoryPage({
     <div className="min-h-screen bg-gray-50">
       <Header />
       <div className="container mx-auto px-4 py-8">
-        {/* Breadcrumbs */}
-        <Breadcrumb items={[
-          { label: 'Categories', href: '/categories' },
-          { label: categoryData.name }
-        ]} />
-        
         {/* Category Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-extrabold mb-4 text-gray-900">{categoryData.name}</h1>

@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronRight, Home } from 'lucide-react';
 
 interface BreadcrumbItem {
   label: string;
@@ -14,30 +13,59 @@ interface BreadcrumbProps {
 
 export default function Breadcrumb({ items }: BreadcrumbProps) {
   return (
-    <nav className="flex items-center space-x-1 text-sm text-gray-600 mb-6" aria-label="Breadcrumb">
-      <Link 
-        href="/" 
-        className="flex items-center hover:text-blue-600 transition-colors"
-        aria-label="Go to homepage"
-      >
-        <Home className="h-4 w-4" />
-      </Link>
-      
-      {items.map((item, index) => (
-        <div key={index} className="flex items-center">
-          <ChevronRight className="h-4 w-4 mx-1 text-gray-400" />
-          {item.href ? (
-            <Link 
-              href={item.href}
-              className="hover:text-blue-600 transition-colors"
-            >
-              {item.label}
-            </Link>
-          ) : (
-            <span className="text-gray-900 font-medium">{item.label}</span>
-          )}
+    <div className="mb-6">
+      <nav className="w-full" aria-label="Breadcrumb">
+        <div className="flex items-center w-full overflow-hidden">
+          <div className="flex items-center flex-nowrap text-xs sm:text-sm min-w-0 w-full">
+            <ol className="flex items-center flex-nowrap min-w-0 w-full">
+              {/* Home Link */}
+              <li className="flex-shrink-0">
+                <div className="flex items-center">
+                  <Link 
+                    href="/" 
+                    className="text-gray-500 hover:text-blue-600 transition-colors font-medium"
+                    aria-label="Go to homepage"
+                  >
+                    Home
+                  </Link>
+                </div>
+              </li>
+              
+              {/* Breadcrumb Items - Support for multiple layers */}
+              {items.map((item, index) => (
+                <li key={index} className="flex items-center flex-shrink-0 min-w-0">
+                  {/* Separator Container */}
+                  <div className="flex items-center mx-1 sm:mx-2 flex-shrink-0">
+                    <span className="text-gray-400">/</span>
+                  </div>
+                  
+                  {/* Item Container */}
+                  <div className="flex items-center min-w-0 flex-1">
+                    <div className="min-w-0 flex-1">
+                      {item.href ? (
+                        <Link 
+                          href={item.href}
+                          className="text-gray-500 hover:text-blue-600 transition-colors font-medium block truncate"
+                          title={item.label}
+                        >
+                          {item.label}
+                        </Link>
+                      ) : (
+                        <span 
+                          className="text-gray-900 font-semibold block truncate" 
+                          title={item.label}
+                        >
+                          {item.label}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
-      ))}
-    </nav>
+      </nav>
+    </div>
   );
 } 
