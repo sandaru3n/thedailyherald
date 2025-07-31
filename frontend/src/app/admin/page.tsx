@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { apiCall } from '@/lib/auth';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 interface DashboardStats {
   totalArticles: number;
@@ -52,6 +53,9 @@ interface RecentArticle {
 }
 
 export default function AdminDashboardPage() {
+  const { settings } = useSiteSettings();
+  const siteName = settings?.siteName || 'The Daily Herald';
+  
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentArticles, setRecentArticles] = useState<RecentArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -150,7 +154,7 @@ export default function AdminDashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Welcome to The Daily Herald admin panel</p>
+          <p className="text-gray-600 mt-1">Welcome to {siteName} admin panel</p>
         </div>
         <div className="flex space-x-3">
           <Button asChild>

@@ -5,6 +5,7 @@ import { API_ENDPOINTS } from '@/lib/config';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import OptimizedImage from '@/components/OptimizedImage';
+import { generatePageMetadata } from '@/lib/metadata';
 
 interface CategoryData {
   _id: string;
@@ -50,58 +51,25 @@ export async function generateMetadata({ params }: { params: Promise<{ category:
     const currentCategory = categories.find((cat: CategoryData) => cat.slug === category);
     
     if (!currentCategory) {
-      return {
-        title: 'Category Not Found - The Daily Herald',
-        description: 'The category you are looking for does not exist.',
-        robots: {
-          index: false,
-          follow: false,
-        },
-      };
+      return generatePageMetadata(
+        'Category Not Found',
+        'The category you are looking for does not exist.',
+        `/category/${category}`
+      );
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const canonicalUrl = `${siteUrl}/category/${category}`;
-
-    return {
-      title: `${currentCategory.name} News - The Daily Herald`,
-      description: currentCategory.description || `Latest ${currentCategory.name} news and articles from The Daily Herald. Stay updated with breaking news and in-depth coverage.`,
-      keywords: `${currentCategory.name}, news, articles, ${currentCategory.name} news, latest news`,
-      alternates: {
-        canonical: canonicalUrl,
-      },
-      robots: {
-        index: true,
-        follow: true,
-        googleBot: {
-          index: true,
-          follow: true,
-          'max-video-preview': -1,
-          'max-image-preview': 'large',
-          'max-snippet': -1,
-        },
-      },
-      openGraph: {
-        title: `${currentCategory.name} News - The Daily Herald`,
-        description: currentCategory.description || `Latest ${currentCategory.name} news and articles from The Daily Herald.`,
-        type: 'website',
-        url: canonicalUrl,
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: `${currentCategory.name} News - The Daily Herald`,
-        description: currentCategory.description || `Latest ${currentCategory.name} news and articles from The Daily Herald.`,
-      },
-    };
+    return generatePageMetadata(
+      `${currentCategory.name} News`,
+      currentCategory.description || `Latest ${currentCategory.name} news and articles. Stay updated with breaking news and in-depth coverage.`,
+      `/category/${category}`
+    );
   } catch (error) {
-    return {
-      title: 'Category - The Daily Herald',
-      description: 'Loading category...',
-      robots: {
-        index: false,
-        follow: false,
-      },
-    };
+    const { category } = await params;
+    return generatePageMetadata(
+      'Category',
+      'Loading category...',
+      `/category/${category}`
+    );
   }
 }
 

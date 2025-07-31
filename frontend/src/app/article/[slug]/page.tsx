@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import ArticleContent from '@/components/ArticleContent';
 import ArticleSkeleton from '@/components/ArticleSkeleton';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
+import { generatePageMetadata } from '@/lib/metadata';
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -17,76 +18,36 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     });
     
     if (!res.ok) {
-      return {
-        title: 'Article Not Found - The Daily Herald',
-        description: 'The article you are looking for does not exist.',
-        robots: {
-          index: false,
-          follow: false,
-        },
-      };
+      return generatePageMetadata(
+        'Article Not Found',
+        'The article you are looking for does not exist.',
+        `/article/${slug}`
+      );
     }
 
     const data = await res.json();
     const article = data.article;
 
     if (!article) {
-      return {
-        title: 'Article Not Found - The Daily Herald',
-        description: 'The article you are looking for does not exist.',
-        robots: {
-          index: false,
-          follow: false,
-        },
-      };
+      return generatePageMetadata(
+        'Article Not Found',
+        'The article you are looking for does not exist.',
+        `/article/${slug}`
+      );
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const canonicalUrl = `${siteUrl}/article/${slug}`;
-
-    return {
-      title: article.seoTitle || `${article.title} - The Daily Herald`,
-      description: article.seoDescription || article.excerpt || `Read ${article.title} on The Daily Herald`,
-      keywords: article.metaKeywords?.join(', ') || article.tags?.join(', ') || '',
-      alternates: {
-        canonical: canonicalUrl,
-      },
-      robots: {
-        index: true,
-        follow: true,
-        googleBot: {
-          index: true,
-          follow: true,
-          'max-video-preview': -1,
-          'max-image-preview': 'large',
-          'max-snippet': -1,
-        },
-      },
-      openGraph: {
-        title: article.seoTitle || article.title,
-        description: article.seoDescription || article.excerpt,
-        type: 'article',
-        url: canonicalUrl,
-        publishedTime: article.publishedAt,
-        authors: [typeof article.author === 'string' ? article.author : article.author?.name || 'Unknown'],
-        images: article.featuredImage || article.imageUrl ? [article.featuredImage || article.imageUrl] : [],
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: article.seoTitle || article.title,
-        description: article.seoDescription || article.excerpt,
-        images: article.featuredImage || article.imageUrl ? [article.featuredImage || article.imageUrl] : [],
-      },
-    };
+    return generatePageMetadata(
+      article.seoTitle || article.title,
+      article.seoDescription || article.excerpt || `Read ${article.title}`,
+      `/article/${slug}`
+    );
   } catch (error) {
-    return {
-      title: 'Article - The Daily Herald',
-      description: 'Loading article...',
-      robots: {
-        index: false,
-        follow: false,
-      },
-    };
+    const { slug } = await params;
+    return generatePageMetadata(
+      'Article',
+      'Loading article...',
+      `/article/${slug}`
+    );
   }
 }
 

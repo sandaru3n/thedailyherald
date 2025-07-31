@@ -4,6 +4,7 @@ import "./globals.css";
 import ClientBody from "./ClientBody";
 import Script from "next/script";
 import ResourcePreloader from "@/components/ResourcePreloader";
+import { generateMetadata as generateSiteMetadata } from "@/lib/metadata";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,50 +16,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "The Daily Herald - Latest News and Breaking Stories",
-  description: "Get the latest news, breaking stories, and in-depth coverage of current events from The Daily Herald. Stay informed with our comprehensive news coverage.",
-  keywords: "news, breaking news, current events, latest news, daily herald",
-  authors: [{ name: "The Daily Herald" }],
-  creator: "The Daily Herald",
-  publisher: "The Daily Herald",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
-  alternates: {
-    canonical: '/',
-    languages: {
-      'en-US': '/',
-    },
-  },
-  openGraph: {
-    title: "The Daily Herald - Latest News and Breaking Stories",
-    description: "Get the latest news, breaking stories, and in-depth coverage of current events from The Daily Herald.",
-    url: '/',
-    siteName: 'The Daily Herald',
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: "The Daily Herald - Latest News and Breaking Stories",
-    description: "Get the latest news, breaking stories, and in-depth coverage of current events from The Daily Herald.",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return generateSiteMetadata(
+    "Latest News and Breaking Stories",
+    "Get the latest news, breaking stories, and in-depth coverage of current events. Stay informed with our comprehensive news coverage.",
+    "/"
+  );
+}
 
 export default function RootLayout({
   children,
@@ -72,7 +36,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
           src="//unpkg.com/same-runtime/dist/index.global.js"
         />
-        <link rel="alternate" type="application/rss+xml" title="The Daily Herald RSS Feed" href="/feed/" />
+        <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="/feed/" />
         <link rel="alternate" type="application/rss+xml" title="Politics RSS Feed" href="/feed/category/politics/" />
         <link rel="alternate" type="application/rss+xml" title="Technology RSS Feed" href="/feed/category/technology/" />
         <link rel="alternate" type="application/rss+xml" title="Sports RSS Feed" href="/feed/category/sports/" />

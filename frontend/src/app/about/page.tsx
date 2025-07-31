@@ -4,45 +4,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Users, Award, Globe, Target } from 'lucide-react';
 import Link from 'next/link';
+import { generatePageMetadata } from '@/lib/metadata';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
-export const metadata: Metadata = {
-  title: 'About Us - The Daily Herald',
-  description: 'Learn about The Daily Herald, your trusted source for comprehensive news coverage. Discover our mission, values, and commitment to delivering accurate and timely journalism.',
-  keywords: 'about us, daily herald, journalism, news, mission, values, trusted news source',
-  alternates: {
-    canonical: '/about',
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-  openGraph: {
-    title: 'About Us - The Daily Herald',
-    description: 'Learn about The Daily Herald, your trusted source for comprehensive news coverage. Discover our mission, values, and commitment to delivering accurate and timely journalism.',
-    type: 'website',
-    url: '/about',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'About Us - The Daily Herald',
-    description: 'Learn about The Daily Herald, your trusted source for comprehensive news coverage.',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return generatePageMetadata(
+    'About Us',
+    'Learn about our trusted source for comprehensive news coverage. Discover our mission, values, and commitment to delivering accurate and timely journalism.',
+    '/about'
+  );
+}
 
 export default function AboutPage() {
+  const { settings } = useSiteSettings();
+  const siteName = settings?.siteName || 'The Daily Herald';
+  
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">About The Daily Herald</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">About {siteName}</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Your trusted source for comprehensive news coverage, delivering accurate and timely information 
             to keep you informed about the world around you.
@@ -59,7 +41,7 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent>
             <p className="text-lg text-gray-700 leading-relaxed">
-              At The Daily Herald, we are committed to delivering high-quality journalism that informs, 
+              At {siteName}, we are committed to delivering high-quality journalism that informs, 
               educates, and empowers our readers. Our mission is to provide accurate, unbiased news 
               coverage while maintaining the highest standards of journalistic integrity.
             </p>
@@ -148,9 +130,9 @@ export default function AboutPage() {
           <Card>
             <CardContent className="pt-6">
               <h2 className="text-2xl font-bold mb-4">Stay Connected</h2>
-              <p className="text-gray-600 mb-6">
-                Join thousands of readers who trust The Daily Herald for their daily news.
-              </p>
+                             <p className="text-gray-600 mb-6">
+                 Join thousands of readers who trust {siteName} for their daily news.
+               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button asChild>
                   <Link href="/">

@@ -8,8 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle } from 'lucide-react';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export default function ContactPage() {
+  const { settings } = useSiteSettings();
+  const siteName = settings?.siteName || 'The Daily Herald';
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -270,7 +274,7 @@ export default function ContactPage() {
               </div>
               
               <div>
-                <h3 className="font-semibold mb-2">How can I advertise with The Daily Herald?</h3>
+                <h3 className="font-semibold mb-2">How can I advertise with {siteName}?</h3>
                 <p className="text-gray-600">
                   For advertising inquiries, please contact our advertising department 
                   through the contact form or call us directly.

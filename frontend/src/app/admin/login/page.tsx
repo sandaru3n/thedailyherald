@@ -9,9 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { setAuthData } from '@/lib/auth';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const { settings } = useSiteSettings();
+  const siteName = settings?.siteName || 'The Daily Herald';
+  
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -72,7 +76,7 @@ export default function AdminLoginPage() {
           </div>
           <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
           <CardDescription>
-            Sign in to access The Daily Herald admin panel
+            Sign in to access {siteName} admin panel
           </CardDescription>
         </CardHeader>
         <CardContent>
