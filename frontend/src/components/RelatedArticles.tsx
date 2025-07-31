@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Article } from '@/types/news';
 import { 
-  Clock, 
   Eye, 
   Calendar,
   ArrowRight,
@@ -36,11 +35,7 @@ export default function RelatedArticles({
     });
   };
 
-  const calculateReadTime = (content: string) => {
-    const wordsPerMinute = 200;
-    const words = content.split(' ').length;
-    return Math.ceil(words / wordsPerMinute);
-  };
+
 
   const getCategoryName = (article: Article) => {
     if (typeof article.category === 'string') {
@@ -122,10 +117,6 @@ export default function RelatedArticles({
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
                       <span>{formatDate(article.publishedAt)}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{calculateReadTime(article.content)} min</span>
                     </div>
                     {article.views && (
                       <div className="flex items-center gap-1">

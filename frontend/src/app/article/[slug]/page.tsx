@@ -118,19 +118,27 @@ async function getArticle(slug: string): Promise<Article | null> {
 }
 
 // Pre-fetch related articles
-async function getRelatedArticles(categoryId: string, excludeId: string): Promise<Article[]> {
+async function getRelatedArticles(categorySlug: string, excludeId: string): Promise<Article[]> {
   try {
+    console.log('Fetching related articles for category:', categorySlug, 'excluding:', excludeId);
+    
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/articles?category=${categoryId}&limit=3&exclude=${excludeId}`,
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/articles?category=${categorySlug}&limit=3&exclude=${excludeId}`,
       { next: { revalidate: 300 } } // Cache for 5 minutes
     );
     
     if (!res.ok) {
+      console.error('Related articles API error:', res.status, res.statusText);
       return [];
     }
 
     const data = await res.json();
-    return data.docs || data.articles || [];
+    console.log('Related articles response:', data);
+    
+    const articles = data.docs || data.articles || [];
+    console.log('Found related articles:', articles.length);
+    
+    return articles;
   } catch (error) {
     console.error('Error fetching related articles:', error);
     return [];
@@ -146,8 +154,10 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   }
 
   // Pre-fetch related articles
-  const categoryId = typeof article.category === 'string' ? article.category : article.category?._id;
-  const relatedArticles = categoryId ? await getRelatedArticles(categoryId, article._id || article.id || '') : [];
+  const categorySlug = typeof article.category === 'string' ? article.category : article.category?.slug;
+  console.log('Article category info:', article.category);
+  console.log('Category slug for related articles:', categorySlug);
+  const relatedArticles = categorySlug ? await getRelatedArticles(categorySlug, article._id || article.id || '') : [];
 
   return (
     <div className="min-h-screen bg-gray-50">

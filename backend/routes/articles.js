@@ -65,7 +65,7 @@ router.get('/', async (req, res) => {
       limit: parseInt(limit),
       sort,
       populate: [
-        { path: 'category', select: 'name color' },
+        { path: 'category', select: 'name color slug' },
         { path: 'author', select: 'name' }
       ]
     };
@@ -91,7 +91,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const article = await Article.findById(req.params.id)
-      .populate('category', 'name color')
+      .populate('category', 'name color slug')
       .populate('author', 'name');
 
     if (!article) {
@@ -124,7 +124,7 @@ router.get('/:id', async (req, res) => {
 router.get('/slug/:slug', async (req, res) => {
   try {
     const article = await Article.findOne({ slug: req.params.slug })
-      .populate('category', 'name color')
+      .populate('category', 'name color slug')
       .populate('author', 'name');
 
     if (!article) {

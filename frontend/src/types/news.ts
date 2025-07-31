@@ -13,6 +13,7 @@ export interface NewsArticle {
     _id: string;
     name: string;
     color: string;
+    slug: string;
   };
   imageUrl?: string;
   featuredImage?: string;
