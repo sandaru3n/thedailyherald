@@ -314,21 +314,21 @@ export default function SiteSettingsPage() {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="siteLogo">Site Logo URL</Label>
-                <Input
-                  id="siteLogo"
-                  value={settings.siteLogo || ''}
-                  onChange={(e) => setSettings(prev => ({ ...prev, siteLogo: e.target.value }))}
-                  placeholder="https://yourdomain.com/logo.png"
-                  className="mt-1"
-                />
-              </div>
+              <FileUpload
+                label="Site Logo"
+                accept=".png,.svg,.jpg,.jpeg,.webp,image/png,image/svg+xml,image/jpeg,image/jpg,image/webp"
+                maxSize={5}
+                uploadType="site-logo"
+                currentFileUrl={settings.siteLogo}
+                onUploadSuccess={(fileUrl) => setSettings(prev => ({ ...prev, siteLogo: fileUrl }))}
+                onUploadError={(error) => setError(error)}
+              />
 
               <FileUpload
                 label="Site Favicon"
                 accept=".ico,.png,.svg,.jpg,.jpeg,image/x-icon,image/png,image/svg+xml,image/jpeg,image/jpg"
                 maxSize={2}
+                uploadType="favicon"
                 currentFileUrl={settings.siteFavicon}
                 onUploadSuccess={(fileUrl) => setSettings(prev => ({ ...prev, siteFavicon: fileUrl }))}
                 onUploadError={(error) => setError(error)}
@@ -367,16 +367,15 @@ export default function SiteSettingsPage() {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="publisherLogo">Publisher Logo URL</Label>
-                <Input
-                  id="publisherLogo"
-                  value={settings.publisherLogo || ''}
-                  onChange={(e) => setSettings(prev => ({ ...prev, publisherLogo: e.target.value }))}
-                  placeholder="https://yourdomain.com/publisher-logo.png"
-                  className="mt-1"
-                />
-              </div>
+              <FileUpload
+                label="Publisher Logo"
+                accept=".png,.svg,.jpg,.jpeg,.webp,image/png,image/svg+xml,image/jpeg,image/jpg,image/webp"
+                maxSize={5}
+                uploadType="publisher-logo"
+                currentFileUrl={settings.publisherLogo}
+                onUploadSuccess={(fileUrl) => setSettings(prev => ({ ...prev, publisherLogo: fileUrl }))}
+                onUploadError={(error) => setError(error)}
+              />
             </CardContent>
           </Card>
 

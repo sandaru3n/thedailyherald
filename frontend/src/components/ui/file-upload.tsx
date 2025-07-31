@@ -10,6 +10,7 @@ interface FileUploadProps {
   label: string;
   accept: string;
   maxSize?: number; // in MB
+  uploadType: 'favicon' | 'site-logo' | 'publisher-logo';
   onUploadSuccess: (fileUrl: string) => void;
   onUploadError: (error: string) => void;
   currentFileUrl?: string;
@@ -20,6 +21,7 @@ export default function FileUpload({
   label,
   accept,
   maxSize = 2,
+  uploadType,
   onUploadSuccess,
   onUploadError,
   currentFileUrl,
@@ -66,11 +68,11 @@ export default function FileUpload({
     try {
       
       const formData = new FormData();
-      formData.append('favicon', file);
+      formData.append(uploadType === 'favicon' ? 'favicon' : uploadType === 'site-logo' ? 'siteLogo' : 'publisherLogo', file);
 
-      console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
+      console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type, 'Upload type:', uploadType);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/upload/favicon`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/upload/${uploadType}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -139,6 +141,19 @@ export default function FileUpload({
     onUploadSuccess('');
   };
 
+  const getUploadTypeLabel = () => {
+    switch (uploadType) {
+      case 'favicon':
+        return 'favicon';
+      case 'site-logo':
+        return 'site logo';
+      case 'publisher-logo':
+        return 'publisher logo';
+      default:
+        return 'file';
+    }
+  };
+
   return (
     <div className={`space-y-2 ${className}`}>
       <Label>{label}</Label>
@@ -167,11 +182,11 @@ export default function FileUpload({
             <div className="flex items-center justify-center">
               <img
                 src={currentFileUrl}
-                alt="Current favicon"
+                alt={`Current ${getUploadTypeLabel()}`}
                 className="w-8 h-8 object-contain"
               />
             </div>
-            <p className="text-sm text-gray-600">Current favicon</p>
+            <p className="text-sm text-gray-600">Current {getUploadTypeLabel()}</p>
             <div className="flex gap-2 justify-center">
               <Button
                 type="button"
@@ -202,7 +217,7 @@ export default function FileUpload({
             </div>
             <div>
               <p className="text-sm text-gray-600">
-                Drag and drop your favicon here, or{' '}
+                Drag and drop your {getUploadTypeLabel()} here, or{' '}
                 <button
                   type="button"
                   onClick={handleClick}
@@ -213,7 +228,7 @@ export default function FileUpload({
                 </button>
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                Supports .ico, .png, .svg, .jpg, .jpeg (max {maxSize}MB)
+                Supports .ico, .png, .svg, .jpg, .jpeg, .webp (max {maxSize}MB)
               </p>
             </div>
             {isUploading && (

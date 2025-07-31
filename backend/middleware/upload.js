@@ -20,31 +20,51 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter for favicon uploads
-const faviconFilter = (req, file, cb) => {
+// File filter for image uploads (favicon, logos)
+const imageFilter = (req, file, cb) => {
   console.log('File filter check:', file.originalname, file.mimetype);
   
   // Check file type
-  const allowedTypes = ['image/x-icon', 'image/png', 'image/svg+xml', 'image/jpeg', 'image/jpg'];
+  const allowedTypes = ['image/x-icon', 'image/png', 'image/svg+xml', 'image/jpeg', 'image/jpg', 'image/webp'];
   if (allowedTypes.includes(file.mimetype)) {
     console.log('File type accepted:', file.mimetype);
     cb(null, true);
   } else {
     console.log('File type rejected:', file.mimetype);
-    cb(new Error('Invalid file type. Only .ico, .png, .svg, .jpg, .jpeg files are allowed.'), false);
+    cb(new Error('Invalid file type. Only .ico, .png, .svg, .jpg, .jpeg, .webp files are allowed.'), false);
   }
 };
 
 // Create multer instance for favicon uploads
 const uploadFavicon = multer({
   storage: storage,
-  fileFilter: faviconFilter,
+  fileFilter: imageFilter,
   limits: {
     fileSize: 2 * 1024 * 1024 // 2MB limit
   }
 }).single('favicon');
 
+// Create multer instance for site logo uploads
+const uploadSiteLogo = multer({
+  storage: storage,
+  fileFilter: imageFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit for logos
+  }
+}).single('siteLogo');
+
+// Create multer instance for publisher logo uploads
+const uploadPublisherLogo = multer({
+  storage: storage,
+  fileFilter: imageFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit for logos
+  }
+}).single('publisherLogo');
+
 module.exports = {
   uploadFavicon,
+  uploadSiteLogo,
+  uploadPublisherLogo,
   uploadsDir
 }; 
