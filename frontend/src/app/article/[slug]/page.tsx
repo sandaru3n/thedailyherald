@@ -8,6 +8,7 @@ import ArticleContent from '@/components/ArticleContent';
 import ArticleSkeleton from '@/components/ArticleSkeleton';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
 import { generatePageMetadata } from '@/lib/metadata';
+import { getSiteSettings } from '@/lib/settings';
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -36,11 +37,57 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       );
     }
 
-    return generatePageMetadata(
-      article.seoTitle || article.title,
-      article.seoDescription || article.excerpt || `Read ${article.title}`,
-      `/article/${slug}`
-    );
+    // Get site settings for metadata
+    const settings = await getSiteSettings();
+    const siteName = settings.siteName;
+    const articleTitle = article.seoTitle || article.title;
+    const articleDescription = article.seoDescription || article.excerpt || `Read ${article.title}`;
+    
+    // Create custom metadata without site name in title for single article pages
+    return {
+      title: articleTitle, // No site name appended
+      description: articleDescription.replace(/The Daily Herald/g, siteName),
+      keywords: "news, breaking news, current events, latest news",
+      authors: [{ name: siteName }],
+      creator: siteName,
+      publisher: siteName,
+      formatDetection: {
+        email: false,
+        address: false,
+        telephone: false,
+      },
+      metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+      alternates: {
+        canonical: `/article/${slug}`,
+        languages: {
+          'en-US': `/article/${slug}`,
+        },
+      },
+      openGraph: {
+        title: articleTitle, // No site name appended
+        description: articleDescription.replace(/The Daily Herald/g, siteName),
+        url: `/article/${slug}`,
+        siteName: siteName,
+        locale: 'en_US',
+        type: 'article',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: articleTitle, // No site name appended
+        description: articleDescription.replace(/The Daily Herald/g, siteName),
+      },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          'max-video-preview': -1,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+        },
+      },
+    };
   } catch (error) {
     const { slug } = await params;
     return generatePageMetadata(
