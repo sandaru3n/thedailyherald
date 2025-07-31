@@ -16,11 +16,13 @@ interface CategoryData {
 }
 
 // Generate metadata for SEO
-export const metadata: Metadata = generatePageMetadata(
-  'Categories',
-  'Browse all news categories. Find the latest news and articles organized by topics.',
-  '/categories'
-);
+export async function generateMetadata(): Promise<Metadata> {
+  return generatePageMetadata(
+    'Categories',
+    'Browse all news categories. Find the latest news and articles organized by topics.',
+    '/categories'
+  );
+}
 
 // Fetch categories data
 async function getCategoriesData() {
