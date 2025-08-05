@@ -4,13 +4,19 @@ const Category = require('../models/Category');
 const Settings = require('../models/Settings');
 const { auth, requireRole } = require('../middleware/auth');
 
-// Try to import the new queue system, fallback to old one
+// Try to import the new queue system, fallback to old one, then built-in
 let databaseIndexingQueue;
 try {
   databaseIndexingQueue = require('../services/databaseIndexingQueue');
 } catch (importError) {
   console.error('Failed to import databaseIndexingQueue, falling back to articleIndexingQueue:', importError.message);
-  databaseIndexingQueue = require('../services/articleIndexingQueue');
+  try {
+    databaseIndexingQueue = require('../services/articleIndexingQueue');
+  } catch (fallbackError) {
+    console.error('Both queue systems unavailable, using built-in fallback:', fallbackError.message);
+    // Use built-in queue system from settings route
+    databaseIndexingQueue = getBuiltInQueue();
+  }
 }
 
 const router = express.Router();
@@ -51,6 +57,72 @@ async function getCorrectSiteUrl() {
     console.error('Error getting site URL:', error);
     return 'http://localhost:3000';
   }
+}
+
+// Built-in in-memory queue system as final fallback
+let builtInQueueItems = [];
+let builtInQueueProcessing = false;
+
+function getBuiltInQueue() {
+  return {
+    async getQueueStatus() {
+      const pending = builtInQueueItems.filter(item => item.status === 'pending').length;
+      const processing = builtInQueueItems.filter(item => item.status === 'processing').length;
+      const completed = builtInQueueItems.filter(item => item.status === 'completed').length;
+      const failed = builtInQueueItems.filter(item => item.status === 'failed').length;
+      
+      return {
+        totalItems: builtInQueueItems.length,
+        isProcessing: builtInQueueProcessing,
+        pendingItems: pending,
+        processingItems: processing,
+        completedItems: completed,
+        failedItems: failed,
+        note: 'Using built-in queue system (files missing)'
+      };
+    },
+    
+    async getQueueItems() {
+      return builtInQueueItems.map(item => ({
+        id: item.id,
+        url: item.url,
+        type: item.type,
+        status: item.status,
+        retries: item.retries || 0,
+        addedAt: item.addedAt,
+        articleTitle: item.articleTitle || 'Unknown Article'
+      }));
+    },
+    
+    async clearQueue() {
+      builtInQueueItems = [];
+      console.log('Built-in indexing queue cleared');
+    },
+    
+    async retryFailedItems() {
+      const failedItems = builtInQueueItems.filter(item => item.status === 'failed');
+      failedItems.forEach(item => {
+        item.status = 'pending';
+        item.retries = (item.retries || 0) + 1;
+      });
+      console.log(`Retried ${failedItems.length} failed items in built-in queue`);
+    },
+    
+    async addToQueue(article, type = 'URL_UPDATED') {
+      const queueItem = {
+        id: Date.now().toString(),
+        url: `https://yourdomain.com/article/${article.slug}`,
+        type: type,
+        status: 'pending',
+        retries: 0,
+        addedAt: new Date().toISOString(),
+        articleTitle: article.title || 'Unknown Article'
+      };
+      
+      builtInQueueItems.push(queueItem);
+      console.log(`Added article to built-in queue: ${queueItem.url}`);
+    }
+  };
 }
 
 // Helper function to add article to indexing queue
