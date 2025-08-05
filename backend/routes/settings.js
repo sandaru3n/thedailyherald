@@ -170,15 +170,18 @@ router.post('/google-indexing/submit-url', auth, requireRole('admin'), async (re
       });
     }
 
+    console.log(`🚀 Submitting URL for indexing: ${url} (${type})`);
     const result = await googleInstantIndexingService.submitUrl(url, type);
 
     if (result.success) {
+      console.log(`✅ URL submitted successfully: ${url}`);
       res.json({
         success: true,
         message: `URL submitted successfully for ${type === 'URL_UPDATED' ? 'indexing' : 'removal'}`,
         details: result.data
       });
     } else {
+      console.log(`❌ URL submission failed: ${url} - ${result.error}`);
       res.status(400).json({
         success: false,
         error: result.error,

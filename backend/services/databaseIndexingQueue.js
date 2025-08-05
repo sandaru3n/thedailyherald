@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const googleInstantIndexingService = require('./googleInstantIndexingService');
 const Settings = require('../models/Settings');
 const IndexingQueue = require('../models/IndexingQueue');
@@ -95,10 +96,8 @@ class DatabaseIndexingQueue {
       await queueItem.save();
       console.log(`Article added to indexing queue: ${articleUrl}`);
 
-      // Start processing if not already running
-      if (!this.isProcessing) {
-        this.processQueue();
-      }
+      // Start processing immediately
+      this.processQueue();
     } catch (error) {
       console.error('Error adding article to indexing queue:', error);
     }
@@ -109,14 +108,21 @@ class DatabaseIndexingQueue {
    */
   async processQueue() {
     if (this.isProcessing) {
+      console.log('Queue processing already in progress, skipping...');
       return;
     }
 
     this.isProcessing = true;
-    console.log('Starting to process indexing queue...');
+    console.log('🚀 Starting to process indexing queue...');
 
     try {
       while (true) {
+        // Check MongoDB connection
+        if (mongoose.connection.readyState !== 1) {
+          console.log('MongoDB not connected, stopping queue processing');
+          break;
+        }
+
         // Get next pending item
         const item = await IndexingQueue.findOne({
           status: 'pending'
@@ -128,7 +134,7 @@ class DatabaseIndexingQueue {
         }
 
         try {
-          console.log(`Processing article: ${item.url}`);
+          console.log(`📝 Processing article: ${item.url}`);
           
           // Update status to processing
           item.status = 'processing';

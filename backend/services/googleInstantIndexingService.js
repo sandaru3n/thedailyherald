@@ -39,6 +39,11 @@ class GoogleInstantIndexingService {
         return false;
       }
 
+      // Fix private key formatting if needed
+      if (serviceAccount.private_key && !serviceAccount.private_key.includes('-----BEGIN PRIVATE KEY-----')) {
+        serviceAccount.private_key = `-----BEGIN PRIVATE KEY-----\n${serviceAccount.private_key}\n-----END PRIVATE KEY-----`;
+      }
+
       // Create auth client
       const auth = new google.auth.GoogleAuth({
         credentials: serviceAccount,

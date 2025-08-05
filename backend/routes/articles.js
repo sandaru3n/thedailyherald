@@ -59,13 +59,15 @@ async function addArticleToIndexingQueue(article) {
     const siteUrl = await getCorrectSiteUrl();
     const articleUrl = `${siteUrl}/article/${article.slug}`;
     
-    console.log(`Adding article to queue with URL: ${articleUrl}`);
+    console.log(`🚀 Adding article to indexing queue: ${articleUrl}`);
 
-    // Add to queue for automatic processing
+    // Add to queue for immediate processing
     await queueService.addToQueue(article, 'URL_UPDATED');
     
+    console.log(`✅ Article "${article.title}" added to indexing queue successfully`);
+    
   } catch (error) {
-    console.error('Error adding article to indexing queue:', error);
+    console.error('❌ Error adding article to indexing queue:', error);
   }
 }
 
@@ -450,6 +452,9 @@ router.put('/:id/publish', auth, requireRole(['admin', 'editor']), async (req, r
     await article.publish();
     await article.populate('category', 'name color');
     await article.populate('author', 'name');
+
+    // Submit for instant indexing immediately after publishing
+    await addArticleToIndexingQueue(article);
 
     res.json({
       success: true,
