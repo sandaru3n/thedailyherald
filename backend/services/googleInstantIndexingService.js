@@ -1,6 +1,12 @@
 const { google } = require('googleapis');
 const Settings = require('../models/Settings');
 
+// Fix for Node.js 17+ OpenSSL issues
+const crypto = require('crypto');
+if (crypto.constants) {
+  process.env.NODE_OPTIONS = '--openssl-legacy-provider';
+}
+
 class GoogleInstantIndexingService {
   constructor() {
     this.indexingApi = null;
@@ -40,8 +46,16 @@ class GoogleInstantIndexingService {
       }
 
       // Fix private key formatting if needed
-      if (serviceAccount.private_key && !serviceAccount.private_key.includes('-----BEGIN PRIVATE KEY-----')) {
-        serviceAccount.private_key = `-----BEGIN PRIVATE KEY-----\n${serviceAccount.private_key}\n-----END PRIVATE KEY-----`;
+      if (serviceAccount.private_key) {
+        // Remove any existing formatting
+        let privateKey = serviceAccount.private_key.replace(/-----BEGIN PRIVATE KEY-----/g, '');
+        privateKey = privateKey.replace(/-----END PRIVATE KEY-----/g, '');
+        privateKey = privateKey.replace(/\n/g, '');
+        privateKey = privateKey.trim();
+        
+        // Reformat with proper line breaks
+        const formattedKey = privateKey.match(/.{1,64}/g).join('\n');
+        serviceAccount.private_key = `-----BEGIN PRIVATE KEY-----\n${formattedKey}\n-----END PRIVATE KEY-----`;
       }
 
       // Create auth client
