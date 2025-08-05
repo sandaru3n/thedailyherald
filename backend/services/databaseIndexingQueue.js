@@ -44,6 +44,21 @@ class DatabaseIndexingQueue {
         siteUrl = siteUrl.slice(0, -1);
       }
       
+      // Ensure the URL has a proper protocol
+      if (siteUrl && !siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
+        // For production, prefer HTTPS
+        if (siteUrl.includes('localhost') || siteUrl.includes('127.0.0.1')) {
+          siteUrl = `http://${siteUrl}`;
+        } else {
+          siteUrl = `https://${siteUrl}`;
+        }
+      }
+      
+      // For production URLs, ensure HTTPS is used
+      if (siteUrl && !siteUrl.includes('localhost') && !siteUrl.includes('127.0.0.1') && siteUrl.startsWith('http://')) {
+        siteUrl = siteUrl.replace('http://', 'https://');
+      }
+      
       console.log(`Using site URL for indexing: ${siteUrl}`);
       return siteUrl;
     } catch (error) {

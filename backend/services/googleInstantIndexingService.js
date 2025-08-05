@@ -95,12 +95,35 @@ class GoogleInstantIndexingService {
 
       // Validate URL format
       try {
-        new URL(url);
+        const urlObj = new URL(url);
+        
+        // Ensure HTTPS for production URLs
+        if (!urlObj.hostname.includes('localhost') && !urlObj.hostname.includes('127.0.0.1') && urlObj.protocol !== 'https:') {
+          console.warn(`⚠️  URL uses HTTP instead of HTTPS: ${url}`);
+          console.warn(`   Google Instant Indexing prefers HTTPS for production URLs`);
+        }
       } catch (error) {
+        console.error(`❌ URL format validation failed: ${url}`);
+        console.error(`   Error: ${error.message}`);
+        
+        // Provide specific guidance based on the error
+        let details = 'The provided URL is not in a valid format';
+        let suggestion = '';
+        
+        if (url && !url.includes('://')) {
+          details = 'URL is missing protocol (http:// or https://)';
+          suggestion = 'Add https:// to the beginning of the URL';
+        } else if (url && !url.includes('.')) {
+          details = 'URL appears to be missing a valid domain';
+          suggestion = 'Ensure the URL contains a valid domain name';
+        }
+        
         return {
           success: false,
           error: 'Invalid URL format',
-          details: 'The provided URL is not in a valid format'
+          details: details,
+          suggestion: suggestion,
+          code: 'INVALID_URL_FORMAT'
         };
       }
 
