@@ -199,7 +199,16 @@ router.post('/google-indexing/submit-url', auth, requireRole('admin'), async (re
 // @access  Private (Admin only)
 router.get('/google-indexing/queue-status', auth, requireRole(['admin']), async (req, res) => {
   try {
-    const databaseIndexingQueue = require('../../services/databaseIndexingQueue');
+    let databaseIndexingQueue;
+    
+    try {
+      databaseIndexingQueue = require('../../services/databaseIndexingQueue');
+    } catch (importError) {
+      console.error('Failed to import databaseIndexingQueue, falling back to articleIndexingQueue:', importError.message);
+      // Fallback to old queue system
+      databaseIndexingQueue = require('../../services/articleIndexingQueue');
+    }
+    
     const queueStatus = await databaseIndexingQueue.getQueueStatus();
     const queueItems = await databaseIndexingQueue.getQueueItems();
     
@@ -222,7 +231,16 @@ router.get('/google-indexing/queue-status', auth, requireRole(['admin']), async 
 // @access  Private (Admin only)
 router.post('/google-indexing/queue-clear', auth, requireRole(['admin']), async (req, res) => {
   try {
-    const databaseIndexingQueue = require('../../services/databaseIndexingQueue');
+    let databaseIndexingQueue;
+    
+    try {
+      databaseIndexingQueue = require('../../services/databaseIndexingQueue');
+    } catch (importError) {
+      console.error('Failed to import databaseIndexingQueue, falling back to articleIndexingQueue:', importError.message);
+      // Fallback to old queue system
+      databaseIndexingQueue = require('../../services/articleIndexingQueue');
+    }
+    
     await databaseIndexingQueue.clearQueue();
     
     res.json({
@@ -243,8 +261,22 @@ router.post('/google-indexing/queue-clear', auth, requireRole(['admin']), async 
 // @access  Private (Admin only)
 router.post('/google-indexing/queue-retry', auth, requireRole(['admin']), async (req, res) => {
   try {
-    const databaseIndexingQueue = require('../../services/databaseIndexingQueue');
-    await databaseIndexingQueue.retryFailedItems();
+    let databaseIndexingQueue;
+    
+    try {
+      databaseIndexingQueue = require('../../services/databaseIndexingQueue');
+    } catch (importError) {
+      console.error('Failed to import databaseIndexingQueue, falling back to articleIndexingQueue:', importError.message);
+      // Fallback to old queue system
+      databaseIndexingQueue = require('../../services/articleIndexingQueue');
+    }
+    
+    // Check if retryFailedItems method exists (only in database queue)
+    if (typeof databaseIndexingQueue.retryFailedItems === 'function') {
+      await databaseIndexingQueue.retryFailedItems();
+    } else {
+      console.log('Retry failed items not available in fallback queue system');
+    }
     
     res.json({
       success: true,

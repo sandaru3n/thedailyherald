@@ -3,7 +3,15 @@ const Article = require('../models/Article');
 const Category = require('../models/Category');
 const Settings = require('../models/Settings');
 const { auth, requireRole } = require('../middleware/auth');
-const databaseIndexingQueue = require('../services/databaseIndexingQueue');
+
+// Try to import the new queue system, fallback to old one
+let databaseIndexingQueue;
+try {
+  databaseIndexingQueue = require('../services/databaseIndexingQueue');
+} catch (importError) {
+  console.error('Failed to import databaseIndexingQueue, falling back to articleIndexingQueue:', importError.message);
+  databaseIndexingQueue = require('../services/articleIndexingQueue');
+}
 
 const router = express.Router();
 
@@ -532,8 +540,8 @@ router.get('/sitemap', async (req, res) => {
 // @access  Private (Admin only)
 router.get('/indexing-queue/status', auth, requireRole(['admin']), async (req, res) => {
   try {
-    const queueStatus = databaseIndexingQueue.getQueueStatus();
-    const queueItems = databaseIndexingQueue.getQueueItems();
+    const queueStatus = await databaseIndexingQueue.getQueueStatus();
+    const queueItems = await databaseIndexingQueue.getQueueItems();
     
     res.json({
       success: true,
@@ -554,7 +562,7 @@ router.get('/indexing-queue/status', auth, requireRole(['admin']), async (req, r
 // @access  Private (Admin only)
 router.post('/indexing-queue/clear', auth, requireRole(['admin']), async (req, res) => {
   try {
-    databaseIndexingQueue.clearQueue();
+    await databaseIndexingQueue.clearQueue();
     
     res.json({
       success: true,
