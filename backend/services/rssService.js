@@ -371,6 +371,17 @@ Please provide only the rewritten content without any additional commentary or f
 
           await article.save();
 
+          // Submit for Google Instant Indexing if article is published
+          if (feed.settings.autoPublish && article.status === 'published') {
+            try {
+              const queueService = require('./queueService')();
+              await queueService.addToQueue(article, 'URL_UPDATED');
+              console.log(`🚀 RSS Article added to indexing queue: ${article.title}`);
+            } catch (indexingError) {
+              console.error('Error adding RSS article to indexing queue:', indexingError);
+            }
+          }
+
           // Increment feed counters
           await feed.incrementPublishedCount();
 
