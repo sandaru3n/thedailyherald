@@ -55,6 +55,30 @@ This guide will help you set up Google Instant Indexing for your news website to
 2. If successful, you'll see a green success message
 3. If there are errors, check the error message and verify your setup
 
+## Step 7: Manual URL Testing (Optional)
+
+Once configured, you can test the system with manual URL submissions:
+
+1. In the **Manual URL Submission** section, enter a test URL
+2. Choose the submission type:
+   - **URL Updated**: For new or modified content
+   - **URL Deleted**: For removed content
+3. Click **Submit URL for Indexing**
+4. Check the success message and updated statistics
+
+## Environment Variables
+
+Make sure to set the following environment variables:
+
+```bash
+# Backend (.env)
+SITE_URL=https://yourdomain.com
+API_BASE_URL=https://yourdomain.com/api
+
+# Frontend (.env.local)
+NEXT_PUBLIC_SITE_URL=https://yourdomain.com
+```
+
 ## Troubleshooting
 
 ### Common Issues
@@ -79,6 +103,11 @@ This guide will help you set up Google Instant Indexing for your news website to
 - Wait a few minutes before submitting more URLs
 - Consider implementing a queue system for large numbers of URLs
 
+#### "Test configuration always successful" Issue
+- The system now properly validates JSON format and required fields
+- Invalid JSON will show specific error messages
+- Missing required fields will be detected and reported
+
 ### Verification Steps
 
 1. **Check Google Search Console**:
@@ -94,6 +123,10 @@ This guide will help you set up Google Instant Indexing for your news website to
    - Monitor your server logs for any API errors
    - Check the admin panel statistics for successful submissions
 
+4. **Manual Testing**:
+   - Use the manual URL submission feature to test individual URLs
+   - Verify that statistics are updated after successful submissions
+
 ## API Limits and Best Practices
 
 ### Rate Limits
@@ -106,6 +139,7 @@ This guide will help you set up Google Instant Indexing for your news website to
 2. **Monitor usage**: Keep track of your API usage to avoid hitting limits
 3. **Handle errors gracefully**: Implement proper error handling for failed submissions
 4. **Test thoroughly**: Always test with a few URLs before enabling for all articles
+5. **Use manual submission for testing**: Test individual URLs before enabling automatic submission
 
 ## Security Considerations
 
@@ -122,6 +156,22 @@ Once configured, the system will automatically:
 - Handle errors gracefully and log issues
 - Respect Google's rate limits
 
+## Manual URL Submission
+
+The system includes a manual URL submission feature for testing and one-off submissions:
+
+### Features:
+- **URL Validation**: Automatically validates URL format
+- **Submission Types**: Choose between URL_UPDATED and URL_DELETED
+- **Real-time Feedback**: See immediate success/error messages
+- **Statistics Tracking**: Manual submissions are included in statistics
+
+### Use Cases:
+- Testing the configuration with specific URLs
+- Submitting important articles that weren't automatically indexed
+- Removing deleted content from Google's index
+- One-off submissions for special content
+
 ## Support
 
 If you encounter issues:
@@ -129,6 +179,7 @@ If you encounter issues:
 2. Verify your Google Cloud Console settings
 3. Check the admin panel error logs
 4. Ensure your website is properly verified in Google Search Console
+5. Use the manual URL submission feature to test individual URLs
 
 ## Additional Resources
 

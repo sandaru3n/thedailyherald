@@ -13,7 +13,9 @@ import {
   Eye,
   EyeOff,
   RefreshCw,
-  Info
+  Info,
+  Send,
+  Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,11 +54,14 @@ export default function GoogleIndexingPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showJson, setShowJson] = useState(false);
   const [stats, setStats] = useState<GoogleIndexingStats | null>(null);
   const [isConfigured, setIsConfigured] = useState(false);
+  const [testUrl, setTestUrl] = useState('');
+  const [urlType, setUrlType] = useState<'URL_UPDATED' | 'URL_DELETED'>('URL_UPDATED');
 
   const [settings, setSettings] = useState<GoogleIndexingSettings>({
     enabled: false,
@@ -194,6 +199,39 @@ export default function GoogleIndexingPage() {
     }
   };
 
+  const handleSubmitUrl = async () => {
+    if (!testUrl.trim()) {
+      setError('Please enter a URL to submit');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setError('');
+      setSuccess('');
+
+      const data = await apiCall('/settings/google-indexing/submit-url', {
+        method: 'POST',
+        body: JSON.stringify({
+          url: testUrl.trim(),
+          type: urlType
+        })
+      }) as { success: boolean; message?: string; error?: string };
+
+      if (data?.success) {
+        setSuccess(data.message || 'URL submitted successfully!');
+        setTestUrl('');
+        await fetchStats();
+      } else {
+        setError(data?.error || data?.message || 'Failed to submit URL');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit URL');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleCopyJson = () => {
     if (settings.serviceAccountJson) {
       navigator.clipboard.writeText(settings.serviceAccountJson);
@@ -206,6 +244,15 @@ export default function GoogleIndexingPage() {
     try {
       const parsed = JSON.parse(json);
       return parsed.project_id && parsed.private_key && parsed.client_email;
+    } catch {
+      return false;
+    }
+  };
+
+  const validateUrl = (url: string) => {
+    try {
+      new URL(url);
+      return true;
     } catch {
       return false;
     }
@@ -426,6 +473,74 @@ export default function GoogleIndexingPage() {
           </Button>
         </div>
       </form>
+
+      {/* Manual URL Submit Section */}
+      {isConfigured && settings.enabled && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Globe className="h-5 w-5 mr-2" />
+              Manual URL Submission
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="testUrl">URL to Submit</Label>
+              <Input
+                id="testUrl"
+                value={testUrl}
+                onChange={(e) => setTestUrl(e.target.value)}
+                placeholder="https://yourdomain.com/article-url"
+                className="mt-1"
+              />
+              <p className="text-sm text-gray-600 mt-1">
+                Enter a URL to manually submit for instant indexing
+              </p>
+              {testUrl && (
+                <div className="mt-2">
+                  {validateUrl(testUrl) ? (
+                    <div className="flex items-center text-green-600 text-sm">
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Valid URL format
+                    </div>
+                  ) : (
+                    <div className="flex items-center text-red-600 text-sm">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      Invalid URL format
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="urlType">Submission Type</Label>
+              <select
+                id="urlType"
+                value={urlType}
+                onChange={(e) => setUrlType(e.target.value as 'URL_UPDATED' | 'URL_DELETED')}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="URL_UPDATED">URL Updated (new or modified content)</option>
+                <option value="URL_DELETED">URL Deleted (removed content)</option>
+              </select>
+              <p className="text-sm text-gray-600 mt-1">
+                Choose whether this URL is new/updated or has been deleted
+              </p>
+            </div>
+
+            <Button
+              type="button"
+              onClick={handleSubmitUrl}
+              disabled={submitting || !testUrl.trim() || !validateUrl(testUrl)}
+              className="w-full"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {submitting ? 'Submitting...' : 'Submit URL for Indexing'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 } 

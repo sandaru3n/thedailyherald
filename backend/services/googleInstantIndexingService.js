@@ -73,6 +73,17 @@ class GoogleInstantIndexingService {
         }
       }
 
+      // Validate URL format
+      try {
+        new URL(url);
+      } catch (error) {
+        return {
+          success: false,
+          error: 'Invalid URL format',
+          details: 'The provided URL is not in a valid format'
+        };
+      }
+
       const authClient = await this.auth.getClient();
       
       const response = await this.indexingApi.urlNotifications.publish({
@@ -186,34 +197,35 @@ class GoogleInstantIndexingService {
       }
 
       // Test parsing the JSON
+      let serviceAccount;
       try {
-        const serviceAccount = JSON.parse(settings.googleInstantIndexing.serviceAccountJson);
-        
-        // Validate required fields
-        if (!serviceAccount.project_id) {
-          return {
-            success: false,
-            error: 'Service account JSON is missing project_id field'
-          };
-        }
-        
-        if (!serviceAccount.private_key) {
-          return {
-            success: false,
-            error: 'Service account JSON is missing private_key field'
-          };
-        }
-        
-        if (!serviceAccount.client_email) {
-          return {
-            success: false,
-            error: 'Service account JSON is missing client_email field'
-          };
-        }
+        serviceAccount = JSON.parse(settings.googleInstantIndexing.serviceAccountJson);
       } catch (error) {
         return {
           success: false,
           error: 'Invalid service account JSON format'
+        };
+      }
+      
+      // Validate required fields
+      if (!serviceAccount.project_id) {
+        return {
+          success: false,
+          error: 'Service account JSON is missing project_id field'
+        };
+      }
+      
+      if (!serviceAccount.private_key) {
+        return {
+          success: false,
+          error: 'Service account JSON is missing private_key field'
+        };
+      }
+      
+      if (!serviceAccount.client_email) {
+        return {
+          success: false,
+          error: 'Service account JSON is missing client_email field'
         };
       }
 
@@ -226,19 +238,57 @@ class GoogleInstantIndexingService {
         };
       }
 
-      // Test with a dummy URL (this will fail but we can check the error type)
-      const testUrl = `${settings.siteUrl}/test-indexing-${Date.now()}`;
-      const result = await this.submitUrl(testUrl);
-      
-      // If we get a 400 error for invalid URL, that means the API is working
-      if (!result.success && (result.error.includes('Invalid request') || result.error.includes('URL'))) {
+      // Test with a real API call to verify authentication
+      try {
+        const authClient = await this.auth.getClient();
+        
+        // Use the actual site URL from settings for testing
+        const testUrl = `${settings.siteUrl}/test-indexing-${Date.now()}`;
+        
+        // Make a test request to the Indexing API
+        const testResponse = await this.indexingApi.urlNotifications.publish({
+          auth: authClient,
+          requestBody: {
+            url: testUrl,
+            type: 'URL_UPDATED'
+          }
+        });
+
+        // If we get here, the API is working
         return {
           success: true,
-          message: 'Configuration is valid. API connection successful.'
+          message: 'Configuration is valid. API connection successful.',
+          details: 'Successfully authenticated with Google Indexing API'
         };
+      } catch (apiError) {
+        // Handle specific API errors
+        if (apiError.code === 403) {
+          return {
+            success: false,
+            error: 'Access denied. Please check your service account permissions and ensure the Indexing API is enabled.',
+            details: apiError.message
+          };
+        } else if (apiError.code === 401) {
+          return {
+            success: false,
+            error: 'Authentication failed. Please check your service account credentials.',
+            details: apiError.message
+          };
+        } else if (apiError.code === 400) {
+          // 400 error for invalid URL is expected, but means API is working
+          return {
+            success: true,
+            message: 'Configuration is valid. API connection successful.',
+            details: 'API responded (expected error for test URL)'
+          };
+        } else {
+          return {
+            success: false,
+            error: 'API test failed',
+            details: apiError.message
+          };
+        }
       }
-
-      return result;
     } catch (error) {
       return {
         success: false,

@@ -161,13 +161,29 @@ router.post('/google-indexing/submit-url', auth, requireRole('admin'), async (re
       });
     }
 
+    // Validate submission type
+    if (!['URL_UPDATED', 'URL_DELETED'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid submission type. Must be URL_UPDATED or URL_DELETED'
+      });
+    }
+
     const result = await googleInstantIndexingService.submitUrl(url, type);
 
-    res.json({
-      success: result.success,
-      message: result.success ? 'URL submitted successfully' : result.error,
-      details: result.details
-    });
+    if (result.success) {
+      res.json({
+        success: true,
+        message: `URL submitted successfully for ${type === 'URL_UPDATED' ? 'indexing' : 'removal'}`,
+        details: result.data
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error,
+        details: result.details
+      });
+    }
   } catch (error) {
     console.error('Submit URL for indexing error:', error);
     res.status(500).json({
