@@ -6,17 +6,23 @@ const { auth, requireRole } = require('../middleware/auth');
 
 // Try to import the new queue system, fallback to old one, then built-in
 let databaseIndexingQueue;
-try {
-  databaseIndexingQueue = require('../services/databaseIndexingQueue');
-} catch (importError) {
-  console.error('Failed to import databaseIndexingQueue, falling back to articleIndexingQueue:', importError.message);
+const isProduction = process.env.NODE_ENV === 'production';
+if (!isProduction) {
   try {
-    databaseIndexingQueue = require('../services/articleIndexingQueue');
-  } catch (fallbackError) {
-    console.error('Both queue systems unavailable, using built-in fallback:', fallbackError.message);
-    // Use built-in queue system from settings route
-    databaseIndexingQueue = getBuiltInQueue();
+    databaseIndexingQueue = require('../services/databaseIndexingQueue');
+  } catch (importError) {
+    console.error('Failed to import databaseIndexingQueue, falling back to articleIndexingQueue:', importError.message);
+    try {
+      databaseIndexingQueue = require('../services/articleIndexingQueue');
+    } catch (fallbackError) {
+      console.error('Both queue systems unavailable, using built-in fallback:', fallbackError.message);
+      // Use built-in queue system from settings route
+      databaseIndexingQueue = getBuiltInQueue();
+    }
   }
+} else {
+  // In production, use built-in queue to avoid module not found errors
+  databaseIndexingQueue = getBuiltInQueue();
 }
 
 const router = express.Router();
