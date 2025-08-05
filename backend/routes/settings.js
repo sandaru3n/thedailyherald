@@ -2,6 +2,7 @@ const express = require('express');
 const Settings = require('../models/Settings');
 const { auth, requireRole } = require('../middleware/auth');
 const googleInstantIndexingService = require('../services/googleInstantIndexingService');
+const queueService = require('../services/queueService')();
 
 const router = express.Router();
 
@@ -199,62 +200,15 @@ router.post('/google-indexing/submit-url', auth, requireRole('admin'), async (re
 // @access  Private (Admin only)
 router.get('/google-indexing/queue-status', auth, requireRole(['admin']), async (req, res) => {
   try {
-    let queueStatus = {
-      totalItems: 0,
-      isProcessing: false,
-      pendingItems: 0,
-      processingItems: 0,
-      completedItems: 0,
-      failedItems: 0
-    };
-    
-    let queueItems = [];
-    
-    // Check if we're in production and should avoid requiring missing modules
-    const isProduction = process.env.NODE_ENV === 'production';
-    let useBuiltInQueue = isProduction;
-    
-    if (!useBuiltInQueue) {
-      // Try to get queue status from database queue
-      try {
-        const databaseIndexingQueue = require('../../services/databaseIndexingQueue');
-        queueStatus = await databaseIndexingQueue.getQueueStatus();
-        queueItems = await databaseIndexingQueue.getQueueItems();
-        useBuiltInQueue = false;
-      } catch (importError) {
-        console.error('Failed to import databaseIndexingQueue, trying articleIndexingQueue:', importError.message);
-        
-        // Try fallback to article queue
-        try {
-          const articleIndexingQueue = require('../../services/articleIndexingQueue');
-          queueStatus = await articleIndexingQueue.getQueueStatus();
-          queueItems = await articleIndexingQueue.getQueueItems();
-          useBuiltInQueue = false;
-        } catch (fallbackError) {
-          console.error('Both queue systems unavailable, using built-in fallback:', fallbackError.message);
-          useBuiltInQueue = true;
-        }
-      }
-    }
-    
-    if (useBuiltInQueue) {
-      // Final fallback: Built-in in-memory queue system
-      const builtInQueue = getBuiltInQueue();
-      queueStatus = await builtInQueue.getQueueStatus();
-      queueItems = await builtInQueue.getQueueItems();
-    }
-    
-    res.json({
-      success: true,
-      queueStatus,
-      queueItems
-    });
+    const queueStatus = await queueService.getQueueStatus();
+    const queueItems = await queueService.getQueueItems();
+    res.json({ success: true, queueStatus, queueItems });
   } catch (error) {
-    console.error('Get indexing queue status error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get indexing queue status',
-      details: error.message
+    console.error('Queue status error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get queue status',
+      details: error.message 
     });
   }
 });
@@ -264,52 +218,14 @@ router.get('/google-indexing/queue-status', auth, requireRole(['admin']), async 
 // @access  Private (Admin only)
 router.post('/google-indexing/queue-clear', auth, requireRole(['admin']), async (req, res) => {
   try {
-    let cleared = false;
-    
-    // Check if we're in production and should avoid requiring missing modules
-    const isProduction = process.env.NODE_ENV === 'production';
-    let useBuiltInQueue = isProduction;
-    
-    if (!useBuiltInQueue) {
-      // Try to clear database queue
-      try {
-        const databaseIndexingQueue = require('../../services/databaseIndexingQueue');
-        await databaseIndexingQueue.clearQueue();
-        cleared = true;
-        useBuiltInQueue = false;
-      } catch (importError) {
-        console.error('Failed to import databaseIndexingQueue, trying articleIndexingQueue:', importError.message);
-        
-        // Try fallback to article queue
-        try {
-          const articleIndexingQueue = require('../../services/articleIndexingQueue');
-          await articleIndexingQueue.clearQueue();
-          cleared = true;
-          useBuiltInQueue = false;
-        } catch (fallbackError) {
-          console.error('Both queue systems unavailable for clearing, using built-in fallback:', fallbackError.message);
-          useBuiltInQueue = true;
-        }
-      }
-    }
-    
-    if (useBuiltInQueue) {
-      // Final fallback: Built-in in-memory queue system
-      const builtInQueue = getBuiltInQueue();
-      await builtInQueue.clearQueue();
-      cleared = true;
-    }
-    
-    res.json({
-      success: true,
-      message: cleared ? 'Indexing queue cleared successfully' : 'Queue system unavailable, but request completed'
-    });
+    await queueService.clearQueue();
+    res.json({ success: true, message: 'Queue cleared successfully' });
   } catch (error) {
-    console.error('Clear indexing queue error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to clear indexing queue',
-      details: error.message
+    console.error('Clear queue error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to clear queue',
+      details: error.message 
     });
   }
 });
@@ -319,127 +235,17 @@ router.post('/google-indexing/queue-clear', auth, requireRole(['admin']), async 
 // @access  Private (Admin only)
 router.post('/google-indexing/queue-retry', auth, requireRole(['admin']), async (req, res) => {
   try {
-    let retried = false;
-    
-    // Check if we're in production and should avoid requiring missing modules
-    const isProduction = process.env.NODE_ENV === 'production';
-    let useBuiltInQueue = isProduction;
-    
-    if (!useBuiltInQueue) {
-      // Try to retry with database queue
-      try {
-        const databaseIndexingQueue = require('../../services/databaseIndexingQueue');
-        if (typeof databaseIndexingQueue.retryFailedItems === 'function') {
-          await databaseIndexingQueue.retryFailedItems();
-          retried = true;
-        }
-        useBuiltInQueue = false;
-      } catch (importError) {
-        console.error('Failed to import databaseIndexingQueue, trying articleIndexingQueue:', importError.message);
-        
-        // Try fallback to article queue
-        try {
-          const articleIndexingQueue = require('../../services/articleIndexingQueue');
-          if (typeof articleIndexingQueue.retryFailedItems === 'function') {
-            await articleIndexingQueue.retryFailedItems();
-            retried = true;
-          }
-          useBuiltInQueue = false;
-        } catch (fallbackError) {
-          console.error('Both queue systems unavailable for retry, using built-in fallback:', fallbackError.message);
-          useBuiltInQueue = true;
-        }
-      }
-    }
-    
-    if (useBuiltInQueue) {
-      // Final fallback: Built-in in-memory queue system
-      const builtInQueue = getBuiltInQueue();
-      if (typeof builtInQueue.retryFailedItems === 'function') {
-        await builtInQueue.retryFailedItems();
-        retried = true;
-      }
-    }
-    
-    res.json({
-      success: true,
-      message: retried ? 'Failed items retried successfully' : 'Queue system unavailable, but request completed'
-    });
+    await queueService.retryFailedItems();
+    res.json({ success: true, message: 'Failed items retried' });
   } catch (error) {
     console.error('Retry failed items error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to retry failed items',
-      details: error.message
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to retry items',
+      details: error.message 
     });
   }
 });
-
-// Built-in in-memory queue system as final fallback
-let builtInQueueItems = [];
-let builtInQueueProcessing = false;
-
-function getBuiltInQueue() {
-  return {
-    async getQueueStatus() {
-      const pending = builtInQueueItems.filter(item => item.status === 'pending').length;
-      const processing = builtInQueueItems.filter(item => item.status === 'processing').length;
-      const completed = builtInQueueItems.filter(item => item.status === 'completed').length;
-      const failed = builtInQueueItems.filter(item => item.status === 'failed').length;
-      
-      return {
-        totalItems: builtInQueueItems.length,
-        isProcessing: builtInQueueProcessing,
-        pendingItems: pending,
-        processingItems: processing,
-        completedItems: completed,
-        failedItems: failed,
-        note: 'Using built-in queue system (files missing)'
-      };
-    },
-    
-    async getQueueItems() {
-      return builtInQueueItems.map(item => ({
-        id: item.id,
-        url: item.url,
-        type: item.type,
-        status: item.status,
-        retries: item.retries || 0,
-        addedAt: item.addedAt,
-        articleTitle: item.articleTitle || 'Unknown Article'
-      }));
-    },
-    
-    async clearQueue() {
-      builtInQueueItems = [];
-      console.log('Built-in indexing queue cleared');
-    },
-    
-    async retryFailedItems() {
-      const failedItems = builtInQueueItems.filter(item => item.status === 'failed');
-      failedItems.forEach(item => {
-        item.status = 'pending';
-        item.retries = (item.retries || 0) + 1;
-      });
-      console.log(`Retried ${failedItems.length} failed items in built-in queue`);
-    },
-    
-    async addToQueue(article, type = 'URL_UPDATED') {
-      const queueItem = {
-        id: Date.now().toString(),
-        url: `https://yourdomain.com/article/${article.slug}`,
-        type: type,
-        status: 'pending',
-        retries: 0,
-        addedAt: new Date().toISOString(),
-        articleTitle: article.title || 'Unknown Article'
-      };
-      
-      builtInQueueItems.push(queueItem);
-      console.log(`Added article to built-in queue: ${queueItem.url}`);
-    }
-  };
-}
 
 // @route   GET /api/settings/public
 // @desc    Get public site settings (for structured data)
