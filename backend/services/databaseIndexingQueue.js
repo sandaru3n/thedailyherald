@@ -11,6 +11,47 @@ class DatabaseIndexingQueue {
   }
 
   /**
+   * Get the correct site URL for article indexing
+   * @returns {string} - The correct site URL
+   */
+  async getCorrectSiteUrl() {
+    try {
+      const settings = await Settings.getSettings();
+      
+      // Priority order: settings.siteUrl > NEXT_PUBLIC_SITE_URL > SITE_URL > localhost
+      let siteUrl = settings.siteUrl;
+      
+      if (!siteUrl || siteUrl.includes('localhost')) {
+        siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+      }
+      
+      if (!siteUrl || siteUrl.includes('localhost')) {
+        siteUrl = process.env.SITE_URL;
+      }
+      
+      if (!siteUrl || siteUrl.includes('localhost')) {
+        // If still no valid URL, try to construct from settings
+        if (settings.publisherUrl) {
+          siteUrl = settings.publisherUrl;
+        } else {
+          siteUrl = 'http://localhost:3000';
+        }
+      }
+      
+      // Ensure the URL doesn't end with a slash
+      if (siteUrl && siteUrl.endsWith('/')) {
+        siteUrl = siteUrl.slice(0, -1);
+      }
+      
+      console.log(`Using site URL for indexing: ${siteUrl}`);
+      return siteUrl;
+    } catch (error) {
+      console.error('Error getting site URL:', error);
+      return 'http://localhost:3000';
+    }
+  }
+
+  /**
    * Add an article to the indexing queue
    * @param {Object} article - The article object
    * @param {string} type - URL_UPDATED or URL_DELETED
@@ -24,9 +65,11 @@ class DatabaseIndexingQueue {
         return;
       }
 
-      // Use environment variable for site URL, fallback to settings, then to localhost
-      const siteUrl = process.env.SITE_URL || settings.siteUrl || 'http://localhost:3000';
+      // Get the correct site URL
+      const siteUrl = await this.getCorrectSiteUrl();
       const articleUrl = `${siteUrl}/article/${article.slug}`;
+
+      console.log(`Constructing article URL: ${articleUrl}`);
 
       // Check if already in queue
       const existingItem = await IndexingQueue.findOne({

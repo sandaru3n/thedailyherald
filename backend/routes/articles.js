@@ -7,6 +7,44 @@ const databaseIndexingQueue = require('../services/databaseIndexingQueue');
 
 const router = express.Router();
 
+// Helper function to get correct site URL
+async function getCorrectSiteUrl() {
+  try {
+    const settings = await Settings.getSettings();
+    
+    // Priority order: settings.siteUrl > NEXT_PUBLIC_SITE_URL > SITE_URL > localhost
+    let siteUrl = settings.siteUrl;
+    
+    if (!siteUrl || siteUrl.includes('localhost')) {
+      siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    }
+    
+    if (!siteUrl || siteUrl.includes('localhost')) {
+      siteUrl = process.env.SITE_URL;
+    }
+    
+    if (!siteUrl || siteUrl.includes('localhost')) {
+      // If still no valid URL, try to construct from settings
+      if (settings.publisherUrl) {
+        siteUrl = settings.publisherUrl;
+      } else {
+        siteUrl = 'http://localhost:3000';
+      }
+    }
+    
+    // Ensure the URL doesn't end with a slash
+    if (siteUrl && siteUrl.endsWith('/')) {
+      siteUrl = siteUrl.slice(0, -1);
+    }
+    
+    console.log(`Using site URL for article indexing: ${siteUrl}`);
+    return siteUrl;
+  } catch (error) {
+    console.error('Error getting site URL:', error);
+    return 'http://localhost:3000';
+  }
+}
+
 // Helper function to add article to indexing queue
 async function addArticleToIndexingQueue(article) {
   try {
@@ -16,6 +54,12 @@ async function addArticleToIndexingQueue(article) {
       console.log('Google Instant Indexing is not enabled, skipping queue addition');
       return;
     }
+
+    // Get the correct site URL
+    const siteUrl = await getCorrectSiteUrl();
+    const articleUrl = `${siteUrl}/article/${article.slug}`;
+    
+    console.log(`Adding article to queue with URL: ${articleUrl}`);
 
     // Add to queue for automatic processing
     await databaseIndexingQueue.addToQueue(article, 'URL_UPDATED');
