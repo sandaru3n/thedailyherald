@@ -242,8 +242,9 @@ class GoogleInstantIndexingService {
       try {
         const authClient = await this.auth.getClient();
         
-        // Use the actual site URL from settings for testing
-        const testUrl = `${settings.siteUrl}/test-indexing-${Date.now()}`;
+        // Use environment variable for site URL, fallback to settings, then to localhost
+        const siteUrl = process.env.SITE_URL || settings.siteUrl || 'http://localhost:3000';
+        const testUrl = `${siteUrl}/test-indexing-${Date.now()}`;
         
         // Make a test request to the Indexing API
         const testResponse = await this.indexingApi.urlNotifications.publish({

@@ -14,7 +14,9 @@ async function submitArticleForIndexing(article, settings) {
       return;
     }
 
-    const articleUrl = `${settings.siteUrl}/article/${article.slug}`;
+    // Use environment variable for site URL, fallback to settings, then to localhost
+    const siteUrl = process.env.SITE_URL || settings.siteUrl || 'http://localhost:3000';
+    const articleUrl = `${siteUrl}/article/${article.slug}`;
     const result = await googleInstantIndexingService.submitUrl(articleUrl, 'URL_UPDATED');
     
     if (result.success) {

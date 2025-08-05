@@ -68,15 +68,61 @@ Once configured, you can test the system with manual URL submissions:
 
 ## Environment Variables
 
-Make sure to set the following environment variables:
+**IMPORTANT**: For automatic URL submission to work correctly, you must set the following environment variables:
+
+### Backend Environment Variables (.env)
 
 ```bash
-# Backend (.env)
+# Required for automatic article submission
 SITE_URL=https://yourdomain.com
+
+# Optional: API base URL
 API_BASE_URL=https://yourdomain.com/api
 
-# Frontend (.env.local)
+# Database and other settings
+MONGODB_URI=mongodb://localhost:27017/thedailyherald
+JWT_SECRET=your-jwt-secret
+PORT=5000
+```
+
+### Frontend Environment Variables (.env.local)
+
+```bash
+# Required for proper URL construction
 NEXT_PUBLIC_SITE_URL=https://yourdomain.com
+
+# Optional: API base URL for frontend
+NEXT_PUBLIC_API_URL=https://yourdomain.com/api
+```
+
+### Why Environment Variables Are Important
+
+1. **Automatic URL Submission**: When articles are published, the system automatically submits URLs to Google for indexing
+2. **Correct Domain**: Environment variables ensure the correct domain is used instead of localhost
+3. **Multi-Environment Support**: Different environments (dev, staging, production) can use different domains
+4. **User Flexibility**: Each user can configure their own domain without code changes
+
+### Environment Variable Priority
+
+The system uses this priority order for determining the site URL:
+
+1. **Environment Variable** (`SITE_URL`) - Highest priority
+2. **Database Settings** (`settings.siteUrl`) - Fallback
+3. **Default** (`http://localhost:3000`) - Last resort
+
+### Testing Environment Variables
+
+You can test if your environment variables are working:
+
+```bash
+# Backend test
+cd backend
+node test-environment-urls.js
+
+# Expected output:
+# SITE_URL: https://yourdomain.com
+# Final siteUrl used: https://yourdomain.com
+# Article URL: https://yourdomain.com/article/test-article-slug
 ```
 
 ## Troubleshooting
