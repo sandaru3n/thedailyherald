@@ -12,7 +12,8 @@ import {
   Copy,
   Eye,
   EyeOff,
-  RefreshCw
+  RefreshCw,
+  Info
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +38,7 @@ interface ApiResponse {
   settings?: {
     googleInstantIndexing?: GoogleIndexingSettings;
   };
+  error?: string;
 }
 
 interface GoogleIndexingStats {
@@ -54,6 +56,7 @@ export default function GoogleIndexingPage() {
   const [success, setSuccess] = useState('');
   const [showJson, setShowJson] = useState(false);
   const [stats, setStats] = useState<GoogleIndexingStats | null>(null);
+  const [isConfigured, setIsConfigured] = useState(false);
 
   const [settings, setSettings] = useState<GoogleIndexingSettings>({
     enabled: false,
@@ -70,19 +73,28 @@ export default function GoogleIndexingPage() {
   const fetchSettings = async () => {
     try {
       setLoading(true);
+      setError('');
       const data = await apiCall('/settings') as ApiResponse;
+      
       if (data?.success && data?.settings?.googleInstantIndexing) {
+        const googleSettings = data.settings.googleInstantIndexing;
         setSettings({
-          enabled: data.settings.googleInstantIndexing.enabled || false,
-          serviceAccountJson: data.settings.googleInstantIndexing.serviceAccountJson || '',
-          projectId: data.settings.googleInstantIndexing.projectId || '',
-          lastIndexedAt: data.settings.googleInstantIndexing.lastIndexedAt,
-          totalIndexed: data.settings.googleInstantIndexing.totalIndexed || 0
+          enabled: googleSettings.enabled || false,
+          serviceAccountJson: googleSettings.serviceAccountJson || '',
+          projectId: googleSettings.projectId || '',
+          lastIndexedAt: googleSettings.lastIndexedAt,
+          totalIndexed: googleSettings.totalIndexed || 0
         });
+        setIsConfigured(!!googleSettings.serviceAccountJson);
+      } else if (data?.error) {
+        setError(data.error);
+      } else {
+        // No settings found, use defaults
+        setIsConfigured(false);
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
-      setError('Failed to load Google Instant Indexing settings');
+      setError('Failed to load Google Instant Indexing settings. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -90,12 +102,33 @@ export default function GoogleIndexingPage() {
 
   const fetchStats = async () => {
     try {
-      const data = await apiCall('/settings/google-indexing/stats') as { success: boolean; stats?: GoogleIndexingStats };
-      if (data?.success) {
-        setStats(data.stats || null);
+      const data = await apiCall('/settings/google-indexing/stats') as { 
+        success: boolean; 
+        stats?: GoogleIndexingStats;
+        error?: string;
+      };
+      
+      if (data?.success && data?.stats) {
+        setStats(data.stats);
+      } else if (data?.error) {
+        console.warn('Stats fetch warning:', data.error);
+        // Don't show error for stats, just use defaults
+        setStats({
+          enabled: false,
+          lastIndexedAt: null,
+          totalIndexed: 0,
+          projectId: null
+        });
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
+      // Use default stats on error
+      setStats({
+        enabled: false,
+        lastIndexedAt: null,
+        totalIndexed: 0,
+        projectId: null
+      });
     }
   };
 
@@ -107,15 +140,31 @@ export default function GoogleIndexingPage() {
       setError('');
       setSuccess('');
 
-      await apiCall('/settings', {
+      // Validate required fields
+      if (settings.enabled && !settings.serviceAccountJson) {
+        setError('Service account JSON is required when enabling Google Instant Indexing');
+        return;
+      }
+
+      if (settings.enabled && !settings.projectId) {
+        setError('Project ID is required when enabling Google Instant Indexing');
+        return;
+      }
+
+      const response = await apiCall('/settings', {
         method: 'PUT',
         body: JSON.stringify({
           googleInstantIndexing: settings
         })
-      });
+      }) as { success: boolean; error?: string };
 
-      setSuccess('Google Instant Indexing settings updated successfully!');
-      await fetchStats();
+      if (response?.success) {
+        setSuccess('Google Instant Indexing settings updated successfully!');
+        setIsConfigured(!!settings.serviceAccountJson);
+        await fetchStats();
+      } else {
+        setError(response?.error || 'Failed to update settings');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update settings');
     } finally {
@@ -131,12 +180,12 @@ export default function GoogleIndexingPage() {
 
       const data = await apiCall('/settings/google-indexing/test', {
         method: 'POST'
-      }) as { success: boolean; message?: string };
+      }) as { success: boolean; message?: string; error?: string };
 
       if (data?.success) {
         setSuccess(data.message || 'Configuration test successful!');
       } else {
-        setError(data?.message || 'Configuration test failed');
+        setError(data?.error || data?.message || 'Configuration test failed');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to test configuration');
@@ -146,11 +195,14 @@ export default function GoogleIndexingPage() {
   };
 
   const handleCopyJson = () => {
-    navigator.clipboard.writeText(settings.serviceAccountJson);
-    setSuccess('Service account JSON copied to clipboard!');
+    if (settings.serviceAccountJson) {
+      navigator.clipboard.writeText(settings.serviceAccountJson);
+      setSuccess('Service account JSON copied to clipboard!');
+    }
   };
 
   const validateJson = (json: string) => {
+    if (!json.trim()) return false;
     try {
       const parsed = JSON.parse(json);
       return parsed.project_id && parsed.private_key && parsed.client_email;
@@ -189,6 +241,16 @@ export default function GoogleIndexingPage() {
         <h1 className="text-3xl font-bold text-gray-900">Google Instant Indexing</h1>
         <p className="text-gray-600 mt-1">Configure automatic instant indexing for newly published articles</p>
       </div>
+
+      {/* Status Alert */}
+      {!isConfigured && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            Google Instant Indexing is not configured. Please add your Google Cloud service account credentials to enable this feature.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {error && (
         <Alert variant="destructive">

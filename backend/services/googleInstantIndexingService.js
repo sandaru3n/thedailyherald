@@ -14,8 +14,13 @@ class GoogleInstantIndexingService {
     try {
       const settings = await Settings.getSettings();
       
-      if (!settings.googleInstantIndexing?.enabled || !settings.googleInstantIndexing?.serviceAccountJson) {
-        console.log('Google Instant Indexing is not configured');
+      if (!settings.googleInstantIndexing?.enabled) {
+        console.log('Google Instant Indexing is not enabled');
+        return false;
+      }
+
+      if (!settings.googleInstantIndexing?.serviceAccountJson) {
+        console.log('Google Instant Indexing service account JSON is not configured');
         return false;
       }
 
@@ -24,7 +29,13 @@ class GoogleInstantIndexingService {
       try {
         serviceAccount = JSON.parse(settings.googleInstantIndexing.serviceAccountJson);
       } catch (error) {
-        console.error('Invalid service account JSON:', error);
+        console.error('Invalid service account JSON format:', error);
+        return false;
+      }
+
+      // Validate required fields
+      if (!serviceAccount.project_id || !serviceAccount.private_key || !serviceAccount.client_email) {
+        console.error('Service account JSON is missing required fields');
         return false;
       }
 
@@ -73,6 +84,10 @@ class GoogleInstantIndexingService {
       });
 
       console.log(`Successfully submitted URL for indexing: ${url}`);
+      
+      // Update stats for successful submission
+      await this.updateStats(1);
+      
       return {
         success: true,
         data: response.data,
@@ -86,19 +101,25 @@ class GoogleInstantIndexingService {
       if (error.code === 403) {
         return {
           success: false,
-          error: 'Access denied. Please check your service account permissions.',
+          error: 'Access denied. Please check your service account permissions and ensure the Indexing API is enabled.',
           details: error.message
         };
       } else if (error.code === 400) {
         return {
           success: false,
-          error: 'Invalid request. Please check the URL format.',
+          error: 'Invalid request. Please check the URL format and ensure it\'s accessible.',
           details: error.message
         };
       } else if (error.code === 429) {
         return {
           success: false,
           error: 'Rate limit exceeded. Please wait before submitting more URLs.',
+          details: error.message
+        };
+      } else if (error.code === 401) {
+        return {
+          success: false,
+          error: 'Authentication failed. Please check your service account credentials.',
           details: error.message
         };
       }
@@ -166,7 +187,29 @@ class GoogleInstantIndexingService {
 
       // Test parsing the JSON
       try {
-        JSON.parse(settings.googleInstantIndexing.serviceAccountJson);
+        const serviceAccount = JSON.parse(settings.googleInstantIndexing.serviceAccountJson);
+        
+        // Validate required fields
+        if (!serviceAccount.project_id) {
+          return {
+            success: false,
+            error: 'Service account JSON is missing project_id field'
+          };
+        }
+        
+        if (!serviceAccount.private_key) {
+          return {
+            success: false,
+            error: 'Service account JSON is missing private_key field'
+          };
+        }
+        
+        if (!serviceAccount.client_email) {
+          return {
+            success: false,
+            error: 'Service account JSON is missing client_email field'
+          };
+        }
       } catch (error) {
         return {
           success: false,
@@ -179,16 +222,16 @@ class GoogleInstantIndexingService {
       if (!initialized) {
         return {
           success: false,
-          error: 'Failed to initialize Google API client'
+          error: 'Failed to initialize Google API client. Please check your credentials.'
         };
       }
 
       // Test with a dummy URL (this will fail but we can check the error type)
-      const testUrl = `${settings.siteUrl}/test-indexing`;
+      const testUrl = `${settings.siteUrl}/test-indexing-${Date.now()}`;
       const result = await this.submitUrl(testUrl);
       
       // If we get a 400 error for invalid URL, that means the API is working
-      if (!result.success && result.error.includes('Invalid request')) {
+      if (!result.success && (result.error.includes('Invalid request') || result.error.includes('URL'))) {
         return {
           success: true,
           message: 'Configuration is valid. API connection successful.'
@@ -212,8 +255,18 @@ class GoogleInstantIndexingService {
   async updateStats(count = 1) {
     try {
       const settings = await Settings.getSettings();
+      
+      if (!settings.googleInstantIndexing) {
+        settings.googleInstantIndexing = {
+          enabled: false,
+          serviceAccountJson: '',
+          projectId: '',
+          totalIndexed: 0
+        };
+      }
+      
       settings.googleInstantIndexing.lastIndexedAt = new Date();
-      settings.googleInstantIndexing.totalIndexed += count;
+      settings.googleInstantIndexing.totalIndexed = (settings.googleInstantIndexing.totalIndexed || 0) + count;
       await settings.save();
     } catch (error) {
       console.error('Failed to update indexing stats:', error);
@@ -227,11 +280,21 @@ class GoogleInstantIndexingService {
   async getStats() {
     try {
       const settings = await Settings.getSettings();
+      
+      if (!settings.googleInstantIndexing) {
+        return {
+          enabled: false,
+          lastIndexedAt: null,
+          totalIndexed: 0,
+          projectId: null
+        };
+      }
+      
       return {
-        enabled: settings.googleInstantIndexing?.enabled || false,
-        lastIndexedAt: settings.googleInstantIndexing?.lastIndexedAt,
-        totalIndexed: settings.googleInstantIndexing?.totalIndexed || 0,
-        projectId: settings.googleInstantIndexing?.projectId
+        enabled: settings.googleInstantIndexing.enabled || false,
+        lastIndexedAt: settings.googleInstantIndexing.lastIndexedAt,
+        totalIndexed: settings.googleInstantIndexing.totalIndexed || 0,
+        projectId: settings.googleInstantIndexing.projectId
       };
     } catch (error) {
       console.error('Failed to get indexing stats:', error);

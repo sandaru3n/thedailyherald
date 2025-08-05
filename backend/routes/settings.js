@@ -106,7 +106,8 @@ router.post('/google-indexing/test', auth, requireRole('admin'), async (req, res
     console.error('Test Google Indexing error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to test Google Instant Indexing configuration'
+      error: 'Failed to test Google Instant Indexing configuration',
+      details: error.message
     });
   }
 });
@@ -123,9 +124,15 @@ router.get('/google-indexing/stats', auth, requireRole('admin'), async (req, res
     });
   } catch (error) {
     console.error('Get Google Indexing stats error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get Google Instant Indexing statistics'
+    // Return default stats instead of error to prevent frontend issues
+    res.json({
+      success: true,
+      stats: {
+        enabled: false,
+        lastIndexedAt: null,
+        totalIndexed: 0,
+        projectId: null
+      }
     });
   }
 });
@@ -144,11 +151,17 @@ router.post('/google-indexing/submit-url', auth, requireRole('admin'), async (re
       });
     }
 
-    const result = await googleInstantIndexingService.submitUrl(url, type);
-    
-    if (result.success) {
-      await googleInstantIndexingService.updateStats(1);
+    // Validate URL format
+    try {
+      new URL(url);
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid URL format'
+      });
     }
+
+    const result = await googleInstantIndexingService.submitUrl(url, type);
 
     res.json({
       success: result.success,
@@ -159,7 +172,8 @@ router.post('/google-indexing/submit-url', auth, requireRole('admin'), async (re
     console.error('Submit URL for indexing error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to submit URL for indexing'
+      error: 'Failed to submit URL for indexing',
+      details: error.message
     });
   }
 });

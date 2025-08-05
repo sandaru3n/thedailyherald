@@ -18,7 +18,6 @@ async function submitArticleForIndexing(article, settings) {
     const result = await googleInstantIndexingService.submitUrl(articleUrl, 'URL_UPDATED');
     
     if (result.success) {
-      await googleInstantIndexingService.updateStats(1);
       console.log(`Article submitted for instant indexing: ${articleUrl}`);
     } else {
       console.error(`Failed to submit article for indexing: ${result.error}`);
