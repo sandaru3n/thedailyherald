@@ -3,7 +3,7 @@ const getBuiltInQueue = require('./builtInQueue');
 module.exports = function() {
   // In production, always use built-in queue
   if (process.env.NODE_ENV === 'production') {
-    return getBuiltInQueue();
+    return require('./databaseIndexingQueue');
   }
 
   // In development, try to load external services
