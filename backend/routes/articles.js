@@ -3,29 +3,25 @@ const Article = require('../models/Article');
 const Category = require('../models/Category');
 const Settings = require('../models/Settings');
 const { auth, requireRole } = require('../middleware/auth');
-const googleInstantIndexingService = require('../services/googleInstantIndexingService');
+const articleIndexingQueue = require('../services/articleIndexingQueue');
 
 const router = express.Router();
 
-// Helper function to submit article for instant indexing
-async function submitArticleForIndexing(article, settings) {
+// Helper function to add article to indexing queue
+async function addArticleToIndexingQueue(article) {
   try {
+    const settings = await Settings.getSettings();
+    
     if (!settings.googleInstantIndexing?.enabled) {
+      console.log('Google Instant Indexing is not enabled, skipping queue addition');
       return;
     }
 
-    // Use environment variable for site URL, fallback to settings, then to localhost
-    const siteUrl = process.env.SITE_URL || settings.siteUrl || 'http://localhost:3000';
-    const articleUrl = `${siteUrl}/article/${article.slug}`;
-    const result = await googleInstantIndexingService.submitUrl(articleUrl, 'URL_UPDATED');
+    // Add to queue for automatic processing
+    await articleIndexingQueue.addToQueue(article, 'URL_UPDATED');
     
-    if (result.success) {
-      console.log(`Article submitted for instant indexing: ${articleUrl}`);
-    } else {
-      console.error(`Failed to submit article for indexing: ${result.error}`);
-    }
   } catch (error) {
-    console.error('Error submitting article for instant indexing:', error);
+    console.error('Error adding article to indexing queue:', error);
   }
 }
 
@@ -249,8 +245,7 @@ router.post('/', auth, requireRole(['admin', 'editor']), async (req, res) => {
 
     // Submit for instant indexing if article is published
     if (article.status === 'published') {
-      const settings = await Settings.getSettings();
-      await submitArticleForIndexing(article, settings);
+      await addArticleToIndexingQueue(article);
     }
 
     res.status(201).json({
@@ -331,8 +326,7 @@ router.put('/:id', auth, requireRole(['admin', 'editor']), async (req, res) => {
 
     // Submit for instant indexing if article status changed to published
     if (status === 'published' && article.status !== 'published') {
-      const settings = await Settings.getSettings();
-      await submitArticleForIndexing(updatedArticle, settings);
+      await addArticleToIndexingQueue(updatedArticle);
     }
     await updatedArticle.populate('author', 'name');
 
@@ -485,6 +479,48 @@ router.get('/sitemap', async (req, res) => {
     console.error('Get articles for sitemap error:', error);
     res.status(500).json({
       error: 'Server error'
+    });
+  }
+});
+
+// @route   GET /api/articles/indexing-queue/status
+// @desc    Get indexing queue status
+// @access  Private (Admin only)
+router.get('/indexing-queue/status', auth, requireRole(['admin']), async (req, res) => {
+  try {
+    const queueStatus = articleIndexingQueue.getQueueStatus();
+    const queueItems = articleIndexingQueue.getQueueItems();
+    
+    res.json({
+      success: true,
+      queueStatus,
+      queueItems
+    });
+  } catch (error) {
+    console.error('Get indexing queue status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get indexing queue status'
+    });
+  }
+});
+
+// @route   POST /api/articles/indexing-queue/clear
+// @desc    Clear indexing queue
+// @access  Private (Admin only)
+router.post('/indexing-queue/clear', auth, requireRole(['admin']), async (req, res) => {
+  try {
+    articleIndexingQueue.clearQueue();
+    
+    res.json({
+      success: true,
+      message: 'Indexing queue cleared successfully'
+    });
+  } catch (error) {
+    console.error('Clear indexing queue error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to clear indexing queue'
     });
   }
 });

@@ -26,6 +26,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { apiCall } from '@/lib/auth';
+import QueueMonitor from './queue-monitor';
 
 interface GoogleIndexingSettings {
   enabled: boolean;
@@ -473,6 +474,11 @@ export default function GoogleIndexingPage() {
           </Button>
         </div>
       </form>
+
+      {/* Queue Monitor */}
+      {isConfigured && settings.enabled && (
+        <QueueMonitor />
+      )}
 
       {/* Manual URL Submit Section */}
       {isConfigured && settings.enabled && (

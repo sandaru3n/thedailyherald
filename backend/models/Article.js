@@ -78,7 +78,27 @@ const articleSchema = new mongoose.Schema({
   metaKeywords: [{
     type: String,
     trim: true
-  }]
+  }],
+  indexingInfo: {
+    indexedAt: {
+      type: Date
+    },
+    indexingStatus: {
+      type: String,
+      enum: ['pending', 'success', 'failed'],
+      default: 'pending'
+    },
+    indexingError: {
+      type: String
+    },
+    indexingUrl: {
+      type: String
+    },
+    retryCount: {
+      type: Number,
+      default: 0
+    }
+  }
 }, {
   timestamps: true
 });
