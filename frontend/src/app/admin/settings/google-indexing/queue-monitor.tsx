@@ -33,6 +33,7 @@ interface QueueItem {
   status: string;
   retries: number;
   addedAt: string;
+  articleTitle?: string;
 }
 
 export default function QueueMonitor() {
@@ -51,7 +52,7 @@ export default function QueueMonitor() {
   const fetchQueueStatus = async () => {
     try {
       setLoading(true);
-      const data = await apiCall('/articles/indexing-queue/status') as {
+      const data = await apiCall('/settings/google-indexing/queue-status') as {
         success: boolean;
         queueStatus?: QueueStatus;
         queueItems?: QueueItem[];
@@ -75,7 +76,7 @@ export default function QueueMonitor() {
   const clearQueue = async () => {
     try {
       setLoading(true);
-      const data = await apiCall('/articles/indexing-queue/clear', {
+      const data = await apiCall('/settings/google-indexing/queue-clear', {
         method: 'POST'
       }) as { success: boolean; message?: string; error?: string };
 
@@ -87,6 +88,26 @@ export default function QueueMonitor() {
     } catch (error) {
       console.error('Error clearing queue:', error);
       setError('Failed to clear queue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const retryFailedItems = async () => {
+    try {
+      setLoading(true);
+      const data = await apiCall('/settings/google-indexing/queue-retry', {
+        method: 'POST'
+      }) as { success: boolean; message?: string; error?: string };
+
+      if (data?.success) {
+        await fetchQueueStatus();
+      } else {
+        setError(data?.error || 'Failed to retry failed items');
+      }
+    } catch (error) {
+      console.error('Error retrying failed items:', error);
+      setError('Failed to retry failed items');
     } finally {
       setLoading(false);
     }
@@ -170,6 +191,17 @@ export default function QueueMonitor() {
                 Clear Queue
               </Button>
             )}
+            {queueStatus.failedItems > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={retryFailedItems}
+                disabled={loading}
+              >
+                <RefreshCw className="h-4 w-4 mr-1" />
+                Retry Failed
+              </Button>
+            )}
           </div>
         </CardTitle>
       </CardHeader>
@@ -241,10 +273,13 @@ export default function QueueMonitor() {
                   <div className="flex items-center space-x-3">
                     {getStatusIcon(item.status)}
                     <div>
-                      <div className="font-medium text-sm truncate max-w-xs">
+                      <div className="font-medium text-sm">
+                        {item.articleTitle || 'Unknown Article'}
+                      </div>
+                      <div className="text-xs text-gray-500 truncate max-w-xs">
                         {item.url}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-400">
                         Added: {new Date(item.addedAt).toLocaleString()}
                       </div>
                     </div>

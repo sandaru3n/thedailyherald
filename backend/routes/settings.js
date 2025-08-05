@@ -194,6 +194,71 @@ router.post('/google-indexing/submit-url', auth, requireRole('admin'), async (re
   }
 });
 
+// @route   GET /api/settings/google-indexing/queue-status
+// @desc    Get indexing queue status
+// @access  Private (Admin only)
+router.get('/google-indexing/queue-status', auth, requireRole(['admin']), async (req, res) => {
+  try {
+    const databaseIndexingQueue = require('../../services/databaseIndexingQueue');
+    const queueStatus = await databaseIndexingQueue.getQueueStatus();
+    const queueItems = await databaseIndexingQueue.getQueueItems();
+    
+    res.json({
+      success: true,
+      queueStatus,
+      queueItems
+    });
+  } catch (error) {
+    console.error('Get indexing queue status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get indexing queue status'
+    });
+  }
+});
+
+// @route   POST /api/settings/google-indexing/queue-clear
+// @desc    Clear indexing queue
+// @access  Private (Admin only)
+router.post('/google-indexing/queue-clear', auth, requireRole(['admin']), async (req, res) => {
+  try {
+    const databaseIndexingQueue = require('../../services/databaseIndexingQueue');
+    await databaseIndexingQueue.clearQueue();
+    
+    res.json({
+      success: true,
+      message: 'Indexing queue cleared successfully'
+    });
+  } catch (error) {
+    console.error('Clear indexing queue error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to clear indexing queue'
+    });
+  }
+});
+
+// @route   POST /api/settings/google-indexing/queue-retry
+// @desc    Retry failed queue items
+// @access  Private (Admin only)
+router.post('/google-indexing/queue-retry', auth, requireRole(['admin']), async (req, res) => {
+  try {
+    const databaseIndexingQueue = require('../../services/databaseIndexingQueue');
+    await databaseIndexingQueue.retryFailedItems();
+    
+    res.json({
+      success: true,
+      message: 'Failed items retried successfully'
+    });
+  } catch (error) {
+    console.error('Retry failed items error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retry failed items'
+    });
+  }
+});
+
 // @route   GET /api/settings/public
 // @desc    Get public site settings (for structured data)
 // @access  Public

@@ -3,7 +3,7 @@ const Article = require('../models/Article');
 const Category = require('../models/Category');
 const Settings = require('../models/Settings');
 const { auth, requireRole } = require('../middleware/auth');
-const articleIndexingQueue = require('../services/articleIndexingQueue');
+const databaseIndexingQueue = require('../services/databaseIndexingQueue');
 
 const router = express.Router();
 
@@ -18,7 +18,7 @@ async function addArticleToIndexingQueue(article) {
     }
 
     // Add to queue for automatic processing
-    await articleIndexingQueue.addToQueue(article, 'URL_UPDATED');
+    await databaseIndexingQueue.addToQueue(article, 'URL_UPDATED');
     
   } catch (error) {
     console.error('Error adding article to indexing queue:', error);
@@ -488,8 +488,8 @@ router.get('/sitemap', async (req, res) => {
 // @access  Private (Admin only)
 router.get('/indexing-queue/status', auth, requireRole(['admin']), async (req, res) => {
   try {
-    const queueStatus = articleIndexingQueue.getQueueStatus();
-    const queueItems = articleIndexingQueue.getQueueItems();
+    const queueStatus = databaseIndexingQueue.getQueueStatus();
+    const queueItems = databaseIndexingQueue.getQueueItems();
     
     res.json({
       success: true,
@@ -510,7 +510,7 @@ router.get('/indexing-queue/status', auth, requireRole(['admin']), async (req, r
 // @access  Private (Admin only)
 router.post('/indexing-queue/clear', auth, requireRole(['admin']), async (req, res) => {
   try {
-    articleIndexingQueue.clearQueue();
+    databaseIndexingQueue.clearQueue();
     
     res.json({
       success: true,
