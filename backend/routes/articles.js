@@ -48,10 +48,12 @@ async function getCorrectSiteUrl() {
 // Helper function to add article to indexing queue
 async function addArticleToIndexingQueue(article) {
   try {
+    console.log(`📋 Checking Google Instant Indexing configuration for article: "${article.title}"`);
+    
     const settings = await Settings.getSettings();
     
     if (!settings.googleInstantIndexing?.enabled) {
-      console.log('Google Instant Indexing is not enabled, skipping queue addition');
+      console.log('⚠️  Google Instant Indexing is not enabled, skipping queue addition');
       return;
     }
 
@@ -60,6 +62,9 @@ async function addArticleToIndexingQueue(article) {
     const articleUrl = `${siteUrl}/article/${article.slug}`;
     
     console.log(`🚀 Adding article to indexing queue: ${articleUrl}`);
+    console.log(`   Article Title: "${article.title}"`);
+    console.log(`   Article ID: ${article._id}`);
+    console.log(`   Article Status: ${article.status}`);
 
     // Add to queue for immediate processing
     await queueService.addToQueue(article, 'URL_UPDATED');
@@ -67,7 +72,24 @@ async function addArticleToIndexingQueue(article) {
     console.log(`✅ Article "${article.title}" added to indexing queue successfully`);
     
   } catch (error) {
-    console.error('❌ Error adding article to indexing queue:', error);
+    console.error(`❌ CRITICAL ERROR adding article to indexing queue: "${article.title}"`);
+    console.error(`   Error Type: ${error.name || 'Unknown'}`);
+    console.error(`   Error Message: ${error.message}`);
+    console.error(`   Article ID: ${article._id}`);
+    console.error(`   Article Slug: ${article.slug}`);
+    
+    // Log additional context for debugging
+    if (error.code) {
+      console.error(`   Error Code: ${error.code}`);
+    }
+    if (error.stack) {
+      console.error(`   Stack Trace: ${error.stack}`);
+    }
+    
+    // Check if it's a configuration issue
+    if (error.message && error.message.includes('Google Instant Indexing')) {
+      console.error(`🔧 CONFIGURATION ISSUE: Check Google Instant Indexing settings in admin panel`);
+    }
   }
 }
 

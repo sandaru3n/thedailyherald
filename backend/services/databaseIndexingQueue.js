@@ -147,16 +147,36 @@ class DatabaseIndexingQueue {
             item.processedAt = new Date();
             console.log(`✅ Successfully indexed: ${item.url}`);
           } else {
-            // Handle retry logic
+            // Handle retry logic with detailed error logging
             if (item.retries < item.maxRetries) {
               item.retries++;
               item.status = 'pending';
               item.error = result.error;
               console.log(`🔄 Retrying article (${item.retries}/${item.maxRetries}): ${item.url}`);
+              console.log(`   Error: ${result.error}`);
+              if (result.details) {
+                console.log(`   Details: ${result.details}`);
+              }
+              if (result.code) {
+                console.log(`   Error Code: ${result.code}`);
+              }
             } else {
               item.status = 'failed';
               item.error = result.error;
               console.error(`💀 Max retries exceeded for: ${item.url}`);
+              console.error(`   Final Error: ${result.error}`);
+              console.error(`   Error Details: ${result.details || 'No additional details'}`);
+              console.error(`   Error Code: ${result.code || 'Unknown'}`);
+              console.error(`   Total Attempts: ${item.retries + 1}`);
+              
+              // Log specific error types for troubleshooting
+              if (result.code === 'PRIVATE_KEY_ERROR') {
+                console.error(`🔑 CRITICAL: Private key format error - check Google service account credentials`);
+              } else if (result.code === 401) {
+                console.error(`🔐 CRITICAL: Authentication failed - verify service account permissions`);
+              } else if (result.code === 403) {
+                console.error(`🔒 CRITICAL: Access denied - enable Indexing API in Google Cloud Console`);
+              }
             }
           }
 
@@ -195,9 +215,13 @@ class DatabaseIndexingQueue {
    */
   async submitArticleForIndexing(item) {
     try {
+      console.log(`📤 Submitting article for Google Instant Indexing: ${item.url}`);
+      
       const result = await googleInstantIndexingService.submitUrl(item.url, item.type);
       
       if (result.success) {
+        console.log(`✅ Article successfully submitted to Google: ${item.url}`);
+        
         // Update article with indexing information
         await this.updateArticleIndexingStatus(item.articleId, {
           indexedAt: new Date(),
@@ -205,28 +229,42 @@ class DatabaseIndexingQueue {
           indexingUrl: item.url
         });
       } else {
+        console.error(`❌ Article submission failed: ${item.url}`);
+        console.error(`   Error: ${result.error}`);
+        console.error(`   Details: ${result.details || 'No additional details'}`);
+        console.error(`   Code: ${result.code || 'Unknown'}`);
+        
         // Update article with error information
         await this.updateArticleIndexingStatus(item.articleId, {
           indexingStatus: 'failed',
           indexingError: result.error,
-          indexingUrl: item.url
+          indexingUrl: item.url,
+          indexingErrorCode: result.code,
+          indexingErrorDetails: result.details
         });
       }
 
       return result;
     } catch (error) {
-      console.error('Error submitting article for indexing:', error);
+      console.error(`💥 CRITICAL ERROR submitting article for indexing: ${item.url}`);
+      console.error(`   Error Type: ${error.name || 'Unknown'}`);
+      console.error(`   Error Message: ${error.message}`);
+      console.error(`   Stack Trace: ${error.stack}`);
       
       // Update article with error information
       await this.updateArticleIndexingStatus(item.articleId, {
         indexingStatus: 'failed',
         indexingError: error.message,
-        indexingUrl: item.url
+        indexingUrl: item.url,
+        indexingErrorCode: 'EXCEPTION',
+        indexingErrorDetails: error.stack
       });
 
       return {
         success: false,
-        error: error.message
+        error: error.message,
+        code: 'EXCEPTION',
+        details: error.stack
       };
     }
   }

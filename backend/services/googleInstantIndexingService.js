@@ -1,5 +1,6 @@
 const { google } = require('googleapis');
 const Settings = require('../models/Settings');
+const indexingErrorLogger = require('../utils/indexingErrorLogger');
 
 // Fix for Node.js 17+ OpenSSL issues
 const crypto = require('crypto');
@@ -113,7 +114,7 @@ class GoogleInstantIndexingService {
         }
       });
 
-      console.log(`Successfully submitted URL for indexing: ${url}`);
+      console.log(`✅ Successfully submitted URL for indexing: ${url}`);
       
       // Update stats for successful submission
       await this.updateStats(1);
@@ -125,39 +126,55 @@ class GoogleInstantIndexingService {
         type: type
       };
     } catch (error) {
-      console.error('Error submitting URL for indexing:', error);
+      // Use the comprehensive error logger
+      indexingErrorLogger.logError(error, url, {
+        errorType: 'google_indexing',
+        timestamp: new Date().toISOString()
+      });
       
-      // Handle specific API errors
+      // Handle specific API errors with detailed logging
       if (error.code === 403) {
         return {
           success: false,
           error: 'Access denied. Please check your service account permissions and ensure the Indexing API is enabled.',
-          details: error.message
+          details: error.message,
+          code: error.code
         };
       } else if (error.code === 400) {
         return {
           success: false,
           error: 'Invalid request. Please check the URL format and ensure it\'s accessible.',
-          details: error.message
+          details: error.message,
+          code: error.code
         };
       } else if (error.code === 429) {
         return {
           success: false,
           error: 'Rate limit exceeded. Please wait before submitting more URLs.',
-          details: error.message
+          details: error.message,
+          code: error.code
         };
       } else if (error.code === 401) {
         return {
           success: false,
           error: 'Authentication failed. Please check your service account credentials.',
-          details: error.message
+          details: error.message,
+          code: error.code
+        };
+      } else if (error.message && error.message.includes('DECODER routines::unsupported')) {
+        return {
+          success: false,
+          error: 'Private key format error. Please check your service account credentials.',
+          details: 'The private key in your service account JSON is invalid or corrupted.',
+          code: 'PRIVATE_KEY_ERROR'
         };
       }
 
       return {
         success: false,
         error: 'Failed to submit URL for indexing',
-        details: error.message
+        details: error.message,
+        code: error.code || 'UNKNOWN'
       };
     }
   }

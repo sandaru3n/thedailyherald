@@ -281,9 +281,24 @@ Please provide only the rewritten content without any additional commentary or f
           });
 
           if (existingArticle) {
-            console.log(`Skipping duplicate article: ${extractedData.title}`);
+            console.log(`Skipping duplicate article: "${extractedData.title}" (found existing: ${existingArticle._id})`);
             continue;
           }
+
+          // Also check by URL if available
+          if (extractedData.link) {
+            const existingByUrl = await Article.findOne({
+              'indexingInfo.originalUrl': extractedData.link
+            });
+            
+            if (existingByUrl) {
+              console.log(`Skipping duplicate article by URL: "${extractedData.title}" (found existing: ${existingByUrl._id})`);
+              continue;
+            }
+          }
+
+          // Debug: Log what we're about to process
+          console.log(`📝 Processing new article: "${extractedData.title}" from feed: ${feed.name}`);
 
           // Identify category automatically
           let identifiedCategory;
@@ -374,11 +389,24 @@ Please provide only the rewritten content without any additional commentary or f
           // Submit for Google Instant Indexing if article is published
           if (feed.settings.autoPublish && article.status === 'published') {
             try {
+              console.log(`🚀 Adding RSS article to Google Instant Indexing queue: ${article.title}`);
               const queueService = require('./queueService')();
               await queueService.addToQueue(article, 'URL_UPDATED');
-              console.log(`🚀 RSS Article added to indexing queue: ${article.title}`);
+              console.log(`✅ RSS Article successfully added to indexing queue: ${article.title}`);
             } catch (indexingError) {
-              console.error('Error adding RSS article to indexing queue:', indexingError);
+              console.error(`❌ Failed to add RSS article to indexing queue: ${article.title}`);
+              console.error(`   Error Type: ${indexingError.name || 'Unknown'}`);
+              console.error(`   Error Message: ${indexingError.message}`);
+              console.error(`   Article ID: ${article._id}`);
+              console.error(`   Article URL: ${article.slug}`);
+              
+              // Log additional context for debugging
+              if (indexingError.code) {
+                console.error(`   Error Code: ${indexingError.code}`);
+              }
+              if (indexingError.stack) {
+                console.error(`   Stack Trace: ${indexingError.stack}`);
+              }
             }
           }
 
