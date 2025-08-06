@@ -4,15 +4,13 @@ const settingsSchema = new mongoose.Schema({
   siteName: {
     type: String,
     required: true,
-    default: 'The Daily Herald',
     trim: true,
     maxlength: 100
   },
   siteDescription: {
     type: String,
     trim: true,
-    maxlength: 500,
-    default: 'Your trusted source for the latest news and updates'
+    maxlength: 500
   },
   siteLogo: {
     type: String,
@@ -20,8 +18,7 @@ const settingsSchema = new mongoose.Schema({
   },
   siteFavicon: {
     type: String,
-    trim: true,
-    default: process.env.DEFAULT_FAVICON_URL || '/uploads/favicon.ico'
+    trim: true
   },
   siteUrl: {
     type: String,
@@ -31,7 +28,6 @@ const settingsSchema = new mongoose.Schema({
   publisherName: {
     type: String,
     required: true,
-    default: 'The Daily Herald',
     trim: true
   },
   publisherUrl: {
@@ -78,13 +74,11 @@ const settingsSchema = new mongoose.Schema({
   seoSettings: {
     defaultTitle: {
       type: String,
-      trim: true,
-      default: 'The Daily Herald - Latest News'
+      trim: true
     },
     defaultDescription: {
       type: String,
-      trim: true,
-      default: 'Stay informed with the latest news, breaking stories, and in-depth coverage from The Daily Herald.'
+      trim: true
     },
     googleAnalyticsId: {
       type: String,
@@ -129,17 +123,15 @@ settingsSchema.statics.getSettings = async function() {
   let settings = await this.findOne({ isActive: true });
   
   if (!settings) {
-    // Create default settings if none exist
+    // Create empty settings if none exist - no default values
     const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
-    const defaultFavicon = process.env.DEFAULT_FAVICON_URL || `${baseUrl}/uploads/favicon.ico`;
     
     settings = await this.create({
-      siteName: 'The Daily Herald',
-      siteDescription: 'Your trusted source for the latest news and updates',
+      siteName: '',
+      siteDescription: '',
       siteUrl: process.env.SITE_URL || 'http://localhost:3000',
-      publisherName: 'The Daily Herald',
-      publisherUrl: process.env.SITE_URL || 'http://localhost:3000',
-      siteFavicon: defaultFavicon
+      publisherName: '',
+      publisherUrl: process.env.SITE_URL || 'http://localhost:3000'
     });
   }
   

@@ -13,16 +13,16 @@ export default function Footer() {
   const { settings } = useSiteSettings();
   const currentYear = 2025;
 
-  // Stable defaults
-  const siteName = mounted && settings?.siteName ? settings.siteName : 'The Daily Herald';
-  const siteDescription = mounted && settings?.siteDescription ? settings.siteDescription : 'Your trusted source for news';
-  const socialMedia = mounted && settings?.socialMedia ? settings.socialMedia : {};
-  const contactInfo = mounted && settings?.contactInfo ? settings.contactInfo : {};
-  const hasContactInfo = mounted && contactInfo && (contactInfo.address || contactInfo.phone || contactInfo.email);
-
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Only use actual database values, no defaults
+  const siteName = settings?.siteName;
+  const siteDescription = settings?.siteDescription;
+  const socialMedia = settings?.socialMedia || {};
+  const contactInfo = settings?.contactInfo || {};
+  const hasContactInfo = contactInfo && (contactInfo.address || contactInfo.phone || contactInfo.email);
 
   return (
     <footer 
@@ -47,11 +47,15 @@ export default function Footer() {
                   aria-hidden="true"
                 />
               )}
-              <h2 className="text-xl font-bold text-white">{siteName}</h2>
+              {siteName && (
+                <h2 className="text-xl font-bold text-white">{siteName}</h2>
+              )}
             </div>
-            <p className="text-sm leading-relaxed line-clamp-3 text-ellipsis overflow-hidden">
-              {siteDescription}
-            </p>
+            {siteDescription && (
+              <p className="text-sm leading-relaxed line-clamp-3 text-ellipsis overflow-hidden">
+                {siteDescription}
+              </p>
+            )}
             
             {/* Social Media */}
             {Object.keys(socialMedia).length > 0 && (

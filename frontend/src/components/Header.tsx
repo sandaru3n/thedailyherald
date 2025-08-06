@@ -9,7 +9,7 @@ import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { activeItems, loading } = useNavigation();
+  const { activeItems, loading: navigationLoading } = useNavigation();
   const { settings } = useSiteSettings();
 
   const getIconComponent = (iconName: string) => {
@@ -32,19 +32,15 @@ export default function Header() {
           {/* Logo on the left */}
           <div className="flex items-center">
             <div className="flex items-center space-x-2">
-              {settings?.siteLogo ? (
+              {settings?.siteLogo && (
                 <img 
                   src={settings.siteLogo} 
                   alt="Site Logo" 
                   className="w-8 h-8 object-contain"
                 />
-              ) : (
-                <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-white" />
-                </div>
               )}
               <h1 className="text-xl font-bold text-red-600">
-                {settings?.siteName || 'The Daily Herald'}
+                {settings?.siteName}
               </h1>
             </div>
           </div>
@@ -89,7 +85,7 @@ export default function Header() {
           <div className="flex items-center justify-between py-4">
             {/* Desktop Navigation Menu */}
             <nav className="flex items-center space-x-4 lg:space-x-6 xl:space-x-8 flex-wrap">
-              {!loading && activeItems && activeItems.length > 0 && activeItems.map((item) => {
+              {!navigationLoading && activeItems && activeItems.length > 0 && activeItems.map((item) => {
                 if (!item || !item.label) return null;
                 const IconComponent = getIconComponent(item.icon);
                 return (
@@ -176,7 +172,7 @@ export default function Header() {
 
               {/* Navigation Links - smaller font and padding for mobile */}
               <nav className="space-y-2">
-                {!loading && activeItems && activeItems.length > 0 && activeItems.map((item) => {
+                {!navigationLoading && activeItems && activeItems.length > 0 && activeItems.map((item) => {
                   if (!item || !item.label) return null;
                   const IconComponent = getIconComponent(item.icon);
                   return (

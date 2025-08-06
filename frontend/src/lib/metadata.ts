@@ -7,16 +7,16 @@ export async function generateMetadata(
   path: string = '/'
 ): Promise<Metadata> {
   const settings = await getSiteSettings();
-  const siteName = settings.siteName;
+  const siteName = settings.siteName || '';
   
-  const baseTitle = title || 'Latest News and Breaking Stories';
-  const baseDescription = description || 'Get the latest news, breaking stories, and in-depth coverage of current events. Stay informed with our comprehensive news coverage.';
+  const baseTitle = title || '';
+  const baseDescription = description || '';
   
   return {
-    title: `${baseTitle} - ${siteName}`,
-    description: baseDescription.replace(/The Daily Herald/g, siteName),
+    title: siteName ? `${baseTitle} - ${siteName}` : baseTitle,
+    description: baseDescription,
     keywords: "news, breaking news, current events, latest news",
-    authors: [{ name: siteName }],
+    authors: siteName ? [{ name: siteName }] : [],
     creator: siteName,
     publisher: siteName,
     formatDetection: {
@@ -32,8 +32,8 @@ export async function generateMetadata(
       },
     },
     openGraph: {
-      title: `${baseTitle} - ${siteName}`,
-      description: baseDescription.replace(/The Daily Herald/g, siteName),
+      title: siteName ? `${baseTitle} - ${siteName}` : baseTitle,
+      description: baseDescription,
       url: path,
       siteName: siteName,
       locale: 'en_US',
@@ -41,8 +41,8 @@ export async function generateMetadata(
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${baseTitle} - ${siteName}`,
-      description: baseDescription.replace(/The Daily Herald/g, siteName),
+      title: siteName ? `${baseTitle} - ${siteName}` : baseTitle,
+      description: baseDescription,
     },
     robots: {
       index: true,

@@ -31,16 +31,16 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   } catch (error) {
     console.error('Error fetching site settings:', error);
     
-    // Return default settings as fallback
+    // Return empty settings instead of defaults
     return {
-      siteName: 'The Daily Herald',
-      siteDescription: 'Your trusted source for the latest news and updates',
+      siteName: '',
+      siteDescription: '',
       siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
-      publisherName: 'The Daily Herald',
+      publisherName: '',
       publisherUrl: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       seoSettings: {
-        defaultTitle: 'The Daily Herald - Latest News',
-        defaultDescription: 'Stay informed with the latest news, breaking stories, and in-depth coverage from The Daily Herald.'
+        defaultTitle: '',
+        defaultDescription: ''
       }
     };
   }

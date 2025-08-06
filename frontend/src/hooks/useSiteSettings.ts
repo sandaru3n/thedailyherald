@@ -32,7 +32,7 @@ interface SiteSettings {
 
 export function useSiteSettings() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,19 +58,6 @@ export function useSiteSettings() {
       } catch (err) {
         console.error('Error fetching site settings:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch site settings');
-        
-        // Set default settings as fallback
-        setSettings({
-          siteName: 'The Daily Herald',
-          siteDescription: 'Your trusted source for the latest news and updates',
-          siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
-          publisherName: 'The Daily Herald',
-          publisherUrl: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
-          seoSettings: {
-            defaultTitle: 'The Daily Herald - Latest News',
-            defaultDescription: 'Stay informed with the latest news, breaking stories, and in-depth coverage from The Daily Herald.'
-          }
-        });
       } finally {
         setLoading(false);
       }

@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   return generateSiteMetadata(
-    "Latest News and Breaking Stories",
-    "Get the latest news, breaking stories, and in-depth coverage of current events. Stay informed with our comprehensive news coverage.",
+    "",
+    "",
     "/"
   );
 }

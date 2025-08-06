@@ -22,12 +22,8 @@ interface Navigation {
 
 export function useNavigation() {
   const [navigation, setNavigation] = useState<Navigation | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchNavigation();
-  }, []);
 
   const fetchNavigation = async () => {
     try {
@@ -39,51 +35,23 @@ export function useNavigation() {
       if (response.success && response.navigation) {
         setNavigation(response.navigation);
       } else {
-        // Set default navigation if none exists
-        setNavigation({
-          name: 'main',
-          items: [
-            {
-              _id: 'default-home',
-              label: 'Home',
-              url: '/',
-              icon: 'home',
-              type: 'link',
-              order: 1,
-              isActive: true,
-              isExternal: false,
-              target: '_self'
-            }
-          ],
-          isActive: true
-        });
+        // Don't set any default navigation - let it be null if no data exists
+        setNavigation(null);
       }
     } catch (err) {
       console.error('Error fetching navigation:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch navigation');
       
-      // Set default navigation on error
-      setNavigation({
-        name: 'main',
-        items: [
-          {
-            _id: 'default-home',
-            label: 'Home',
-            url: '/',
-            icon: 'home',
-            type: 'link',
-            order: 1,
-            isActive: true,
-            isExternal: false,
-            target: '_self'
-          }
-        ],
-        isActive: true
-      });
+      // Don't set any default navigation on error - let it be null
+      setNavigation(null);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchNavigation();
+  }, []);
 
   const getActiveItems = (): NavigationItem[] => {
     if (!navigation || !navigation.items) return [];
