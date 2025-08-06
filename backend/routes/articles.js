@@ -119,6 +119,7 @@ router.get('/', async (req, res) => {
       status = 'published',
       category,
       search,
+      titleSearch,
       featured,
       sort = '-publishedAt'
     } = req.query;
@@ -161,6 +162,11 @@ router.get('/', async (req, res) => {
     // Search functionality
     if (search) {
       query.$text = { $search: search };
+    }
+    
+    // Title-only search functionality
+    if (titleSearch) {
+      query.title = { $regex: titleSearch, $options: 'i' };
     }
 
     const options = {

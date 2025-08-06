@@ -1,17 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Search, Home, Info, FileText, Settings, Contact, Globe } from 'lucide-react';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { HeaderSkeleton, NavigationSkeleton } from '@/components/Skeleton';
+import { useSearch } from '@/hooks/useSearch';
+import { SearchResults } from '@/components/SearchResults';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const { activeItems, loading: navigationLoading } = useNavigation();
   const { settings, loading: settingsLoading } = useSiteSettings();
+  const { searchTerm, searchResults, isLoading, error, setSearchTerm, clearSearch } = useSearch();
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSearchResults(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Show search results when there are results or loading
+  useEffect(() => {
+    setShowSearchResults(searchResults.length > 0 || isLoading || !!error);
+  }, [searchResults, isLoading, error]);
 
   const getIconComponent = (iconName: string) => {
     const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
@@ -109,14 +133,27 @@ export default function Header() {
 
             {/* Desktop Search Bar */}
             <div className="flex items-center space-x-4">
-              <div className="relative">
+              <div className="relative" ref={searchRef}>
                 <input
                   type="text"
                   placeholder="Search news..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200"
                   aria-label="Search news"
                 />
                 <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                {showSearchResults && (
+                  <SearchResults
+                    results={searchResults}
+                    isLoading={isLoading}
+                    error={error}
+                    onResultClick={() => {
+                      setShowSearchResults(false);
+                      clearSearch();
+                    }}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -166,10 +203,24 @@ export default function Header() {
                 <input
                   type="text"
                   placeholder="Search news..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm"
                   aria-label="Search news"
                 />
                 <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                {showSearchResults && (
+                  <SearchResults
+                    results={searchResults}
+                    isLoading={isLoading}
+                    error={error}
+                    onResultClick={() => {
+                      setShowSearchResults(false);
+                      clearSearch();
+                      setMobileMenuOpen(false);
+                    }}
+                  />
+                )}
               </div>
 
               {/* Navigation Links - smaller font and padding for mobile */}
