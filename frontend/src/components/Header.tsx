@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Menu, X, Search, Home, Info, FileText, Settings, Contact, Globe } from 'lucide-react';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { HeaderSkeleton, NavigationSkeleton } from '@/components/Skeleton';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { activeItems, loading: navigationLoading } = useNavigation();
-  const { settings } = useSiteSettings();
+  const { settings, loading: settingsLoading } = useSiteSettings();
 
   const getIconComponent = (iconName: string) => {
     const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
@@ -32,16 +33,22 @@ export default function Header() {
           {/* Logo on the left */}
           <div className="flex items-center">
             <div className="flex items-center space-x-2">
-              {settings?.siteLogo && (
-                <img 
-                  src={settings.siteLogo} 
-                  alt="Site Logo" 
-                  className="w-8 h-8 object-contain"
-                />
+              {settingsLoading ? (
+                <HeaderSkeleton />
+              ) : (
+                <>
+                  {settings?.siteLogo && (
+                    <img 
+                      src={settings.siteLogo} 
+                      alt="Site Logo" 
+                      className="w-8 h-8 object-contain"
+                    />
+                  )}
+                  <h1 className="text-xl font-bold text-red-600">
+                    {settings?.siteName}
+                  </h1>
+                </>
               )}
-              <h1 className="text-xl font-bold text-red-600">
-                {settings?.siteName}
-              </h1>
             </div>
           </div>
           
@@ -85,24 +92,28 @@ export default function Header() {
           <div className="flex items-center justify-between py-4">
             {/* Desktop Navigation Menu */}
             <nav className="flex items-center space-x-4 lg:space-x-6 xl:space-x-8 flex-wrap">
-              {!navigationLoading && activeItems && activeItems.length > 0 && activeItems.map((item) => {
-                if (!item || !item.label) return null;
-                const IconComponent = getIconComponent(item.icon);
-                return (
-                  <Link
-                    key={item._id || item.label}
-                    href={item.url || '#'}
-                    target={item.target || '_self'}
-                    className="flex items-center text-gray-700 hover:text-blue-600 font-semibold text-sm transition-all duration-200 hover:scale-105 whitespace-nowrap"
-                  >
-                    <IconComponent className="h-4 w-4 mr-2" />
-                    {item.label}
-                    {item.isExternal && (
-                      <Globe className="h-3 w-3 ml-1" />
-                    )}
-                  </Link>
-                );
-              })}
+              {navigationLoading ? (
+                <NavigationSkeleton />
+              ) : (
+                activeItems && activeItems.length > 0 && activeItems.map((item) => {
+                  if (!item || !item.label) return null;
+                  const IconComponent = getIconComponent(item.icon);
+                  return (
+                    <Link
+                      key={item._id || item.label}
+                      href={item.url || '#'}
+                      target={item.target || '_self'}
+                      className="flex items-center text-gray-700 hover:text-blue-600 font-semibold text-sm transition-all duration-200 hover:scale-105 whitespace-nowrap"
+                    >
+                      <IconComponent className="h-4 w-4 mr-2" />
+                      {item.label}
+                      {item.isExternal && (
+                        <Globe className="h-3 w-3 ml-1" />
+                      )}
+                    </Link>
+                  );
+                })
+              )}
             </nav>
 
             {/* Desktop Search Bar */}
@@ -126,7 +137,7 @@ export default function Header() {
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden animate-in fade-in duration-200"
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
@@ -172,25 +183,37 @@ export default function Header() {
 
               {/* Navigation Links - smaller font and padding for mobile */}
               <nav className="space-y-2">
-                {!navigationLoading && activeItems && activeItems.length > 0 && activeItems.map((item) => {
-                  if (!item || !item.label) return null;
-                  const IconComponent = getIconComponent(item.icon);
-                  return (
-                    <Link
-                      key={item._id || item.label}
-                      href={item.url || '#'}
-                      target={item.target || '_self'}
-                      className="flex items-center text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <IconComponent className="h-5 w-5 mr-2" />
-                      {item.label}
-                      {item.isExternal && (
-                        <Globe className="h-4 w-4 ml-auto" />
-                      )}
-                    </Link>
-                  );
-                })}
+                {navigationLoading ? (
+                  // Loading skeleton for mobile navigation
+                  <>
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className="flex items-center space-x-3 px-3 py-2">
+                        <div className="w-5 h-5 bg-gray-200 rounded animate-pulse"></div>
+                        <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  activeItems && activeItems.length > 0 && activeItems.map((item) => {
+                    if (!item || !item.label) return null;
+                    const IconComponent = getIconComponent(item.icon);
+                    return (
+                      <Link
+                        key={item._id || item.label}
+                        href={item.url || '#'}
+                        target={item.target || '_self'}
+                        className="flex items-center text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <IconComponent className="h-5 w-5 mr-2" />
+                        {item.label}
+                        {item.isExternal && (
+                          <Globe className="h-4 w-4 ml-auto" />
+                        )}
+                      </Link>
+                    );
+                  })
+                )}
               </nav>
             </div>
           </div>

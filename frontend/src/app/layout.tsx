@@ -5,6 +5,8 @@ import ClientBody from "./ClientBody";
 import Script from "next/script";
 import ResourcePreloader from "@/components/ResourcePreloader";
 import FaviconProvider from "@/components/FaviconProvider";
+import SmoothPageTransition from "@/components/SmoothPageTransition";
+import ProgressBar from "@/components/ProgressBar";
 import { generateMetadata as generateSiteMetadata } from "@/lib/metadata";
 
 const geistSans = Geist({
@@ -53,7 +55,9 @@ export default function RootLayout({
           ]}
         />
         <FaviconProvider />
-        <ClientBody>{children}</ClientBody>
+        <SmoothPageTransition>
+          <ClientBody>{children}</ClientBody>
+        </SmoothPageTransition>
       </body>
     </html>
   );
