@@ -82,14 +82,10 @@ class CategoryIdentificationService {
   // Generate prompt for category identification
   generateCategoryIdentificationPrompt(title, content, categoryNames, categoryDescriptions) {
     return `
-You are an expert news categorization specialist with deep knowledge of journalism and content classification. Your task is to accurately categorize news articles based on their primary topic and focus.
+Rewrite this [${title} - ${content.substring(0, 1500)}${content.length > 1500 ? '...' : ''}] to sound natural, engaging, and conversational, like a human wrote it. Use varied sentence lengths, avoid robotic phrasing, and incorporate a friendly tone.
 
 Available categories:
 ${categoryDescriptions}
-
-Article Title: ${title}
-
-Article Content: ${content.substring(0, 1500)}${content.length > 1500 ? '...' : ''}
 
 CRITICAL INSTRUCTIONS:
 1. **Primary Focus Analysis**: Identify the MAIN topic and primary focus of the article

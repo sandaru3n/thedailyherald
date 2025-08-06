@@ -73,6 +73,10 @@ const rssFeedSchema = new mongoose.Schema({
     enableAutoCategory: {
       type: Boolean,
       default: true
+    },
+    requireImage: {
+      type: Boolean,
+      default: true
     }
   },
   errorLog: [{

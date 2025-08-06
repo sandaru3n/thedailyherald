@@ -112,12 +112,124 @@ class RssService {
       content = typeof item.description === 'string' ? item.description : item.description['#text'] || '';
     }
 
-    // Extract image
+    // Extract image - enhanced to handle multiple formats
     if (item['media:content'] && item['media:content']['@_url']) {
       image = item['media:content']['@_url'];
     } else if (item.enclosure && item.enclosure['@_url']) {
       image = item.enclosure['@_url'];
+    } else if (item['media:thumbnail'] && item['media:thumbnail']['@_url']) {
+      image = item['media:thumbnail']['@_url'];
+    } else if (item['media:group'] && item['media:group']['media:content'] && item['media:group']['media:content']['@_url']) {
+      image = item['media:group']['media:content']['@_url'];
+    } else if (item['media:group'] && item['media:group']['media:thumbnail'] && item['media:group']['media:thumbnail']['@_url']) {
+      image = item['media:group']['media:thumbnail']['@_url'];
+    } else if (item['image'] && item['image']['url']) {
+      image = item['image']['url'];
+    } else if (item['image'] && typeof item['image'] === 'string') {
+      image = item['image'];
     }
+    
+    // If no image found in RSS, try to extract from content
+    if (!image && content) {
+      const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i);
+      if (imgMatch && imgMatch[1]) {
+        image = imgMatch[1];
+      }
+    }
+    
+         // If still no image, try to find any image URL in content
+     if (!image && content) {
+       const urlMatch = content.match(/https?:\/\/[^\s<>"']+\.(jpg|jpeg|png|gif|webp|svg)(\?[^\s<>"']*)?/i);
+       if (urlMatch) {
+         image = urlMatch[0];
+       }
+     }
+     
+     // Additional image extraction attempts
+     if (!image && content) {
+       // Look for data-src attributes (lazy loading)
+       const dataSrcMatch = content.match(/data-src=["']([^"']+)["']/i);
+       if (dataSrcMatch && dataSrcMatch[1].match(/\.(jpg|jpeg|png|gif|webp|svg)/i)) {
+         image = dataSrcMatch[1];
+       }
+     }
+     
+     if (!image && content) {
+       // Look for background-image in style attributes
+       const bgMatch = content.match(/background-image:\s*url\(["']?([^"')]+)["']?\)/i);
+       if (bgMatch && bgMatch[1].match(/\.(jpg|jpeg|png|gif|webp|svg)/i)) {
+         image = bgMatch[1];
+       }
+     }
+     
+     // If still no image and we have a link, try to extract from the original article
+     if (!image && link) {
+       try {
+         console.log(`🔍 Attempting to extract image from original article: ${link}`);
+         const fetch = await this.initFetch();
+         const response = await fetch(link, {
+           headers: {
+             'User-Agent': 'Mozilla/5.0 (compatible; RSSBot/1.0)'
+           },
+           timeout: 10000
+         });
+         
+         if (response.ok) {
+           const htmlContent = await response.text();
+           
+           // Look for og:image meta tag
+           const ogImageMatch = htmlContent.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+           if (ogImageMatch) {
+             image = ogImageMatch[1];
+             console.log(`📸 Found og:image: ${image}`);
+           }
+           
+           // Look for twitter:image meta tag
+           if (!image) {
+             const twitterImageMatch = htmlContent.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i);
+             if (twitterImageMatch) {
+               image = twitterImageMatch[1];
+               console.log(`📸 Found twitter:image: ${image}`);
+             }
+           }
+           
+           // Look for first img tag
+           if (!image) {
+             const imgMatch = htmlContent.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i);
+             if (imgMatch && imgMatch[1].match(/\.(jpg|jpeg|png|gif|webp|svg)/i)) {
+               image = imgMatch[1];
+               console.log(`📸 Found img tag: ${image}`);
+             }
+           }
+         }
+       } catch (error) {
+         console.log(`⚠️ Failed to extract image from original article: ${error.message}`);
+       }
+     }
+    
+         // Debug logging for image extraction
+     if (image) {
+       console.log(`📸 Found image for "${title}": ${image}`);
+     } else {
+       console.log(`⚠️ No image found for "${title}" - RSS feed may not include images`);
+       // Set a default placeholder image if none found
+       image = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop&auto=format';
+     }
+     
+     // Ensure image URL is properly formatted
+     if (image) {
+       // Remove any whitespace
+       image = image.trim();
+       
+       // Convert relative URLs to absolute URLs
+       image = this.convertToAbsoluteUrl(image, feedUrl);
+       
+       // Ensure it's a valid URL
+       if (!image.startsWith('http://') && !image.startsWith('https://')) {
+         console.log(`⚠️ Invalid image URL format for "${title}": ${image}`);
+         image = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop&auto=format';
+       }
+     }
 
     // Apply text replacements to title and content
     const processedItem = await processRssItem({
@@ -135,6 +247,51 @@ class RssService {
       publishedDate: processedItem.publishedDate,
       image: processedItem.image
     };
+  }
+
+  // Convert relative URL to absolute URL
+  convertToAbsoluteUrl(url, baseUrl) {
+    if (!url) return null;
+    
+    // If already absolute, return as is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // If relative URL, convert to absolute
+    if (url.startsWith('/')) {
+      // Extract domain from base URL
+      const baseUrlObj = new URL(baseUrl);
+      return `${baseUrlObj.protocol}//${baseUrlObj.host}${url}`;
+    }
+    
+    // If relative path, append to base URL
+    if (!url.startsWith('http')) {
+      const baseUrlObj = new URL(baseUrl);
+      return `${baseUrlObj.protocol}//${baseUrlObj.host}/${url}`;
+    }
+    
+    return url;
+  }
+
+  // Validate image URL
+  async validateImageUrl(imageUrl) {
+    try {
+      if (!imageUrl || imageUrl === 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop&auto=format') {
+        return false;
+      }
+      
+      const fetch = await this.initFetch();
+      const response = await fetch(imageUrl, {
+        method: 'HEAD',
+        timeout: 5000
+      });
+      
+      return response.ok;
+    } catch (error) {
+      console.log(`❌ Image validation failed for ${imageUrl}: ${error.message}`);
+      return false;
+    }
   }
 
   // Clean text content
@@ -211,14 +368,14 @@ class RssService {
   // Generate AI rewrite prompt
   generateRewritePrompt(content, style) {
     const styleInstructions = {
-      professional: 'Rewrite this content in a professional, journalistic style suitable for a news website. Maintain factual accuracy while improving readability and engagement.',
-      casual: 'Rewrite this content in a casual, conversational style that feels friendly and approachable while maintaining the key information.',
-      formal: 'Rewrite this content in a formal, academic style with precise language and structured presentation.',
-      creative: 'Rewrite this content in a creative, engaging style that captures attention and tells a compelling story.'
+      professional: 'Rewrite this content to sound natural, engaging, and conversational, like a human wrote it. Use varied sentence lengths, avoid robotic phrasing, and incorporate a friendly tone while maintaining professional credibility.',
+      casual: 'Rewrite this content to sound natural, engaging, and conversational, like a human wrote it. Use varied sentence lengths, avoid robotic phrasing, and incorporate a friendly, approachable tone.',
+      formal: 'Rewrite this content to sound natural, engaging, and conversational, like a human wrote it. Use varied sentence lengths, avoid robotic phrasing, and incorporate a respectful tone while maintaining formal structure.',
+      creative: 'Rewrite this content to sound natural, engaging, and conversational, like a human wrote it. Use varied sentence lengths, avoid robotic phrasing, and incorporate a creative, storytelling tone.'
     };
 
     return `
-You are a professional content writer. Please rewrite the following content in a ${style} style.
+Rewrite this [${content}] to sound natural, engaging, and conversational, like a human wrote it. Use varied sentence lengths, avoid robotic phrasing, and incorporate a friendly tone.
 
 Requirements:
 - Maintain all factual information and key details
@@ -228,9 +385,6 @@ Requirements:
 - Make it engaging for readers
 - Ensure it's suitable for a news website
 - Length should be similar to original (within 10% difference)
-
-Original content:
-${content}
 
 Please provide only the rewritten content without any additional commentary or formatting.
 `;
@@ -270,10 +424,25 @@ Please provide only the rewritten content without any additional commentary or f
 
           const extractedData = await this.extractContent(item, feed.feedUrl);
           
-          // Check minimum content length
-          if (extractedData.content.length < feed.minContentLength) {
-            continue;
-          }
+                     // Check minimum content length
+           if (extractedData.content.length < feed.minContentLength) {
+             continue;
+           }
+
+           // Check if image is required and available
+           if (feed.settings.requireImage) {
+             if (!extractedData.image || extractedData.image === 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop&auto=format') {
+               console.log(`⚠️ Skipping article "${extractedData.title}" - No image found (image required: ${feed.settings.requireImage})`);
+               continue;
+             }
+             
+             // Validate image URL if required
+             const isValidImage = await this.validateImageUrl(extractedData.image);
+             if (!isValidImage) {
+               console.log(`⚠️ Skipping article "${extractedData.title}" - Invalid image URL: ${extractedData.image}`);
+               continue;
+             }
+           }
 
           // Check if article already exists (by title)
           const existingArticle = await Article.findOne({
@@ -370,6 +539,9 @@ Please provide only the rewritten content without any additional commentary or f
           // Generate slug manually to ensure it's created
           const slug = await Article.generateUniqueSlug(extractedData.title);
 
+          // Debug: Log image information before creating article
+          console.log(`🖼️ Image for article "${extractedData.title}": ${extractedData.image || 'NO IMAGE'}`);
+
           // Create article
           const article = new Article({
             title: extractedData.title,
@@ -377,7 +549,7 @@ Please provide only the rewritten content without any additional commentary or f
             content: finalContent,
             category: identifiedCategory._id,
             author: feed.defaultAuthor._id,
-            featuredImage: extractedData.image,
+            featuredImage: extractedData.image || null,
             status: feed.settings.autoPublish ? 'published' : 'draft',
             tags: this.extractTags(extractedData.title, extractedData.content),
             seoTitle: seoTitle,
@@ -385,6 +557,9 @@ Please provide only the rewritten content without any additional commentary or f
           });
 
           await article.save();
+          
+          // Debug: Log saved article image
+          console.log(`✅ Article saved with image: ${article.featuredImage || 'NO IMAGE'}`);
 
           // Submit for Google Instant Indexing if article is published
           if (feed.settings.autoPublish && article.status === 'published') {
