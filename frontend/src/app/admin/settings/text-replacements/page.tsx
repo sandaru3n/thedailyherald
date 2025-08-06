@@ -69,9 +69,13 @@ export default function TextReplacementsPage() {
   const fetchTextReplacements = async () => {
     try {
       setLoading(true);
-      const response = await apiCall('/settings/text-replacements');
+      const response = await apiCall('/settings/text-replacements') as {
+        success: boolean;
+        textReplacements?: TextReplacements;
+        message?: string;
+      };
       if (response.success) {
-        setTextReplacements(response.textReplacements);
+        setTextReplacements(response.textReplacements || { enabled: false, rules: [] });
       }
     } catch (error) {
       setError('Failed to load text replacements');
@@ -90,7 +94,11 @@ export default function TextReplacementsPage() {
       const response = await apiCall('/settings/text-replacements', {
         method: 'PUT',
         body: JSON.stringify(textReplacements)
-      });
+      }) as {
+        success: boolean;
+        message?: string;
+        textReplacements?: TextReplacements;
+      };
       
       if (response.success) {
         setSuccess('Text replacements saved successfully');
@@ -115,12 +123,16 @@ export default function TextReplacementsPage() {
       const response = await apiCall('/settings/text-replacements/rules', {
         method: 'POST',
         body: JSON.stringify(formData)
-      });
+      }) as {
+        success: boolean;
+        message?: string;
+        rule?: TextReplacementRule;
+      };
 
       if (response.success) {
         setTextReplacements(prev => ({
           ...prev,
-          rules: [...prev.rules, response.rule]
+          rules: [...prev.rules, response.rule!]
         }));
         setShowAddDialog(false);
         setFormData({ find: '', replace: '', description: '' });
@@ -140,12 +152,16 @@ export default function TextReplacementsPage() {
       const response = await apiCall(`/settings/text-replacements/rules/${index}`, {
         method: 'PUT',
         body: JSON.stringify(rule)
-      });
+      }) as {
+        success: boolean;
+        message?: string;
+        rule?: TextReplacementRule;
+      };
 
       if (response.success) {
         setTextReplacements(prev => ({
           ...prev,
-          rules: prev.rules.map((r, i) => i === index ? response.rule : r)
+          rules: prev.rules.map((r, i) => i === index ? response.rule! : r)
         }));
         setEditingIndex(null);
         setSuccess('Rule updated successfully');
@@ -164,7 +180,10 @@ export default function TextReplacementsPage() {
     try {
       const response = await apiCall(`/settings/text-replacements/rules/${index}`, {
         method: 'DELETE'
-      });
+      }) as {
+        success: boolean;
+        message?: string;
+      };
 
       if (response.success) {
         setTextReplacements(prev => ({
@@ -203,10 +222,20 @@ export default function TextReplacementsPage() {
           text: testText,
           rules: textReplacements.rules
         })
-      });
+      }) as {
+        success: boolean;
+        message?: string;
+        original?: string;
+        result?: string;
+        changed?: boolean;
+      };
 
       if (response.success) {
-        setTestResult(response);
+        setTestResult({
+          original: response.original || '',
+          result: response.result || '',
+          changed: response.changed || false
+        });
       } else {
         setError(response.message || 'Failed to test replacements');
       }
@@ -224,13 +253,19 @@ export default function TextReplacementsPage() {
       
       const response = await apiCall('/settings/text-replacements/test-existing', {
         method: 'POST'
-      });
+      }) as {
+        success: boolean;
+        message?: string;
+        processed?: number;
+        updated?: number;
+        errors?: string[];
+      };
       
       if (response.success) {
         setExistingResults({
-          processed: response.processed,
-          updated: response.updated,
-          errors: response.errors
+          processed: response.processed || 0,
+          updated: response.updated || 0,
+          errors: response.errors || []
         });
         setSuccess(`Test completed: ${response.processed} articles processed, ${response.updated} would be updated`);
       } else {
@@ -256,13 +291,19 @@ export default function TextReplacementsPage() {
       
       const response = await apiCall('/settings/text-replacements/apply-existing', {
         method: 'POST'
-      });
+      }) as {
+        success: boolean;
+        message?: string;
+        processed?: number;
+        updated?: number;
+        errors?: string[];
+      };
       
       if (response.success) {
         setExistingResults({
-          processed: response.processed,
-          updated: response.updated,
-          errors: response.errors
+          processed: response.processed || 0,
+          updated: response.updated || 0,
+          errors: response.errors || []
         });
         setSuccess(`Update completed: ${response.processed} articles processed, ${response.updated} articles updated`);
       } else {
