@@ -7,6 +7,8 @@ import ResourcePreloader from "@/components/ResourcePreloader";
 import FaviconProvider from "@/components/FaviconProvider";
 import SmoothPageTransition from "@/components/SmoothPageTransition";
 import ProgressBar from "@/components/ProgressBar";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { generateMetadata as generateSiteMetadata } from "@/lib/metadata";
 
 const geistSans = Geist({
@@ -56,7 +58,13 @@ export default function RootLayout({
         />
         <FaviconProvider />
         <SmoothPageTransition>
-          <ClientBody>{children}</ClientBody>
+          <ClientBody>
+            <Header />
+            <main className="min-h-screen bg-gray-50">
+              {children}
+            </main>
+            <Footer />
+          </ClientBody>
         </SmoothPageTransition>
       </body>
     </html>

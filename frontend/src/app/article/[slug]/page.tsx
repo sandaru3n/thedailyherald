@@ -2,8 +2,6 @@ import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { Article } from '@/types/news';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import ArticleContent from '@/components/ArticleContent';
 import ArticleSkeleton from '@/components/ArticleSkeleton';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
@@ -164,11 +162,10 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const featuredImage = article.featuredImage || article.imageUrl || '';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
       <MobileLCPOptimizer featuredImages={[featuredImage]} />
       <PerformanceMonitor pageName="Article" />
-      <Header />
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-4 py-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-4 py-4">
         <Suspense fallback={<ArticleSkeleton />}>
           <ArticleContent 
             article={article} 
@@ -176,8 +173,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             slug={slug}
           />
         </Suspense>
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </>
   );
 } 

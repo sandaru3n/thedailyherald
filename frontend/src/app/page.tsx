@@ -1,7 +1,5 @@
 import { Suspense } from 'react';
 import { NewsArticle, NEWS_CATEGORIES } from '@/types/news';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import { ArticleCard } from '@/components/NewsCard';
 import Sidebar from '@/components/Sidebar';
 import { Separator } from '@/components/ui/separator';
@@ -39,77 +37,71 @@ async function HomeContent() {
   const latestNews = articles.slice(0, 8);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <main className="container mx-auto px-4 py-4 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            {/* Hero Section */}
-            {featuredNews.length > 0 && (
-              <section className="mb-8 sm:mb-12">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                  {featuredNews.map((article) => (
-                    <ArticleCard key={article._id} article={article} variant="featured" />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Latest News Section */}
+    <div className="container mx-auto px-4 py-4 sm:py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8">
+        {/* Main Content */}
+        <div className="lg:col-span-3">
+          {/* Hero Section */}
+          {featuredNews.length > 0 && (
             <section className="mb-8 sm:mb-12">
-              <div className="flex items-center mb-4 sm:mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Latest News</h2>
-                <Separator className="ml-3 sm:ml-4 flex-1" />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                {latestNews.slice(0, 6).map((article) => (
-                  <ArticleCard key={article._id} article={article} />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                {featuredNews.map((article) => (
+                  <ArticleCard key={article._id} article={article} variant="featured" />
                 ))}
               </div>
             </section>
+          )}
 
-            {/* Categories Section */}
-            {NEWS_CATEGORIES.slice(0, 3).map((category) => {
-              const categoryNews = articles.filter(article => {
-                if (typeof article.category === 'string') {
-                  return article.category === category.name;
-                }
-                return article.category?.name === category.name;
-              });
+          {/* Latest News Section */}
+          <section className="mb-8 sm:mb-12">
+            <div className="flex items-center mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Latest News</h2>
+              <Separator className="ml-3 sm:ml-4 flex-1" />
+            </div>
 
-              if (categoryNews.length === 0) return null;
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+              {latestNews.slice(0, 6).map((article) => (
+                <ArticleCard key={article._id} article={article} />
+              ))}
+            </div>
+          </section>
 
-              return (
-                <section key={category.name} className="mb-8 sm:mb-12">
-                  <div className="flex items-center mb-4 sm:mb-6">
-                    <h2 className="text-xl sm:text-2xl font-bold text-slate-900">{category.name}</h2>
-                    <Separator className="ml-3 sm:ml-4 flex-1" />
-                    <button className="text-blue-600 hover:text-blue-700 font-medium text-xs sm:text-sm">
-                      View All
-                    </button>
-                  </div>
+          {/* Categories Section */}
+          {NEWS_CATEGORIES.slice(0, 3).map((category) => {
+            const categoryNews = articles.filter(article => {
+              if (typeof article.category === 'string') {
+                return article.category === category.name;
+              }
+              return article.category?.name === category.name;
+            });
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                    {categoryNews.slice(0, 3).map((article) => (
-                      <ArticleCard key={article._id} article={article} />
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
+            if (categoryNews.length === 0) return null;
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <Sidebar trendingNews={articles} />
-          </div>
+            return (
+              <section key={category.name} className="mb-8 sm:mb-12">
+                <div className="flex items-center mb-4 sm:mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-slate-900">{category.name}</h2>
+                  <Separator className="ml-3 sm:ml-4 flex-1" />
+                  <button className="text-blue-600 hover:text-blue-700 font-medium text-xs sm:text-sm">
+                    View All
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                  {categoryNews.slice(0, 3).map((article) => (
+                    <ArticleCard key={article._id} article={article} />
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </div>
-      </main>
 
-      <Footer />
+        {/* Sidebar */}
+        <div className="lg:col-span-1">
+          <Sidebar trendingNews={articles} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -117,34 +109,30 @@ async function HomeContent() {
 // Loading component for Suspense fallback
 function HomeLoading() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="container mx-auto px-4 py-4 sm:py-8">
-        <div className="animate-pulse">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8">
-            <div className="lg:col-span-3">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12">
-                {[1, 2].map((i) => (
-                  <div key={i} className="bg-gray-200 h-64 sm:h-80 rounded-lg"></div>
-                ))}
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="bg-gray-200 h-48 rounded-lg"></div>
-                ))}
-              </div>
+    <div className="container mx-auto px-4 py-4 sm:py-8">
+      <div className="animate-pulse">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8">
+          <div className="lg:col-span-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12">
+              {[1, 2].map((i) => (
+                <div key={i} className="bg-gray-200 h-64 sm:h-80 rounded-lg"></div>
+              ))}
             </div>
-            <div className="lg:col-span-1">
-              <div className="space-y-4 sm:space-y-6">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-gray-200 h-32 rounded-lg"></div>
-                ))}
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-gray-200 h-48 rounded-lg"></div>
+              ))}
+            </div>
+          </div>
+          <div className="lg:col-span-1">
+            <div className="space-y-4 sm:space-y-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-gray-200 h-32 rounded-lg"></div>
+              ))}
             </div>
           </div>
         </div>
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 }
