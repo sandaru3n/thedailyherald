@@ -39,6 +39,7 @@ const navigation = [
   { name: 'Settings', href: '/admin/settings', icon: Settings },
   { name: 'Site Settings', href: '/admin/settings/site', icon: Settings },
   { name: 'Google Indexing', href: '/admin/settings/google-indexing', icon: Settings },
+  { name: 'Text Replacements', href: '/admin/settings/text-replacements', icon: Settings },
 ];
 
 export default function AdminLayout({ children }: AdminLayoutProps) {

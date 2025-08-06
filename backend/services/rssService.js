@@ -4,6 +4,7 @@ const Article = require('../models/Article');
 const Category = require('../models/Category');
 const Admin = require('../models/Admin');
 const categoryIdentificationService = require('./categoryIdentificationService');
+const { processRssItem } = require('../utils/textReplacement');
 
 class RssService {
   constructor() {
@@ -108,9 +109,7 @@ class RssService {
         content = item.content['#text'];
       }
     } else if (item.description) {
-      content = item.description;
-    } else if (item.summary) {
-      content = item.summary;
+      content = typeof item.description === 'string' ? item.description : item.description['#text'] || '';
     }
 
     // Extract image
@@ -120,20 +119,21 @@ class RssService {
       image = item.enclosure['@_url'];
     }
 
-    // If no image found, try to extract from content
-    if (!image && content) {
-      const imgMatch = content.match(/<img[^>]+src="([^"]+)"/i);
-      if (imgMatch) {
-        image = imgMatch[1];
-      }
-    }
-
-    return {
-      title: this.cleanText(title),
-      content: this.cleanText(content),
+    // Apply text replacements to title and content
+    const processedItem = await processRssItem({
+      title,
+      content,
       link,
       publishedDate,
       image
+    });
+
+    return {
+      title: processedItem.title,
+      content: this.cleanText(processedItem.content),
+      link: processedItem.link,
+      publishedDate: processedItem.publishedDate,
+      image: processedItem.image
     };
   }
 

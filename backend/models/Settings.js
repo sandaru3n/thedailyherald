@@ -110,6 +110,32 @@ const settingsSchema = new mongoose.Schema({
       default: 0
     }
   },
+  textReplacements: {
+    enabled: {
+      type: Boolean,
+      default: false
+    },
+    rules: [{
+      find: {
+        type: String,
+        required: true,
+        trim: true
+      },
+      replace: {
+        type: String,
+        required: true,
+        trim: true
+      },
+      description: {
+        type: String,
+        trim: true
+      },
+      isActive: {
+        type: Boolean,
+        default: true
+      }
+    }]
+  },
   isActive: {
     type: Boolean,
     default: true

@@ -250,6 +250,217 @@ router.post('/google-indexing/queue-retry', auth, requireRole(['admin']), async 
   }
 });
 
+// Get text replacement rules
+router.get('/text-replacements', auth, async (req, res) => {
+  try {
+    const settings = await Settings.getSettings();
+    res.json({
+      success: true,
+      textReplacements: settings.textReplacements || { enabled: false, rules: [] }
+    });
+  } catch (error) {
+    console.error('Error fetching text replacements:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch text replacements' });
+  }
+});
+
+// Update text replacement rules
+router.put('/text-replacements', auth, async (req, res) => {
+  try {
+    const { enabled, rules } = req.body;
+    
+    const settings = await Settings.getSettings();
+    settings.textReplacements = {
+      enabled: enabled || false,
+      rules: rules || []
+    };
+    
+    await settings.save();
+    
+    res.json({
+      success: true,
+      message: 'Text replacements updated successfully',
+      textReplacements: settings.textReplacements
+    });
+  } catch (error) {
+    console.error('Error updating text replacements:', error);
+    res.status(500).json({ success: false, message: 'Failed to update text replacements' });
+  }
+});
+
+// Add a new text replacement rule
+router.post('/text-replacements/rules', auth, async (req, res) => {
+  try {
+    const { find, replace, description } = req.body;
+    
+    if (!find || !replace) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Find and replace text are required' 
+      });
+    }
+    
+    const settings = await Settings.getSettings();
+    
+    if (!settings.textReplacements) {
+      settings.textReplacements = { enabled: false, rules: [] };
+    }
+    
+    settings.textReplacements.rules.push({
+      find,
+      replace,
+      description: description || '',
+      isActive: true
+    });
+    
+    await settings.save();
+    
+    res.json({
+      success: true,
+      message: 'Text replacement rule added successfully',
+      rule: settings.textReplacements.rules[settings.textReplacements.rules.length - 1]
+    });
+  } catch (error) {
+    console.error('Error adding text replacement rule:', error);
+    res.status(500).json({ success: false, message: 'Failed to add text replacement rule' });
+  }
+});
+
+// Update a text replacement rule
+router.put('/text-replacements/rules/:index', auth, async (req, res) => {
+  try {
+    const { index } = req.params;
+    const { find, replace, description, isActive } = req.body;
+    
+    const settings = await Settings.getSettings();
+    
+    if (!settings.textReplacements || !settings.textReplacements.rules[index]) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Text replacement rule not found' 
+      });
+    }
+    
+    const rule = settings.textReplacements.rules[index];
+    rule.find = find || rule.find;
+    rule.replace = replace || rule.replace;
+    rule.description = description !== undefined ? description : rule.description;
+    rule.isActive = isActive !== undefined ? isActive : rule.isActive;
+    
+    await settings.save();
+    
+    res.json({
+      success: true,
+      message: 'Text replacement rule updated successfully',
+      rule
+    });
+  } catch (error) {
+    console.error('Error updating text replacement rule:', error);
+    res.status(500).json({ success: false, message: 'Failed to update text replacement rule' });
+  }
+});
+
+// Delete a text replacement rule
+router.delete('/text-replacements/rules/:index', auth, async (req, res) => {
+  try {
+    const { index } = req.params;
+    
+    const settings = await Settings.getSettings();
+    
+    if (!settings.textReplacements || !settings.textReplacements.rules[index]) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Text replacement rule not found' 
+      });
+    }
+    
+    settings.textReplacements.rules.splice(index, 1);
+    await settings.save();
+    
+    res.json({
+      success: true,
+      message: 'Text replacement rule deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting text replacement rule:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete text replacement rule' });
+  }
+});
+
+// Test text replacement
+router.post('/text-replacements/test', auth, async (req, res) => {
+  try {
+    const { text, rules } = req.body;
+    
+    if (!text || !rules || !Array.isArray(rules)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Text and rules array are required' 
+      });
+    }
+    
+    let result = text;
+    
+    // Apply each replacement rule
+    for (const rule of rules) {
+      if (rule.isActive && rule.find && rule.replace) {
+        const regex = new RegExp(rule.find, 'g');
+        result = result.replace(regex, rule.replace);
+      }
+    }
+    
+    res.json({
+      success: true,
+      original: text,
+      result: result,
+      changed: text !== result
+    });
+  } catch (error) {
+    console.error('Error testing text replacement:', error);
+    res.status(500).json({ success: false, message: 'Failed to test text replacement' });
+  }
+});
+
+// Test text replacements on existing articles
+router.post('/text-replacements/test-existing', auth, async (req, res) => {
+  try {
+    const { testExistingArticles } = require('../utils/updateExistingArticles');
+    const result = await testExistingArticles();
+    
+    res.json({
+      success: result.success,
+      message: result.message || 'Test completed',
+      processed: result.processed,
+      updated: result.updated,
+      errors: result.errors,
+      dryRun: true
+    });
+  } catch (error) {
+    console.error('Error testing existing articles:', error);
+    res.status(500).json({ success: false, message: 'Failed to test existing articles' });
+  }
+});
+
+// Apply text replacements to existing articles
+router.post('/text-replacements/apply-existing', auth, async (req, res) => {
+  try {
+    const { applyToExistingArticles } = require('../utils/updateExistingArticles');
+    const result = await applyToExistingArticles();
+    
+    res.json({
+      success: result.success,
+      message: result.message || 'Update completed',
+      processed: result.processed,
+      updated: result.updated,
+      errors: result.errors,
+      dryRun: false
+    });
+  } catch (error) {
+    console.error('Error updating existing articles:', error);
+    res.status(500).json({ success: false, message: 'Failed to update existing articles' });
+  }
+});
+
 // @route   GET /api/settings/public
 // @desc    Get public site settings (for structured data)
 // @access  Public
