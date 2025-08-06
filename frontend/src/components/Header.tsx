@@ -54,15 +54,6 @@ export default function Header() {
           
           {/* Icons on the right */}
           <div className="flex items-center space-x-4">
-            {/* Search Icon */}
-            <button 
-              className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200"
-              aria-label="Search news"
-              title="Search news"
-            >
-              <Search className="h-5 w-5 text-gray-800" />
-            </button>
-            
             {/* Mobile Menu Icon */}
             <div className="lg:hidden">
               <Button
