@@ -8,19 +8,12 @@ export default function ClientBody({
 }: {
   children: React.ReactNode;
 }) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Remove any extension-added classes during hydration
   useEffect(() => {
     // This runs only on the client after hydration
     document.body.className = "antialiased";
-    
-    // Simulate initial loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
   }, []);
 
   return (

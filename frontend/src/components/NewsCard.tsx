@@ -33,7 +33,7 @@ export function ArticleCard({ article, variant = 'default' }: ArticleCardProps) 
 
   if (variant === 'compact') {
     return (
-      <Link href={`/article/${getArticleSlug(article)}`} className="block">
+      <Link href={`/article/${getArticleSlug(article)}`} className="block" prefetch={true}>
         <div className="flex gap-3">
           <div className="relative w-16 h-16 flex-shrink-0">
             <OptimizedImage
@@ -61,7 +61,7 @@ export function ArticleCard({ article, variant = 'default' }: ArticleCardProps) 
   if (variant === 'featured') {
     return (
       <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-        <Link href={`/article/${getArticleSlug(article)}`}>
+        <Link href={`/article/${getArticleSlug(article)}`} prefetch={true}>
           <div className="relative h-64 overflow-hidden">
             <OptimizedImage
               src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
@@ -89,7 +89,7 @@ export function ArticleCard({ article, variant = 'default' }: ArticleCardProps) 
   // Default variant
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      <Link href={`/article/${getArticleSlug(article)}`}>
+      <Link href={`/article/${getArticleSlug(article)}`} prefetch={true}>
         <div className="relative h-48 overflow-hidden">
           <OptimizedImage
             src={article.featuredImage || article.imageUrl || '/placeholder.svg'}
