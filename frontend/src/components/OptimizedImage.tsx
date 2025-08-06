@@ -47,7 +47,7 @@ export default function OptimizedImage({
         <img
           src={src}
           alt={alt}
-          className={`w-full h-full object-cover ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300 ${className}`}
+          className={`w-full h-full object-cover ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200 ${className}`}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           onLoad={() => {
@@ -72,7 +72,7 @@ export default function OptimizedImage({
     );
   }
 
-  // Use Next.js Image for internal images
+  // Use Next.js Image for internal images with mobile LCP optimization
   return (
     <div className={`relative ${className}`}>
       <Image
@@ -80,7 +80,7 @@ export default function OptimizedImage({
         alt={alt}
         width={width}
         height={height}
-        className={`transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+        className={`transition-opacity duration-200 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
         priority={priority}
         fill={fill}
         sizes={sizes}
@@ -98,6 +98,10 @@ export default function OptimizedImage({
         style={{
           objectFit: 'cover',
         }}
+        // Mobile LCP optimizations
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
+        fetchPriority={priority ? 'high' : 'auto'}
       />
       {isLoading && (
         <div className="absolute inset-0 bg-gray-200 animate-pulse rounded" />

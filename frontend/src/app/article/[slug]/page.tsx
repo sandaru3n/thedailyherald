@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import ArticleContent from '@/components/ArticleContent';
 import ArticleSkeleton from '@/components/ArticleSkeleton';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
+import MobileLCPOptimizer from '@/components/MobileLCPOptimizer';
 import { generatePageMetadata } from '@/lib/metadata';
 import { getSiteSettings } from '@/lib/settings';
 
@@ -159,8 +160,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   console.log('Category slug for related articles:', categorySlug);
   const relatedArticles = categorySlug ? await getRelatedArticles(categorySlug, article._id || article.id || '') : [];
 
+  // Extract featured image for mobile LCP optimization
+  const featuredImage = article.featuredImage || article.imageUrl || '';
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <MobileLCPOptimizer featuredImages={[featuredImage]} />
       <PerformanceMonitor pageName="Article" />
       <Header />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-4 py-4">
