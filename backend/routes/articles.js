@@ -4,6 +4,7 @@ const Category = require('../models/Category');
 const Settings = require('../models/Settings');
 const { auth, requireRole } = require('../middleware/auth');
 const queueService = require('../services/queueService')();
+const sitemapService = require('../services/sitemapService');
 
 const router = express.Router();
 
@@ -194,6 +195,131 @@ router.get('/', async (req, res) => {
   }
 });
 
+// @route   GET /api/articles/sitemap
+// @desc    Get articles for sitemap (optimized for speed)
+// @access  Public
+router.get('/sitemap', async (req, res) => {
+  try {
+    const { page = 1, limit = 10000 } = req.query; // Very high default limit to get all articles
+
+    const query = { status: 'published' };
+    
+    const options = {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      sort: '-publishedAt',
+      // Only select fields needed for sitemap
+      select: 'slug publishedAt updatedAt'
+    };
+
+    const articles = await Article.paginate(query, options);
+
+    // Add cache headers for better performance
+    res.set({
+      'Cache-Control': 'public, max-age=1800, s-maxage=1800', // 30 minutes cache
+      'Content-Type': 'application/json'
+    });
+
+    console.log(`📊 Sitemap endpoint returning ${articles.docs?.length || 0} articles`);
+
+    res.json({
+      success: true,
+      ...articles
+    });
+
+  } catch (error) {
+    console.error('Get articles for sitemap error:', error);
+    res.status(500).json({
+      error: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/articles/sitemap/refresh
+// @desc    Manually trigger sitemap refresh
+// @access  Private (Admin only)
+router.post('/sitemap/refresh', auth, requireRole(['admin']), async (req, res) => {
+  try {
+    console.log('🔄 Manual sitemap refresh triggered by admin');
+    
+    // Force refresh all sitemaps
+    await sitemapService.forceRefreshSitemaps();
+    
+    res.json({
+      success: true,
+      message: 'Sitemap refresh completed successfully'
+    });
+  } catch (error) {
+    console.error('Manual sitemap refresh error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to refresh sitemap'
+    });
+  }
+});
+
+// @route   POST /api/articles/sitemap/trigger
+// @desc    Trigger immediate sitemap update (no auth required for internal use)
+// @access  Public (for internal service calls)
+router.post('/sitemap/trigger', async (req, res) => {
+  try {
+    console.log('🔄 Immediate sitemap update triggered');
+    
+    // Trigger immediate sitemap refresh
+    await sitemapService.triggerSitemapUpdate({ title: 'System Update' }, 'system');
+    
+    res.json({
+      success: true,
+      message: 'Sitemap update triggered successfully',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Immediate sitemap update error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to trigger sitemap update'
+    });
+  }
+});
+
+// @route   GET /api/articles/sitemap/status
+// @desc    Get sitemap status and validation
+// @access  Private (Admin only)
+router.get('/sitemap/status', auth, requireRole(['admin']), async (req, res) => {
+  try {
+    // Get all published articles count
+    const publishedArticles = await Article.countDocuments({ status: 'published' });
+    
+    // Validate sitemap structure
+    const isValid = await sitemapService.validateSitemap();
+    
+    // Get recent articles for sitemap verification
+    const recentArticles = await Article.find({ status: 'published' })
+      .select('slug title publishedAt')
+      .sort('-publishedAt')
+      .limit(10);
+    
+    res.json({
+      success: true,
+      sitemapStatus: {
+        isValid,
+        publishedArticlesCount: publishedArticles,
+        recentArticles: recentArticles.map(article => ({
+          slug: article.slug,
+          title: article.title,
+          publishedAt: article.publishedAt
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Get sitemap status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get sitemap status'
+    });
+  }
+});
+
 // @route   GET /api/articles/:id
 // @desc    Get single article by ID
 // @access  Public
@@ -337,6 +463,9 @@ router.post('/', auth, requireRole(['admin', 'editor']), async (req, res) => {
       await addArticleToIndexingQueue(article);
     }
 
+    // Trigger sitemap update for new article
+    await sitemapService.triggerSitemapUpdate(article, 'create');
+
     res.status(201).json({
       success: true,
       message: 'Article created successfully',
@@ -428,6 +557,9 @@ router.put('/:id', auth, requireRole(['admin', 'editor']), async (req, res) => {
       if (newCategory) await newCategory.incrementArticleCount();
     }
 
+    // Trigger sitemap update for updated article
+    await sitemapService.triggerSitemapUpdate(updatedArticle, 'update');
+
     res.json({
       success: true,
       message: 'Article updated successfully',
@@ -465,6 +597,9 @@ router.delete('/:id', auth, requireRole(['admin']), async (req, res) => {
       await category.decrementArticleCount();
     }
 
+    // Trigger sitemap update for deleted article
+    await sitemapService.triggerSitemapUpdate(article, 'delete');
+
     await Article.findByIdAndDelete(req.params.id);
 
     res.json({
@@ -499,6 +634,9 @@ router.put('/:id/publish', auth, requireRole(['admin', 'editor']), async (req, r
     // Submit for instant indexing immediately after publishing
     await addArticleToIndexingQueue(article);
 
+    // Trigger sitemap update for published article
+    await sitemapService.triggerSitemapUpdate(article, 'publish');
+
     res.json({
       success: true,
       message: 'Article published successfully',
@@ -529,6 +667,9 @@ router.put('/:id/unpublish', auth, requireRole(['admin', 'editor']), async (req,
     await article.populate('category', 'name color');
     await article.populate('author', 'name');
 
+    // Trigger sitemap update for unpublished article
+    await sitemapService.triggerSitemapUpdate(article, 'unpublish');
+
     res.json({
       success: true,
       message: 'Article unpublished successfully',
@@ -543,37 +684,7 @@ router.put('/:id/unpublish', auth, requireRole(['admin', 'editor']), async (req,
   }
 });
 
-// @route   GET /api/articles/sitemap
-// @desc    Get articles for sitemap (optimized for speed)
-// @access  Public
-router.get('/sitemap', async (req, res) => {
-  try {
-    const { page = 1, limit = 100 } = req.query;
 
-    const query = { status: 'published' };
-    
-    const options = {
-      page: parseInt(page),
-      limit: parseInt(limit),
-      sort: '-publishedAt',
-      // Only select fields needed for sitemap
-      select: 'slug publishedAt updatedAt'
-    };
-
-    const articles = await Article.paginate(query, options);
-
-    res.json({
-      success: true,
-      ...articles
-    });
-
-  } catch (error) {
-    console.error('Get articles for sitemap error:', error);
-    res.status(500).json({
-      error: 'Server error'
-    });
-  }
-});
 
 // @route   GET /api/articles/indexing-queue/status
 // @desc    Get indexing queue status
@@ -596,6 +707,10 @@ router.get('/indexing-queue/status', auth, requireRole(['admin']), async (req, r
     });
   }
 });
+
+
+
+
 
 // @route   POST /api/articles/indexing-queue/clear
 // @desc    Clear indexing queue

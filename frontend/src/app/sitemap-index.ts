@@ -12,5 +12,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/api/sitemap/articles`,
       lastModified: new Date(),
     },
+    // Additional article sitemap pages for better organization
+    {
+      url: `${baseUrl}/api/sitemap/articles?page=1&limit=500`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/api/sitemap/articles?page=2&limit=500`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/api/sitemap/articles?page=3&limit=500`,
+      lastModified: new Date(),
+    },
   ];
 } 

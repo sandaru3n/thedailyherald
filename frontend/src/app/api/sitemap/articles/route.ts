@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     // Get query parameters for pagination
     const { searchParams } = new URL(request.url);
     const page = searchParams.get('page') || '1';
-    const limit = searchParams.get('limit') || '100';
+    const limit = searchParams.get('limit') || '500'; // Increased limit for better coverage
     
     // Fetch articles with timeout using optimized sitemap endpoint
     const response = await fetch(
@@ -25,23 +25,52 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
     
     if (!data.success || !data.docs) {
-      return NextResponse.json({ articles: [] });
+      // Return empty XML sitemap
+      const emptySitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+</urlset>`;
+      
+      return new NextResponse(emptySitemap, {
+        headers: {
+          'Content-Type': 'application/xml',
+          'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+        }
+      });
     }
 
-    // Convert articles to sitemap format
-    const articles = data.docs.map((article: { slug: string; updatedAt?: string; publishedAt: string }) => ({
-      url: `${baseUrl}/article/${article.slug}`,
-      lastModified: new Date(article.updatedAt || article.publishedAt),
-      changeFrequency: 'weekly' as const,
-      priority: 0.6,
-    }));
+    // Generate XML sitemap
+    const xmlSitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${data.docs.map((article: { slug: string; updatedAt?: string; publishedAt: string }) => {
+  const lastModified = new Date(article.updatedAt || article.publishedAt).toISOString();
+  return `  <url>
+    <loc>${baseUrl}/article/${article.slug}</loc>
+    <lastmod>${lastModified}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`;
+}).join('\n')}
+</urlset>`;
 
-    return NextResponse.json({ articles });
+    return new NextResponse(xmlSitemap, {
+      headers: {
+        'Content-Type': 'application/xml',
+        'Cache-Control': 'public, max-age=3600, s-maxage=3600', // Cache for 1 hour
+      }
+    });
   } catch (error) {
     console.error('Error generating article sitemap:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate article sitemap' },
-      { status: 500 }
-    );
+    
+    // Return error XML sitemap
+    const errorSitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+</urlset>`;
+    
+    return new NextResponse(errorSitemap, {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/xml',
+      }
+    });
   }
 } 

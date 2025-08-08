@@ -3,6 +3,8 @@ import { MetadataRoute } from 'next';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   
+  console.log('🔄 Generating sitemap...');
+  
   // Static pages
   const staticPages = [
     {
@@ -95,40 +97,49 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  // For articles, we'll use a more efficient approach
-  // Instead of fetching all articles during build time,
-  // we'll create a dynamic sitemap that can be generated on-demand
-  // or use a smaller subset for the main sitemap
-  
+  // Fetch ALL published articles for sitemap (no limit)
   let articlePages: MetadataRoute.Sitemap = [];
   
-  // Only try to fetch articles if we're not in a build environment
-  // or if we have a specific environment variable to enable it
-  if (process.env.ENABLE_SITEMAP_ARTICLES === 'true') {
-    try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${API_BASE_URL}/api/articles?status=published&limit=50&sort=-publishedAt`, {
-        // Add timeout to prevent hanging
-        signal: AbortSignal.timeout(30000), // 30 second timeout
-      });
+  try {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    
+    console.log(`🔍 Fetching articles from: ${API_BASE_URL}/api/articles/sitemap?limit=10000`);
+    
+    // Fetch all published articles with a high limit to get all articles
+    const response = await fetch(`${API_BASE_URL}/api/articles/sitemap?limit=10000`, {
+      signal: AbortSignal.timeout(60000), // 60 second timeout for large datasets
+      next: { revalidate: 300 }, // Cache for 5 minutes instead of 30 minutes
+      cache: 'no-store', // Force fresh data
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
       
-      if (response.ok) {
-        const data = await response.json();
+      if (data.success && data.docs) {
+        console.log(`📊 Including ${data.docs.length} articles in main sitemap`);
         
-        if (data.success && data.docs) {
-          articlePages = data.docs.map((article: { slug: string; updatedAt?: string; publishedAt: string }) => ({
-            url: `${baseUrl}/article/${article.slug}`,
-            lastModified: new Date(article.updatedAt || article.publishedAt),
-            changeFrequency: 'weekly' as const,
-            priority: 0.6,
-          }));
-        }
+        articlePages = data.docs.map((article: { slug: string; updatedAt?: string; publishedAt: string }) => ({
+          url: `${baseUrl}/article/${article.slug}`,
+          lastModified: new Date(article.updatedAt || article.publishedAt),
+          changeFrequency: 'weekly' as const,
+          priority: 0.6,
+        }));
+        
+        console.log(`✅ Successfully processed ${articlePages.length} articles for sitemap`);
+      } else {
+        console.warn('⚠️  No articles data found in response');
       }
-    } catch (error) {
-      console.error('Error fetching articles for sitemap:', error);
-      // Don't fail the build if articles can't be fetched
+    } else {
+      console.error(`❌ Failed to fetch articles: ${response.status} ${response.statusText}`);
     }
+  } catch (error) {
+    console.error('❌ Error fetching articles for sitemap:', error);
+    // Don't fail the build if articles can't be fetched
+    // The sitemap will still work with static pages, categories, and RSS feeds
   }
+
+  const totalUrls = staticPages.length + rssFeeds.length + categoryPages.length + articlePages.length;
+  console.log(`🎉 Sitemap generated with ${totalUrls} total URLs (${articlePages.length} articles)`);
 
   return [
     ...staticPages,
