@@ -1,9 +1,9 @@
-import { MetadataRoute } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export async function GET(request: NextRequest) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   
-  console.log('🔄 Generating sitemap...');
+  console.log('🔄 Generating dynamic sitemap...');
   
   // Static pages
   const staticPages = [
@@ -98,7 +98,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // Fetch ALL published articles for sitemap (no limit)
-  let articlePages: MetadataRoute.Sitemap = [];
+  let articlePages: any[] = [];
   
   try {
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -108,8 +108,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch all published articles with a high limit to get all articles
     const response = await fetch(`${API_BASE_URL}/api/articles/sitemap?limit=10000`, {
       signal: AbortSignal.timeout(60000), // 60 second timeout for large datasets
-      next: { revalidate: 300 }, // Cache for 5 minutes instead of 30 minutes
-      cache: 'no-store', // Force fresh data
+      next: { revalidate: 300 }, // Cache for 5 minutes
     });
     
     if (response.ok) {
@@ -138,13 +137,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // The sitemap will still work with static pages, categories, and RSS feeds
   }
 
-  const totalUrls = staticPages.length + rssFeeds.length + categoryPages.length + articlePages.length;
+  const allPages = [...staticPages, ...rssFeeds, ...categoryPages, ...articlePages];
+  const totalUrls = allPages.length;
   console.log(`🎉 Sitemap generated with ${totalUrls} total URLs (${articlePages.length} articles)`);
 
-  return [
-    ...staticPages,
-    ...rssFeeds,
-    ...categoryPages,
-    ...articlePages,
-  ];
-} 
+  // Generate XML sitemap
+  const xmlSitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${allPages.map(page => `  <url>
+    <loc>${page.url}</loc>
+    <lastmod>${page.lastModified.toISOString()}</lastmod>
+    <changefreq>${page.changeFrequency}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>`).join('\n')}
+</urlset>`;
+
+  return new NextResponse(xmlSitemap, {
+    headers: {
+      'Content-Type': 'application/xml',
+      'Cache-Control': 'public, max-age=300, s-maxage=300', // 5 minutes cache
+    },
+  });
+}
