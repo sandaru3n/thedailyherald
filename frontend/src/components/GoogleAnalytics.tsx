@@ -2,7 +2,7 @@
 
 import Script from 'next/script';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { getSiteSettings } from '@/lib/settings';
 
 // Default GA ID as fallback
@@ -28,6 +28,13 @@ function usePageTracking(gaTrackingId: string) {
   }, [pathname, searchParams, gaTrackingId]);
 }
 
+// Component that uses useSearchParams - needs to be wrapped in Suspense
+function GoogleAnalyticsTracker({ gaTrackingId }: { gaTrackingId: string }) {
+  usePageTracking(gaTrackingId);
+  return null; // This component only handles tracking, no UI
+}
+
+// Main GoogleAnalytics component
 export default function GoogleAnalytics() {
   const [gaTrackingId, setGaTrackingId] = useState<string>(DEFAULT_GA_TRACKING_ID);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,8 +57,6 @@ export default function GoogleAnalytics() {
 
     fetchSettings();
   }, []);
-
-  usePageTracking(gaTrackingId);
 
   // Don't render if still loading or no GA ID
   if (isLoading || !gaTrackingId) {
@@ -78,6 +83,11 @@ export default function GoogleAnalytics() {
           });
         `}
       </Script>
+      
+      {/* Page tracking wrapped in Suspense */}
+      <Suspense fallback={null}>
+        <GoogleAnalyticsTracker gaTrackingId={gaTrackingId} />
+      </Suspense>
     </>
   );
 }
