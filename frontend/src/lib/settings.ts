@@ -7,6 +7,7 @@ interface SiteSettings {
   seoSettings?: {
     defaultTitle: string;
     defaultDescription: string;
+    googleAnalyticsId?: string;
   };
 }
 

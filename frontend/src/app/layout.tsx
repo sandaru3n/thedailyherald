@@ -9,6 +9,7 @@ import SmoothPageTransition from "@/components/SmoothPageTransition";
 import ProgressBar from "@/components/ProgressBar";
 import PublicLayout from "@/components/PublicLayout";
 import { generateMetadata as generateSiteMetadata } from "@/lib/metadata";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,6 +49,7 @@ export default function RootLayout({
         <link rel="alternate" type="application/rss+xml" title="Health RSS Feed" href="/feed/category/health/" />
         <link rel="alternate" type="application/rss+xml" title="World RSS Feed" href="/feed/category/world/" />
         <link rel="alternate" type="application/rss+xml" title="Entertainment RSS Feed" href="/feed/category/entertainment/" />
+        <GoogleAnalytics />
       </head>
       <body suppressHydrationWarning className="antialiased">
         <ResourcePreloader 
