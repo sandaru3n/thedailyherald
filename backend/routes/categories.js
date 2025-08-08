@@ -1,21 +1,39 @@
 const express = require('express');
 const Category = require('../models/Category');
+const Article = require('../models/Article');
 const { auth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET /api/categories - get all active categories
+// GET /api/categories - get all active categories with article counts
 router.get('/', async (req, res) => {
   try {
     const categories = await Category.find({ isActive: true }).sort({ order: 1, name: 1 });
-    res.json({ success: true, categories });
+    
+    // Get article counts for each category
+    const categoriesWithCounts = await Promise.all(
+      categories.map(async (category) => {
+        const articleCount = await Article.countDocuments({ 
+          category: category._id,
+          status: 'published'
+        });
+        
+        return {
+          ...category.toObject(),
+          articleCount
+        };
+      })
+    );
+    
+    res.json({ success: true, categories: categoriesWithCounts });
   } catch (error) {
+    console.error('Error fetching categories with counts:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
 // @route   GET /api/categories/:id
-// @desc    Get single category by ID
+// @desc    Get single category by ID with article count
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
@@ -27,9 +45,20 @@ router.get('/:id', async (req, res) => {
       });
     }
 
+    // Get article count for this category
+    const articleCount = await Article.countDocuments({ 
+      category: category._id,
+      status: 'published'
+    });
+
+    const categoryWithCount = {
+      ...category.toObject(),
+      articleCount
+    };
+
     res.json({
       success: true,
-      category
+      category: categoryWithCount
     });
 
   } catch (error) {
@@ -41,7 +70,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // @route   GET /api/categories/slug/:slug
-// @desc    Get single category by slug
+// @desc    Get single category by slug with article count
 // @access  Public
 router.get('/slug/:slug', async (req, res) => {
   try {
@@ -53,9 +82,20 @@ router.get('/slug/:slug', async (req, res) => {
       });
     }
 
+    // Get article count for this category
+    const articleCount = await Article.countDocuments({ 
+      category: category._id,
+      status: 'published'
+    });
+
+    const categoryWithCount = {
+      ...category.toObject(),
+      articleCount
+    };
+
     res.json({
       success: true,
-      category
+      category: categoryWithCount
     });
 
   } catch (error) {
