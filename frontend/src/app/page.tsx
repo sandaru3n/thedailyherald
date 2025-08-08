@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { NewsArticle, NEWS_CATEGORIES } from '@/types/news';
 import { ArticleCard } from '@/components/NewsCard';
 import Sidebar from '@/components/Sidebar';
@@ -57,6 +58,15 @@ async function HomeContent() {
             <div className="flex items-center mb-4 sm:mb-6">
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Latest News</h2>
               <Separator className="ml-3 sm:ml-4 flex-1" />
+              <Link 
+                href="/articles"
+                className="inline-flex items-center px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"
+              >
+                View All
+                <svg className="ml-1 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
@@ -82,9 +92,15 @@ async function HomeContent() {
                 <div className="flex items-center mb-4 sm:mb-6">
                   <h2 className="text-xl sm:text-2xl font-bold text-slate-900">{category.name}</h2>
                   <Separator className="ml-3 sm:ml-4 flex-1" />
-                  <button className="text-blue-600 hover:text-blue-700 font-medium text-xs sm:text-sm">
+                  <Link 
+                    href={`/category/${category.slug}`}
+                    className="inline-flex items-center px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"
+                  >
                     View All
-                  </button>
+                    <svg className="ml-1 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
