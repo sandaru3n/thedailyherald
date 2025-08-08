@@ -37,10 +37,10 @@ export default function PerformanceMonitor({ pageName = 'Unknown' }: Performance
 
         // Log performance metrics
         console.log(`🚀 Performance Metrics for ${pageName}:`, {
-          'Load Time': `${metrics.loadTime.toFixed(2)}ms`,
-          'DOM Content Loaded': `${metrics.domContentLoaded.toFixed(2)}ms`,
-          'First Paint': `${metrics.firstPaint.toFixed(2)}ms`,
-          'First Contentful Paint': `${metrics.firstContentfulPaint.toFixed(2)}ms`,
+          'Load Time': `${(navigation.loadEventEnd - navigation.loadEventStart).toFixed(2)}ms`,
+          'DOM Content Loaded': `${(navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart).toFixed(2)}ms`,
+          'First Paint': `${firstPaint ? firstPaint.startTime.toFixed(2) : '0'}ms`,
+          'First Contentful Paint': `${firstContentfulPaint ? firstContentfulPaint.startTime.toFixed(2) : '0'}ms`,
         });
       }
     };

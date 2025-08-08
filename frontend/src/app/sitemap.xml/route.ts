@@ -98,7 +98,12 @@ export async function GET(request: NextRequest) {
   }));
 
   // Fetch ALL published articles for sitemap (no limit)
-  let articlePages: any[] = [];
+  let articlePages: Array<{
+    url: string;
+    lastModified: Date;
+    changeFrequency: 'weekly';
+    priority: number;
+  }> = [];
   
   try {
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
