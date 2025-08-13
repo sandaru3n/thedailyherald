@@ -4,6 +4,7 @@ import { NewsArticle, NEWS_CATEGORIES } from '@/types/news';
 import { ArticleCard } from '@/components/NewsCard';
 import Sidebar from '@/components/Sidebar';
 import { Separator } from '@/components/ui/separator';
+import { getSiteSettings } from '@/lib/settings';
 
 // Server-side data fetching
 async function getArticles(): Promise<NewsArticle[]> {
@@ -32,6 +33,7 @@ async function getArticles(): Promise<NewsArticle[]> {
 // Server component for home content
 async function HomeContent() {
   const articles = await getArticles();
+  const settings = await getSiteSettings();
 
   // Get featured and latest news
   const featuredNews = articles.filter(article => article.isFeatured).slice(0, 2);
@@ -39,6 +41,16 @@ async function HomeContent() {
 
   return (
     <div className="container mx-auto px-4 py-4 sm:py-8">
+      {/* Main H1 for SEO and Accessibility */}
+      <header className="mb-6 sm:mb-8 text-center">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-2">
+          {settings.siteName || 'The Daily Herald'}
+        </h1>
+        <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto">
+          {settings.siteDescription || 'Your trusted source for the latest news and breaking stories from around the world'}
+        </p>
+      </header>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8">
         {/* Main Content */}
         <div className="lg:col-span-3">
@@ -127,6 +139,12 @@ function HomeLoading() {
   return (
     <div className="container mx-auto px-4 py-4 sm:py-8">
       <div className="animate-pulse">
+        {/* H1 Loading State */}
+        <div className="mb-6 sm:mb-8 text-center">
+          <div className="h-10 sm:h-12 lg:h-14 bg-gray-200 rounded mx-auto mb-2 max-w-md"></div>
+          <div className="h-6 bg-gray-200 rounded mx-auto max-w-lg"></div>
+        </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8">
           <div className="lg:col-span-3">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12">

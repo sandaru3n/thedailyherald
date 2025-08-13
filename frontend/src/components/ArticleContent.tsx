@@ -111,43 +111,52 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
         <article className="lg:col-span-8">
           <Card className="overflow-hidden shadow-lg rounded-xl lg:rounded-2xl">
             <div className="p-4 sm:p-6 lg:p-10">
-              {/* Article Title - Critical for LCP */}
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 leading-tight">{article.title}</h1>
-              
-              {/* Meta Information - Optimized for mobile */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="truncate">{authorName}</span>
-                </div>
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span>{formatDate(article.publishedAt)}</span>
-                </div>
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span>{readTime} min read</span>
-                </div>
-                {article.views && (
+              {/* Article Title - H1 for SEO and Accessibility */}
+              <header className="mb-4 sm:mb-6">
+                <h1 
+                  className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 leading-tight"
+                  itemProp="headline"
+                >
+                  {article.title}
+                </h1>
+                
+                {/* Meta Information - Optimized for mobile */}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
                   <div className="flex items-center gap-1 sm:gap-2">
-                    <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span>{article.views.toLocaleString()} views</span>
+                    <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="truncate" itemProp="author">{authorName}</span>
+                  </div>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <time dateTime={new Date(article.publishedAt).toISOString()} itemProp="datePublished">
+                      {formatDate(article.publishedAt)}
+                    </time>
+                  </div>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span>{readTime} min read</span>
+                  </div>
+                  {article.views && (
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span>{article.views.toLocaleString()} views</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Tags - Optimized for mobile */}
+                {article.tags && article.tags.length > 0 && (
+                  <div className="mb-4 sm:mb-6">
+                    <div className="flex flex-wrap gap-1 sm:gap-2">
+                      {article.tags.slice(0, 3).map((tag, index) => ( // Limit tags on mobile
+                        <Badge key={`${article._id || article.id}-tag-${index}-${tag}`} variant="outline" className="hover:bg-gray-100 text-xs">
+                          #{tag}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 )}
-              </div>
-
-              {/* Tags - Optimized for mobile */}
-              {article.tags && article.tags.length > 0 && (
-                <div className="mb-4 sm:mb-6">
-                  <div className="flex flex-wrap gap-1 sm:gap-2">
-                    {article.tags.slice(0, 3).map((tag, index) => ( // Limit tags on mobile
-                      <Badge key={`${article._id || article.id}-tag-${index}-${tag}`} variant="outline" className="hover:bg-gray-100 text-xs">
-                        #{tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
+              </header>
 
               <div className="border-b border-gray-200 mb-4 sm:mb-6"></div>
               
@@ -192,6 +201,7 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
                 <div 
                   dangerouslySetInnerHTML={{ __html: article.content }}
                   className="text-gray-800 leading-relaxed text-sm sm:text-base"
+                  itemProp="articleBody"
                 />
               </div>
 
