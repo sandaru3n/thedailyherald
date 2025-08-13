@@ -115,6 +115,11 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
               <header className="mb-4 sm:mb-6">
                 <h1 
                   className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 leading-tight"
+                  style={{
+                    fontWeight: '700',
+                    lineHeight: '1.3',
+                    letterSpacing: '-0.02em'
+                  }}
                   itemProp="headline"
                 >
                   {article.title}
@@ -200,7 +205,12 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
               <div className="article-content prose prose-sm sm:prose-base lg:prose-lg max-w-none">
                 <div 
                   dangerouslySetInnerHTML={{ __html: article.content }}
-                  className="text-gray-800 leading-relaxed text-sm sm:text-base"
+                  className="text-gray-900 leading-relaxed text-base sm:text-lg lg:text-xl font-normal"
+                  style={{
+                    lineHeight: '1.7',
+                    letterSpacing: '0.01em',
+                    wordSpacing: '0.05em'
+                  }}
                   itemProp="articleBody"
                 />
               </div>
@@ -264,4 +274,4 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
       </div>
     </>
   );
-} 
+}
