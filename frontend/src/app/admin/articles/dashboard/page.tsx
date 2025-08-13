@@ -51,21 +51,21 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-gray-600 mt-1">Welcome back! Here's what's happening today.</p>
           </div>
-          <Button onClick={() => router.push('/admin/articles/new')}>
+          <Button onClick={() => router.push('/admin/articles/new')} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             New Article
           </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Articles</CardTitle>
@@ -120,12 +120,12 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Articles */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                Recent Articles
-                <Button variant="outline" size="sm" onClick={() => router.push('/admin/articles')}>
+              <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <span>Recent Articles</span>
+                <Button variant="outline" size="sm" onClick={() => router.push('/admin/articles')} className="w-full sm:w-auto">
                   View All
                 </Button>
               </CardTitle>
@@ -135,10 +135,10 @@ export default function AdminDashboard() {
                 {recentArticles.map((article) => (
                   <div key={article.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm text-gray-900 truncate">
+                      <h4 className="font-medium text-sm text-gray-900 break-words">
                         {article.title}
                       </h4>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
                         <Badge variant="secondary" className="text-xs">
                           {typeof article.category === 'string' ? article.category : article.category.name}
                         </Badge>
@@ -148,14 +148,14 @@ export default function AdminDashboard() {
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1">
                         <Clock className="h-3 w-3" />
                         <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
                         <span>•</span>
                         <span>{typeof article.author === 'string' ? article.author : article.author.name}</span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" className="ml-4">
+                    <Button variant="ghost" size="sm" className="ml-4 flex-shrink-0">
                       <Edit className="h-4 w-4" />
                     </Button>
                   </div>
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">

@@ -197,17 +197,17 @@ export default function EditArticlePage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Edit Article</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Edit Article</h1>
             <p className="text-gray-600 mt-1">Loading article...</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="animate-pulse space-y-4">
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                   <div className="h-32 bg-gray-200 rounded"></div>
@@ -223,10 +223,10 @@ export default function EditArticlePage() {
 
   if (error && !loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Edit Article</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Edit Article</h1>
             <p className="text-gray-600 mt-1">Error loading article</p>
           </div>
         </div>
@@ -234,7 +234,7 @@ export default function EditArticlePage() {
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-        <Button onClick={() => router.push('/admin/articles')}>
+        <Button onClick={() => router.push('/admin/articles')} className="w-full sm:w-auto">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Articles
         </Button>
@@ -243,19 +243,19 @@ export default function EditArticlePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Edit Article</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Edit Article</h1>
           <p className="text-gray-600 mt-1">Update your news article</p>
         </div>
-        <div className="flex space-x-3">
-          <Button variant="outline" onClick={() => router.push('/admin/articles')}>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={() => router.push('/admin/articles')} className="w-full sm:w-auto">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <Button variant="outline" onClick={handlePreview}>
+          <Button variant="outline" onClick={handlePreview} className="w-full sm:w-auto">
             <Eye className="h-4 w-4 mr-2" />
             Preview
           </Button>
@@ -263,6 +263,7 @@ export default function EditArticlePage() {
             variant="outline" 
             onClick={() => handleSave(false)}
             disabled={saving}
+            className="w-full sm:w-auto"
           >
             <Save className="h-4 w-4 mr-2" />
             {saving ? 'Saving...' : 'Save Changes'}
@@ -270,6 +271,7 @@ export default function EditArticlePage() {
           <Button 
             onClick={() => handleSave(true)}
             disabled={saving}
+            className="w-full sm:w-auto"
           >
             <CheckCircle className="h-4 w-4 mr-2" />
             {saving ? 'Publishing...' : 'Publish'}
@@ -291,13 +293,13 @@ export default function EditArticlePage() {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Article Content */}
           <Card>
             <CardHeader>
-              <CardTitle>Article Content</CardTitle>
+              <CardTitle className="text-lg">Article Content</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -333,7 +335,7 @@ export default function EditArticlePage() {
                   value={formData.content}
                   onChange={handleInputChange}
                   placeholder="Write your article content here..."
-                  rows={15}
+                  rows={12}
                   className="mt-1"
                 />
               </div>
@@ -354,11 +356,11 @@ export default function EditArticlePage() {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Publishing */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className="flex items-center text-lg">
                 <Settings className="h-5 w-5 mr-2" />
                 Publishing
               </CardTitle>
@@ -408,7 +410,7 @@ export default function EditArticlePage() {
           {/* Category & Tags */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className="flex items-center text-lg">
                 <Tag className="h-5 w-5 mr-2" />
                 Category & Tags
               </CardTitle>
@@ -450,7 +452,7 @@ export default function EditArticlePage() {
           {/* SEO Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>SEO Settings</CardTitle>
+              <CardTitle className="text-lg">SEO Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>

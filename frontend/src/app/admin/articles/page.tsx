@@ -164,14 +164,14 @@ export default function AdminArticlesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Articles</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Articles</h1>
           <p className="text-gray-600 mt-1">Manage your news articles</p>
         </div>
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto">
           <Link href="/admin/articles/new">
             <Plus className="h-4 w-4 mr-2" />
             New Article
@@ -194,28 +194,28 @@ export default function AdminArticlesPage() {
       {/* Filters and Search */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
+          <CardTitle className="flex items-center text-lg">
             <Filter className="h-5 w-5 mr-2" />
             Filters & Search
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <form onSubmit={handleSearch} className="flex-1">
+          <div className="flex flex-col gap-4">
+            <form onSubmit={handleSearch} className="w-full">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Search articles..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 w-full"
                 />
               </div>
             </form>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
             >
               <option value="all">All Status</option>
               <option value="published">Published</option>
@@ -226,16 +226,16 @@ export default function AdminArticlesPage() {
         </CardContent>
       </Card>
 
-      {/* Articles Table */}
+      {/* Articles List */}
       <Card>
         <CardHeader>
-          <CardTitle>Articles ({articles.length})</CardTitle>
+          <CardTitle className="text-lg">Articles ({articles.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg">
+                <div key={i} className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 p-4 border rounded-lg">
                   <div className="h-4 bg-gray-200 rounded animate-pulse flex-1"></div>
                   <div className="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
                   <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
@@ -245,20 +245,20 @@ export default function AdminArticlesPage() {
           ) : articles.length > 0 ? (
             <div className="space-y-4">
               {articles.map((article) => (
-                <div key={article._id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                <div key={article._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-gray-50 gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-3">
-                      <h3 className="text-sm font-medium text-gray-900 truncate">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <h3 className="text-sm font-medium text-gray-900 break-words">
                         {article.title}
                       </h3>
                       {article.isFeatured && (
-                        <TrendingUp className="h-4 w-4 text-yellow-500" />
+                        <TrendingUp className="h-4 w-4 text-yellow-500 flex-shrink-0" />
                       )}
                       {article.isBreaking && (
-                        <Badge className="bg-red-100 text-red-800 text-xs">Breaking</Badge>
+                        <Badge className="bg-red-100 text-red-800 text-xs flex-shrink-0">Breaking</Badge>
                       )}
                     </div>
-                    <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
                       <span 
                         className="inline-flex items-center space-x-1"
                         style={{ color: article.category?.color }}
@@ -275,16 +275,19 @@ export default function AdminArticlesPage() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
-                    {getStatusBadge(article.status)}
+                  <div className="flex items-center justify-between sm:justify-end space-x-2">
+                    <div className="flex-shrink-0">
+                      {getStatusBadge(article.status)}
+                    </div>
                     
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                           <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Open menu</span>
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuItem asChild>
                           <Link href={`/article/${article.slug}`} className="flex items-center">
                             <Eye className="h-4 w-4 mr-2" />
@@ -334,14 +337,14 @@ export default function AdminArticlesPage() {
                 <Search className="h-6 w-6 text-gray-400" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No articles found</h3>
-              <p className="text-gray-500 mb-4">
+              <p className="text-gray-500 mb-4 px-4">
                 {searchTerm || statusFilter !== 'all' 
                   ? 'Try adjusting your search or filters'
                   : 'Get started by creating your first article'
                 }
               </p>
               {!searchTerm && statusFilter === 'all' && (
-                <Button asChild>
+                <Button asChild className="w-full sm:w-auto">
                   <Link href="/admin/articles/new">
                     <Plus className="h-4 w-4 mr-2" />
                     Create Article
@@ -355,16 +358,17 @@ export default function AdminArticlesPage() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center space-x-2">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
+            className="w-full sm:w-auto"
           >
             Previous
           </Button>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-gray-600 text-center">
             Page {currentPage} of {totalPages}
           </span>
           <Button
@@ -372,6 +376,7 @@ export default function AdminArticlesPage() {
             size="sm"
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
             disabled={currentPage === totalPages}
+            className="w-full sm:w-auto"
           >
             Next
           </Button>

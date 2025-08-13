@@ -146,13 +146,13 @@ export default function NewArticlePage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">New Article</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">New Article</h1>
           <p className="text-gray-600 mt-1">Create a new news article</p>
         </div>
-        <div className="flex space-x-3">
-          <Button variant="outline" onClick={handlePreview}>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={handlePreview} className="w-full sm:w-auto">
             <Eye className="h-4 w-4 mr-2" />
             Preview
           </Button>
@@ -160,6 +160,7 @@ export default function NewArticlePage() {
             variant="outline" 
             onClick={() => handleSave(false)}
             disabled={saving}
+            className="w-full sm:w-auto"
           >
             <Save className="h-4 w-4 mr-2" />
             {saving ? 'Saving...' : 'Save Draft'}
@@ -167,6 +168,7 @@ export default function NewArticlePage() {
           <Button 
             onClick={() => handleSave(true)}
             disabled={saving}
+            className="w-full sm:w-auto"
           >
             <CheckCircle className="h-4 w-4 mr-2" />
             {saving ? 'Publishing...' : 'Publish'}
@@ -188,13 +190,13 @@ export default function NewArticlePage() {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Article Content */}
           <Card>
             <CardHeader>
-              <CardTitle>Article Content</CardTitle>
+              <CardTitle className="text-lg">Article Content</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -230,7 +232,7 @@ export default function NewArticlePage() {
                   value={formData.content}
                   onChange={handleInputChange}
                   placeholder="Write your article content here..."
-                  rows={15}
+                  rows={12}
                   className="mt-1"
                 />
               </div>
@@ -251,11 +253,11 @@ export default function NewArticlePage() {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Publishing */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className="flex items-center text-lg">
                 <Settings className="h-5 w-5 mr-2" />
                 Publishing
               </CardTitle>
@@ -304,7 +306,7 @@ export default function NewArticlePage() {
           {/* Category & Tags */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className="flex items-center text-lg">
                 <Tag className="h-5 w-5 mr-2" />
                 Category & Tags
               </CardTitle>
@@ -346,7 +348,7 @@ export default function NewArticlePage() {
           {/* SEO Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>SEO Settings</CardTitle>
+              <CardTitle className="text-lg">SEO Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
