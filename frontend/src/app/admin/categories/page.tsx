@@ -174,14 +174,14 @@ export default function AdminCategoriesPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Categories</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Categories</h1>
           <p className="text-gray-600 mt-1">Manage news categories</p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           New Category
         </Button>
@@ -203,13 +203,13 @@ export default function AdminCategoriesPage() {
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle>
+            <CardTitle className="text-lg">
               {editingCategory ? 'Edit Category' : 'New Category'}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <Label htmlFor="name">Name *</Label>
                   <Input
@@ -224,23 +224,24 @@ export default function AdminCategoriesPage() {
 
                 <div>
                   <Label htmlFor="color">Color</Label>
-                  <div className="flex items-center space-x-2 mt-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-1">
                     <Input
                       id="color"
                       name="color"
                       type="color"
                       value={formData.color}
                       onChange={handleInputChange}
-                      className="w-16 h-10 p-1"
+                      className="w-full sm:w-16 h-10 p-1"
                     />
-                    <div className="flex space-x-1">
+                    <div className="flex flex-wrap gap-2">
                       {colorOptions.map((color) => (
                         <button
                           key={color}
                           type="button"
                           onClick={() => setFormData(prev => ({ ...prev, color }))}
-                          className="w-6 h-6 rounded border-2 border-gray-300 hover:border-gray-400"
+                          className="w-8 h-8 rounded border-2 border-gray-300 hover:border-gray-400 transition-colors"
                           style={{ backgroundColor: color }}
+                          aria-label={`Select color ${color}`}
                         />
                       ))}
                     </div>
@@ -272,11 +273,11 @@ export default function AdminCategoriesPage() {
                 <Label htmlFor="isActive">Active</Label>
               </div>
 
-              <div className="flex space-x-3">
-                <Button type="submit">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button type="submit" className="w-full sm:w-auto">
                   {editingCategory ? 'Update Category' : 'Create Category'}
                 </Button>
-                <Button type="button" variant="outline" onClick={resetForm}>
+                <Button type="button" variant="outline" onClick={resetForm} className="w-full sm:w-auto">
                   Cancel
                 </Button>
               </div>
@@ -288,13 +289,13 @@ export default function AdminCategoriesPage() {
       {/* Categories List */}
       <Card>
         <CardHeader>
-          <CardTitle>Categories ({categories.length})</CardTitle>
+          <CardTitle className="text-lg">Categories ({categories.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg">
+                <div key={i} className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 p-4 border rounded-lg">
                   <div className="h-4 bg-gray-200 rounded animate-pulse w-6"></div>
                   <div className="h-4 bg-gray-200 rounded animate-pulse flex-1"></div>
                   <div className="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
@@ -305,27 +306,27 @@ export default function AdminCategoriesPage() {
           ) : categories.length > 0 ? (
             <div className="space-y-4">
               {categories.map((category) => (
-                <div key={category._id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                <div key={category._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-gray-50 gap-4">
                   <div className="flex items-center space-x-4">
-                    <GripVertical className="h-5 w-5 text-gray-400" />
+                    <GripVertical className="h-5 w-5 text-gray-400 flex-shrink-0" />
                     <div 
-                      className="w-4 h-4 rounded-full"
+                      className="w-4 h-4 rounded-full flex-shrink-0"
                       style={{ backgroundColor: category.color }}
                     />
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-medium text-gray-900">
+                      <h3 className="text-sm font-medium text-gray-900 break-words">
                         {category.name}
                       </h3>
                       {category.description && (
-                        <p className="text-sm text-gray-500 truncate">
+                        <p className="text-sm text-gray-500 break-words">
                           {category.description}
                         </p>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-4">
-                    <div className="text-right">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="text-left sm:text-right">
                       <div className="text-sm font-medium text-gray-900">
                         {category.articleCount} articles
                       </div>
@@ -334,41 +335,50 @@ export default function AdminCategoriesPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center justify-between sm:justify-end space-x-2">
                       {category.isActive ? (
-                        <Badge className="bg-green-100 text-green-800">Active</Badge>
+                        <Badge className="bg-green-100 text-green-800 text-xs">Active</Badge>
                       ) : (
-                        <Badge className="bg-gray-100 text-gray-800">Inactive</Badge>
+                        <Badge className="bg-gray-100 text-gray-800 text-xs">Inactive</Badge>
                       )}
 
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleToggleActive(category._id, category.isActive)}
-                      >
-                        {category.isActive ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </Button>
+                      <div className="flex items-center space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleToggleActive(category._id, category.isActive)}
+                          className="h-8 w-8 p-0"
+                        >
+                          {category.isActive ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">
+                            {category.isActive ? 'Deactivate' : 'Activate'} category
+                          </span>
+                        </Button>
 
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(category)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(category)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-4 w-4" />
+                          <span className="sr-only">Edit category</span>
+                        </Button>
 
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(category._id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(category._id)}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Delete category</span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -380,10 +390,10 @@ export default function AdminCategoriesPage() {
                 <FolderOpen className="h-6 w-6 text-gray-400" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No categories yet</h3>
-              <p className="text-gray-500 mb-4">
+              <p className="text-gray-500 mb-4 px-4">
                 Create your first category to organize your articles
               </p>
-              <Button onClick={() => setShowForm(true)}>
+              <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Create Category
               </Button>
