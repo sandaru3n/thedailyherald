@@ -67,7 +67,7 @@ async function HomeContent() {
           {settings.siteName || 'The Daily Herald'}
         </h1>
         <p className="text-base sm:text-lg lg:text-xl text-slate-600 max-w-2xl mx-auto px-4 sm:px-6 lg:px-0 leading-relaxed break-words">
-          {settings.siteDescription || 'Your trusted source for the latest news and breaking stories from around the world'}
+          { 'Your trusted source for the latest news and breaking stories from around the world'}
         </p>
       </header>
 
