@@ -9,7 +9,7 @@ import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { HeaderSkeleton, NavigationSkeleton } from '@/components/Skeleton';
 import { useSearch } from '@/hooks/useSearch';
 import { SearchResults } from '@/components/SearchResults';
-import MobileMenuErrorBoundary from '@/components/MobileMenuErrorBoundary';
+import MobileMenuPortal from '@/components/MobileMenuPortal';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -253,107 +253,23 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Floating Menu */}
-      {mobileMenuOpen && (
-        <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden animate-in fade-in duration-200"
-            onClick={() => setMobileMenuOpen(false)}
-            aria-hidden="true"
-          />
-          
-          {/* Floating Menu - now slides in from the left */}
-          <MobileMenuErrorBoundary>
-            <div 
-              id="mobile-menu"
-              className="fixed top-0 left-0 h-full w-72 bg-white shadow-2xl z-50 lg:hidden transform transition-transform duration-300 ease-in-out translate-x-0"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Mobile navigation menu"
-            >
-              {/* Menu Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold">Menu</h2>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-white hover:bg-white/20 rounded-full p-2"
-                    aria-label="Close menu"
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Menu Content */}
-              <div className="p-4 space-y-4">
-                {/* Search */}
-                <div className="relative mb-2">
-                  <input
-                    type="text"
-                    placeholder="Search news..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm"
-                    aria-label="Search news"
-                  />
-                  <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-                  {showSearchResults && (
-                    <SearchResults
-                      results={searchResults}
-                      isLoading={isLoading}
-                      error={error}
-                      onResultClick={() => {
-                        setShowSearchResults(false);
-                        clearSearch();
-                        setMobileMenuOpen(false);
-                      }}
-                    />
-                  )}
-                </div>
-
-                {/* Navigation Links - smaller font and padding for mobile */}
-                <nav className="space-y-2">
-                  {navigationLoading ? (
-                    // Loading skeleton for mobile navigation
-                    <>
-                      {[...Array(6)].map((_, i) => (
-                        <div key={i} className="flex items-center space-x-3 px-3 py-2">
-                          <div className="w-5 h-5 bg-gray-200 rounded animate-pulse"></div>
-                          <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
-                        </div>
-                      ))}
-                    </>
-                  ) : (
-                    activeItems && activeItems.length > 0 && activeItems.map((item) => {
-                      if (!item || !item.label) return null;
-                      const IconComponent = getIconComponent(item.icon);
-                      return (
-                        <Link
-                          key={item._id || item.label}
-                          href={item.url || '#'}
-                          target={item.target || '_self'}
-                          className="flex items-center text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <IconComponent className="h-5 w-5 mr-2" />
-                          {item.label}
-                          {item.isExternal && (
-                            <Globe className="h-4 w-4 ml-auto" />
-                          )}
-                        </Link>
-                      );
-                    })
-                  )}
-                </nav>
-              </div>
-            </div>
-          </MobileMenuErrorBoundary>
-        </>
-      )}
+      {/* Mobile Menu Portal */}
+      <MobileMenuPortal
+        isOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        navigationItems={activeItems || []}
+        searchTerm={searchTerm}
+        searchResults={searchResults}
+        isLoading={isLoading}
+        error={error}
+        onSearchChange={setSearchTerm}
+        onResultClick={() => {
+          setShowSearchResults(false);
+          clearSearch();
+        }}
+        clearSearch={clearSearch}
+        getIconComponent={getIconComponent}
+      />
     </header>
   );
 }
