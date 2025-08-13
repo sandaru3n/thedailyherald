@@ -14,6 +14,37 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Plus, RefreshCw, Settings, Trash2, Edit, Play, AlertCircle, CheckCircle, Brain } from 'lucide-react';
 import { API_BASE_URL } from '@/lib/config';
 
+// Custom styles for better scroll behavior
+const customStyles = `
+  .rss-dialog-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+  }
+  
+  .rss-dialog-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .rss-dialog-scroll::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+  
+  .rss-dialog-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  
+  .rss-dialog-scroll::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+  
+  .sticky-button-container {
+    background: linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.9) 80%, rgba(255,255,255,0) 100%);
+    backdrop-filter: blur(8px);
+  }
+`;
+
 interface RssFeed {
   _id: string;
   name: string;
@@ -95,6 +126,17 @@ export default function RssFeedsPage() {
       enableAutoCategory: true
     }
   });
+
+  // Inject custom styles
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = customStyles;
+    document.head.appendChild(styleElement);
+
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
 
   const updateFormData = (updates: Partial<RssFeedFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }));
@@ -319,38 +361,41 @@ export default function RssFeedsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+        <div className="flex-1">
           <h1 className="text-3xl font-bold">RSS Feeds</h1>
-          <p className="text-gray-600">Manage automatic news publishing from RSS feeds with AI-powered category identification</p>
+          <p className="text-gray-600 mt-2">Manage automatic news publishing from RSS feeds with AI-powered category identification</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button
             onClick={handleProcessAllFeeds}
             disabled={processing}
             variant="outline"
+            className="w-full sm:w-auto"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${processing ? 'animate-spin' : ''}`} />
             Process All
           </Button>
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Add RSS Feed
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
+            <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw] lg:w-auto overflow-hidden flex flex-col rss-dialog-scroll">
+              <DialogHeader className="flex-shrink-0">
                 <DialogTitle>Add New RSS Feed</DialogTitle>
               </DialogHeader>
-              <RssFeedForm
-                formData={formData}
-                setFormData={updateFormData}
-                admins={admins}
-                onSubmit={handleCreateFeed}
-                submitText="Create Feed"
-              />
+              <div className="flex-1 overflow-y-auto pr-2 rss-dialog-scroll">
+                <RssFeedForm
+                  formData={formData}
+                  setFormData={updateFormData}
+                  admins={admins}
+                  onSubmit={handleCreateFeed}
+                  submitText="Create Feed"
+                />
+              </div>
             </DialogContent>
           </Dialog>
         </div>
@@ -365,7 +410,7 @@ export default function RssFeedsPage() {
         </Alert>
       )}
 
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <Input
             placeholder="Search feeds..."
@@ -378,11 +423,11 @@ export default function RssFeedsPage() {
 
       <div className="grid gap-4">
         {filteredFeeds.map((feed) => (
-          <Card key={feed._id}>
+          <Card key={feed._id} className="hover:shadow-md transition-shadow">
             <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
+              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+                <div className="flex-1">
+                  <CardTitle className="flex flex-wrap items-center gap-2">
                     {feed.name}
                     <Badge variant={feed.isActive ? 'default' : 'secondary'}>
                       {feed.isActive ? 'Active' : 'Inactive'}
@@ -394,9 +439,9 @@ export default function RssFeedsPage() {
                       </Badge>
                     )}
                   </CardTitle>
-                  <p className="text-sm text-gray-600 mt-1">{feed.feedUrl}</p>
+                  <p className="text-sm text-gray-600 mt-1 break-all">{feed.feedUrl}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-shrink-0">
                   <Button
                     size="sm"
                     variant="outline"
@@ -423,7 +468,7 @@ export default function RssFeedsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="font-medium">Author:</span>
                   <p className="text-gray-600">{feed.defaultAuthor.name}</p>
@@ -444,7 +489,7 @@ export default function RssFeedsPage() {
               
               <Separator className="my-4" />
               
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                 <div>
                   <span className="font-medium">AI Rewrite:</span>
                   <p className="text-gray-600">
@@ -502,17 +547,19 @@ export default function RssFeedsPage() {
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw] lg:w-auto overflow-hidden flex flex-col rss-dialog-scroll">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Edit RSS Feed</DialogTitle>
           </DialogHeader>
-          <RssFeedForm
-            formData={formData}
-            setFormData={updateFormData}
-            admins={admins}
-            onSubmit={handleUpdateFeed}
-            submitText="Update Feed"
-          />
+          <div className="flex-1 overflow-y-auto pr-2 rss-dialog-scroll">
+            <RssFeedForm
+              formData={formData}
+              setFormData={updateFormData}
+              admins={admins}
+              onSubmit={handleUpdateFeed}
+              submitText="Update Feed"
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
@@ -580,87 +627,177 @@ function RssFeedForm({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="name">Feed Name</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ name: e.target.value })}
-            placeholder="Enter feed name"
-          />
+    <div className="space-y-6">
+      {/* Basic Information Section */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold border-b pb-2">Basic Information</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="name">Feed Name</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData({ name: e.target.value })}
+              placeholder="Enter feed name"
+            />
+          </div>
+          <div>
+            <Label htmlFor="feedUrl">Feed URL</Label>
+            <Input
+              id="feedUrl"
+              value={formData.feedUrl}
+              onChange={(e) => setFormData({ feedUrl: e.target.value })}
+              placeholder="https://example.com/feed.xml"
+            />
+          </div>
         </div>
-        <div>
-          <Label htmlFor="feedUrl">Feed URL</Label>
-          <Input
-            id="feedUrl"
-            value={formData.feedUrl}
-            onChange={(e) => setFormData({ feedUrl: e.target.value })}
-            placeholder="https://example.com/feed.xml"
-          />
-        </div>
-      </div>
 
-      <div>
-        <Label htmlFor="author">Default Author</Label>
-        <Select
-          value={formData.defaultAuthorId}
-          onValueChange={(value) => setFormData({ defaultAuthorId: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select author" />
-          </SelectTrigger>
-          <SelectContent>
-            {admins.map((admin) => (
-              <SelectItem key={admin._id} value={admin._id}>
-                {admin.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="minLength">Minimum Content Length</Label>
-          <Input
-            id="minLength"
-            type="number"
-            value={formData.minContentLength}
-            onChange={(e) => setFormData({ minContentLength: parseInt(e.target.value) })}
-            min="50"
-          />
+          <Label htmlFor="author">Default Author</Label>
+          <Select
+            value={formData.defaultAuthorId}
+            onValueChange={(value) => setFormData({ defaultAuthorId: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select author" />
+            </SelectTrigger>
+            <SelectContent>
+              {admins.map((admin) => (
+                <SelectItem key={admin._id} value={admin._id}>
+                  {admin.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <div>
-          <Label htmlFor="maxPosts">Max Posts Per Day</Label>
-          <Input
-            id="maxPosts"
-            type="number"
-            value={formData.maxPostsPerDay}
-            onChange={(e) => setFormData({ maxPostsPerDay: parseInt(e.target.value) })}
-            min="1"
-            max="50"
-          />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="minLength">Minimum Content Length</Label>
+            <Input
+              id="minLength"
+              type="number"
+              value={formData.minContentLength}
+              onChange={(e) => setFormData({ minContentLength: parseInt(e.target.value) })}
+              min="50"
+            />
+          </div>
+          <div>
+            <Label htmlFor="maxPosts">Max Posts Per Day</Label>
+            <Input
+              id="maxPosts"
+              type="number"
+              value={formData.maxPostsPerDay}
+              onChange={(e) => setFormData({ maxPostsPerDay: parseInt(e.target.value) })}
+              min="1"
+              max="50"
+            />
+          </div>
         </div>
       </div>
 
       <Separator />
 
+      {/* AI Settings Section */}
       <div className="space-y-4">
-        <h3 className="font-medium">AI Settings</h3>
+        <h3 className="text-lg font-semibold border-b pb-2">AI Settings</h3>
         
-        <div className="flex items-center justify-between">
-          <Label htmlFor="autoCategory">Enable Automatic Category Identification</Label>
-          <Switch
-            id="autoCategory"
-            checked={formData.settings.enableAutoCategory}
-            onCheckedChange={(checked) => 
-              setFormData({ 
-                settings: { ...formData.settings, enableAutoCategory: checked } 
-              })
-            }
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="autoCategory">Enable Automatic Category Identification</Label>
+              <Switch
+                id="autoCategory"
+                checked={formData.settings.enableAutoCategory}
+                onCheckedChange={(checked) => 
+                  setFormData({ 
+                    settings: { ...formData.settings, enableAutoCategory: checked } 
+                  })
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label htmlFor="aiRewrite">Enable AI Content Rewriting</Label>
+              <Switch
+                id="aiRewrite"
+                checked={formData.settings.enableAiRewrite}
+                onCheckedChange={(checked) => 
+                  setFormData({ 
+                    settings: { ...formData.settings, enableAiRewrite: checked } 
+                  })
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label htmlFor="includeSource">Include Original Source</Label>
+              <Switch
+                id="includeSource"
+                checked={formData.settings.includeOriginalSource}
+                onCheckedChange={(checked) => 
+                  setFormData({ 
+                    settings: { ...formData.settings, includeOriginalSource: checked } 
+                  })
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label htmlFor="autoPublish">Auto Publish Articles</Label>
+              <Switch
+                id="autoPublish"
+                checked={formData.settings.autoPublish}
+                onCheckedChange={(checked) => 
+                  setFormData({ 
+                    settings: { ...formData.settings, autoPublish: checked } 
+                  })
+                }
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {formData.settings.enableAiRewrite && (
+              <div>
+                <Label htmlFor="aiStyle">AI Rewrite Style</Label>
+                <Select
+                  value={formData.settings.aiRewriteStyle}
+                  onValueChange={(value) => 
+                    setFormData({ 
+                      settings: { ...formData.settings, aiRewriteStyle: value } 
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="professional">Professional</SelectItem>
+                    <SelectItem value="casual">Casual</SelectItem>
+                    <SelectItem value="formal">Formal</SelectItem>
+                    <SelectItem value="creative">Creative</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="publishDelay">Publish Delay (minutes)</Label>
+              <Input
+                id="publishDelay"
+                type="number"
+                value={formData.settings.publishDelay}
+                onChange={(e) => 
+                  setFormData({ 
+                    settings: { ...formData.settings, publishDelay: parseInt(e.target.value) } 
+                  })
+                }
+                min="0"
+                placeholder="0"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Category Identification Test */}
@@ -670,43 +807,45 @@ function RssFeedForm({
               <Brain className="h-4 w-4" />
               Test Category Identification
             </h4>
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="testTitle">Test Title</Label>
-                <Input
-                  id="testTitle"
-                  value={testTitle}
-                  onChange={(e) => setTestTitle(e.target.value)}
-                  placeholder="Enter a sample article title"
-                />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="testTitle">Test Title</Label>
+                  <Input
+                    id="testTitle"
+                    value={testTitle}
+                    onChange={(e) => setTestTitle(e.target.value)}
+                    placeholder="Enter a sample article title"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="testContent">Test Content</Label>
+                  <textarea
+                    id="testContent"
+                    value={testContent}
+                    onChange={(e) => setTestContent(e.target.value)}
+                    placeholder="Enter sample article content"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={4}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleTestCategory}
+                  disabled={testing || !testTitle || !testContent}
+                  className="w-full"
+                >
+                  {testing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
+                      Testing...
+                    </>
+                  ) : (
+                    'Test Category Identification'
+                  )}
+                </Button>
               </div>
-              <div>
-                <Label htmlFor="testContent">Test Content</Label>
-                <textarea
-                  id="testContent"
-                  value={testContent}
-                  onChange={(e) => setTestContent(e.target.value)}
-                  placeholder="Enter sample article content"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                />
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleTestCategory}
-                disabled={testing || !testTitle || !testContent}
-                className="w-full"
-              >
-                {testing ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
-                    Testing...
-                  </>
-                ) : (
-                  'Test Category Identification'
-                )}
-              </Button>
               {testResult && (
                 <div className="p-3 bg-green-50 border border-green-200 rounded-md">
                   <div className="flex items-center justify-between mb-2">
@@ -740,91 +879,15 @@ function RssFeedForm({
             </div>
           </div>
         )}
-
-        <div className="flex items-center justify-between">
-          <Label htmlFor="aiRewrite">Enable AI Content Rewriting</Label>
-          <Switch
-            id="aiRewrite"
-            checked={formData.settings.enableAiRewrite}
-            onCheckedChange={(checked) => 
-              setFormData({ 
-                settings: { ...formData.settings, enableAiRewrite: checked } 
-              })
-            }
-          />
-        </div>
-
-        {formData.settings.enableAiRewrite && (
-          <div>
-            <Label htmlFor="aiStyle">AI Rewrite Style</Label>
-            <Select
-              value={formData.settings.aiRewriteStyle}
-              onValueChange={(value) => 
-                setFormData({ 
-                  settings: { ...formData.settings, aiRewriteStyle: value } 
-                })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="professional">Professional</SelectItem>
-                <SelectItem value="casual">Casual</SelectItem>
-                <SelectItem value="formal">Formal</SelectItem>
-                <SelectItem value="creative">Creative</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        <div className="flex items-center justify-between">
-          <Label htmlFor="includeSource">Include Original Source</Label>
-          <Switch
-            id="includeSource"
-            checked={formData.settings.includeOriginalSource}
-            onCheckedChange={(checked) => 
-              setFormData({ 
-                settings: { ...formData.settings, includeOriginalSource: checked } 
-              })
-            }
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <Label htmlFor="autoPublish">Auto Publish Articles</Label>
-          <Switch
-            id="autoPublish"
-            checked={formData.settings.autoPublish}
-            onCheckedChange={(checked) => 
-              setFormData({ 
-                settings: { ...formData.settings, autoPublish: checked } 
-              })
-            }
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="publishDelay">Publish Delay (minutes)</Label>
-          <Input
-            id="publishDelay"
-            type="number"
-            value={formData.settings.publishDelay}
-            onChange={(e) => 
-              setFormData({ 
-                settings: { ...formData.settings, publishDelay: parseInt(e.target.value) } 
-              })
-            }
-            min="0"
-            placeholder="0"
-          />
-        </div>
       </div>
 
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onSubmit}>
-          {submitText}
-        </Button>
+      {/* Sticky Submit Button */}
+      <div className="sticky bottom-0 sticky-button-container border-t pt-4 mt-6">
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onSubmit} className="min-w-[120px]">
+            {submitText}
+          </Button>
+        </div>
       </div>
     </div>
   );
