@@ -5,7 +5,7 @@ const { auth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET /api/categories - get all active categories with article counts
+// GET /api/categories - get all active categories with article counts (public)
 router.get('/', async (req, res) => {
   try {
     const categories = await Category.find({ isActive: true }).sort({ order: 1, name: 1 });
@@ -28,6 +28,33 @@ router.get('/', async (req, res) => {
     res.json({ success: true, categories: categoriesWithCounts });
   } catch (error) {
     console.error('Error fetching categories with counts:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// GET /api/categories/admin - get ALL categories (including inactive) for admin interface
+router.get('/admin', auth, requireRole(['admin']), async (req, res) => {
+  try {
+    const categories = await Category.find().sort({ order: 1, name: 1 });
+    
+    // Get article counts for each category
+    const categoriesWithCounts = await Promise.all(
+      categories.map(async (category) => {
+        const articleCount = await Article.countDocuments({ 
+          category: category._id,
+          status: 'published'
+        });
+        
+        return {
+          ...category.toObject(),
+          articleCount
+        };
+      })
+    );
+    
+    res.json({ success: true, categories: categoriesWithCounts });
+  } catch (error) {
+    console.error('Error fetching all categories for admin:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

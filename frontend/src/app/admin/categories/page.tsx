@@ -37,6 +37,7 @@ export default function AdminCategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -46,6 +47,14 @@ export default function AdminCategoriesPage() {
     isActive: true
   });
 
+  // Filter categories based on status
+  const filteredCategories = categories.filter(category => {
+    if (statusFilter === 'all') return true;
+    if (statusFilter === 'active') return category.isActive;
+    if (statusFilter === 'inactive') return !category.isActive;
+    return true;
+  });
+
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -53,7 +62,7 @@ export default function AdminCategoriesPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const data = await apiCall('/categories') as Category[] | { success: boolean; categories?: Category[] };
+      const data = await apiCall('/categories/admin') as Category[] | { success: boolean; categories?: Category[] };
       
       // Handle both old and new API response formats
       if (Array.isArray(data)) {
@@ -289,7 +298,22 @@ export default function AdminCategoriesPage() {
       {/* Categories List */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Categories ({categories.length})</CardTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CardTitle className="text-lg">Categories ({filteredCategories.length})</CardTitle>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="statusFilter" className="text-sm font-medium">Filter:</Label>
+              <select
+                id="statusFilter"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Categories</option>
+                <option value="active">Active Only</option>
+                <option value="inactive">Inactive Only</option>
+              </select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -303,9 +327,9 @@ export default function AdminCategoriesPage() {
                 </div>
               ))}
             </div>
-          ) : categories.length > 0 ? (
+          ) : filteredCategories.length > 0 ? (
             <div className="space-y-4">
-              {categories.map((category) => (
+              {filteredCategories.map((category) => (
                 <div key={category._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-gray-50 gap-4">
                   <div className="flex items-center space-x-4">
                     <GripVertical className="h-5 w-5 text-gray-400 flex-shrink-0" />
@@ -389,14 +413,21 @@ export default function AdminCategoriesPage() {
               <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                 <FolderOpen className="h-6 w-6 text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No categories yet</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {statusFilter === 'all' ? 'No categories yet' : `No ${statusFilter} categories`}
+              </h3>
               <p className="text-gray-500 mb-4 px-4">
-                Create your first category to organize your articles
+                {statusFilter === 'all' 
+                  ? 'Create your first category to organize your articles'
+                  : `No ${statusFilter} categories found. Try changing the filter or create a new category.`
+                }
               </p>
-              <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Category
-              </Button>
+              {statusFilter === 'all' && (
+                <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Category
+                </Button>
+              )}
             </div>
           )}
         </CardContent>
