@@ -42,11 +42,11 @@ async function HomeContent() {
   return (
     <div className="container mx-auto px-4 py-4 sm:py-8">
       {/* Main H1 for SEO and Accessibility */}
-      <header className="mb-6 sm:mb-8 text-center">
+      <header className="mb-6 sm:mb-8 text-center px-2 sm:px-0">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-2">
           {settings.siteName || 'The Daily Herald'}
         </h1>
-        <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto">
+        <p className="text-base sm:text-lg lg:text-xl text-slate-600 max-w-2xl mx-auto px-4 sm:px-6 lg:px-0 leading-relaxed break-words">
           {settings.siteDescription || 'Your trusted source for the latest news and breaking stories from around the world'}
         </p>
       </header>
