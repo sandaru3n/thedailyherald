@@ -12,13 +12,23 @@ export default function ClientBody({
 
   // Remove any extension-added classes during hydration
   useEffect(() => {
-    // This runs only on the client after hydration
-    document.body.className = "antialiased";
+    // Ensure we're in a browser environment
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+
+    try {
+      // This runs only on the client after hydration
+      if (document.body) {
+        document.body.className = "antialiased";
+      }
+    } catch (error) {
+      console.warn('Error setting body class:', error);
+    }
   }, []);
 
   return (
     <div className="antialiased">
-      <ProgressBar isLoading={isLoading} />
       {children}
     </div>
   );

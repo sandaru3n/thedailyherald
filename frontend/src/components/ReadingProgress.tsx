@@ -6,15 +6,35 @@ export default function ReadingProgress() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    // Ensure we're in a browser environment
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const updateProgress = () => {
-      const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = (scrollTop / docHeight) * 100;
-      setProgress(Math.min(progress, 100));
+      try {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = (scrollTop / docHeight) * 100;
+        setProgress(Math.min(progress, 100));
+      } catch (error) {
+        console.warn('Error updating reading progress:', error);
+      }
     };
 
+    // Add event listener
     window.addEventListener('scroll', updateProgress);
-    return () => window.removeEventListener('scroll', updateProgress);
+    
+    // Cleanup function with proper null checks
+    return () => {
+      try {
+        if (typeof window !== 'undefined' && window.removeEventListener) {
+          window.removeEventListener('scroll', updateProgress);
+        }
+      } catch (error) {
+        console.warn('Error removing scroll event listener:', error);
+      }
+    };
   }, []);
 
   return (

@@ -59,7 +59,9 @@ async function HomeContent() {
             <section className="mb-8 sm:mb-12">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {featuredNews.map((article) => (
-                  <ArticleCard key={article._id} article={article} variant="featured" />
+                  <div key={article._id} className="h-full">
+                    <ArticleCard article={article} variant="featured" />
+                  </div>
                 ))}
               </div>
             </section>
@@ -72,6 +74,7 @@ async function HomeContent() {
               <Separator className="ml-3 sm:ml-4 flex-1" />
               <Link 
                 href="/articles"
+                prefetch={true}
                 className="inline-flex items-center px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"
               >
                 View All
@@ -83,7 +86,9 @@ async function HomeContent() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
               {latestNews.slice(0, 6).map((article) => (
-                <ArticleCard key={article._id} article={article} />
+                <div key={article._id} className="h-full">
+                  <ArticleCard article={article} />
+                </div>
               ))}
             </div>
           </section>
@@ -106,6 +111,7 @@ async function HomeContent() {
                   <Separator className="ml-3 sm:ml-4 flex-1" />
                   <Link 
                     href={`/category/${category.slug}`}
+                    prefetch={true}
                     className="inline-flex items-center px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"
                   >
                     View All
@@ -117,7 +123,9 @@ async function HomeContent() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                   {categoryNews.slice(0, 3).map((article) => (
-                    <ArticleCard key={article._id} article={article} />
+                    <div key={article._id} className="h-full">
+                      <ArticleCard article={article} />
+                    </div>
                   ))}
                 </div>
               </section>

@@ -20,15 +20,35 @@ export default function Header() {
 
   // Close search results when clicking outside
   useEffect(() => {
+    // Ensure we're in a browser environment
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+
     function handleClickOutside(event: MouseEvent) {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowSearchResults(false);
+      try {
+        if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+          setShowSearchResults(false);
+        }
+      } catch (error) {
+        console.warn('Error handling click outside:', error);
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    try {
+      document.addEventListener('mousedown', handleClickOutside);
+    } catch (error) {
+      console.warn('Error adding mousedown event listener:', error);
+    }
+
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      try {
+        if (typeof document !== 'undefined' && document.removeEventListener) {
+          document.removeEventListener('mousedown', handleClickOutside);
+        }
+      } catch (error) {
+        console.warn('Error removing mousedown event listener:', error);
+      }
     };
   }, []);
 

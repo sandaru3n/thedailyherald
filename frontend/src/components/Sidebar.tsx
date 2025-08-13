@@ -55,8 +55,12 @@ export default function Sidebar({ trendingNews }: SidebarProps) {
                   {index + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <Link href={`/article/${getArticleSlug(article)}`} className="block">
-                    <h4 className="font-semibold text-xs sm:text-sm leading-tight mb-1 hover:text-blue-600 cursor-pointer transition-colors line-clamp-2">
+                  <Link 
+                    href={`/article/${getArticleSlug(article)}`} 
+                    className="block group"
+                    prefetch={true}
+                  >
+                    <h4 className="font-semibold text-xs sm:text-sm leading-tight mb-1 group-hover:text-blue-600 cursor-pointer transition-colors line-clamp-2">
                       {article.title}
                     </h4>
                     <div className="flex items-center gap-1 sm:gap-2 text-xs text-gray-500">
@@ -100,7 +104,11 @@ export default function Sidebar({ trendingNews }: SidebarProps) {
         <CardContent>
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {popularTags.map((tag, index) => (
-              <Link key={tag.slug} href={`/category/${tag.slug}`}>
+              <Link 
+                key={tag.slug} 
+                href={`/category/${tag.slug}`}
+                prefetch={true}
+              >
                 <Badge
                   variant="outline"
                   className="cursor-pointer hover:bg-slate-100 transition-colors text-xs"
