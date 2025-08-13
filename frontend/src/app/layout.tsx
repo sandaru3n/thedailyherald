@@ -11,6 +11,7 @@ import PublicLayout from "@/components/PublicLayout";
 import { generateMetadata as generateSiteMetadata } from "@/lib/metadata";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { getSiteSettings } from "@/lib/settings";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,40 +57,55 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
-        <Script
-          crossOrigin="anonymous"
-          src="//unpkg.com/same-runtime/dist/index.global.js"
-        />
-        <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="/feed/" />
-        <link rel="alternate" type="application/rss+xml" title="Politics RSS Feed" href="/feed/category/politics/" />
-        <link rel="alternate" type="application/rss+xml" title="Technology RSS Feed" href="/feed/category/technology/" />
-        <link rel="alternate" type="application/rss+xml" title="Sports RSS Feed" href="/feed/category/sports/" />
-        <link rel="alternate" type="application/rss+xml" title="Business RSS Feed" href="/feed/category/business/" />
-        <link rel="alternate" type="application/rss+xml" title="Health RSS Feed" href="/feed/category/health/" />
-        <link rel="alternate" type="application/rss+xml" title="World RSS Feed" href="/feed/category/world/" />
-        <link rel="alternate" type="application/rss+xml" title="Entertainment RSS Feed" href="/feed/category/entertainment/" />
-        <GoogleAnalytics />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16" />
+        <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
+        <link rel="manifest" href="/site.webmanifest" />
       </head>
-      <body suppressHydrationWarning className="antialiased">
-        <ResourcePreloader 
-          criticalFonts={[
-            'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
-          ]}
-        />
-        <FaviconProvider />
-        <SmoothPageTransition>
+      <body className="antialiased">
+        <ErrorBoundary>
           <ClientBody>
-            <PublicLayout>
-              {children}
-            </PublicLayout>
+            <FaviconProvider />
+            <GoogleAnalytics />
+            <ResourcePreloader />
+            <SmoothPageTransition>
+              <PublicLayout>
+                {children}
+              </PublicLayout>
+            </SmoothPageTransition>
           </ClientBody>
-        </SmoothPageTransition>
+        </ErrorBoundary>
+        
+        {/* Performance monitoring script */}
+        <Script
+          id="performance-monitor"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined') {
+                window.addEventListener('load', function() {
+                  setTimeout(function() {
+                    if ('performance' in window) {
+                      const perfData = performance.getEntriesByType('navigation')[0];
+                      if (perfData) {
+                        console.log('Page Load Time:', perfData.loadEventEnd - perfData.loadEventStart, 'ms');
+                      }
+                    }
+                  }, 0);
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );

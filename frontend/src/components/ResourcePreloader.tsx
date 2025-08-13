@@ -14,70 +14,123 @@ export default function ResourcePreloader({
   criticalScripts = [] 
 }: ResourcePreloaderProps) {
   useEffect(() => {
-    // Preload critical images
-    criticalImages.forEach((src) => {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'image';
-      link.href = src;
-      link.crossOrigin = 'anonymous';
-      document.head.appendChild(link);
-    });
+    // Ensure we're in a browser environment
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
 
-    // Preload critical fonts
-    criticalFonts.forEach((font) => {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'font';
-      link.href = font;
-      link.crossOrigin = 'anonymous';
-      document.head.appendChild(link);
-    });
+    try {
+      // Preload critical images
+      criticalImages.forEach((src) => {
+        try {
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = src;
+          link.crossOrigin = 'anonymous';
+          if (document.head) {
+            document.head.appendChild(link);
+          }
+        } catch (error) {
+          console.warn('Error preloading image:', error);
+        }
+      });
 
-    // Preload critical scripts
-    criticalScripts.forEach((script) => {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'script';
-      link.href = script;
-      document.head.appendChild(link);
-    });
+      // Preload critical fonts
+      criticalFonts.forEach((font) => {
+        try {
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'font';
+          link.href = font;
+          link.crossOrigin = 'anonymous';
+          if (document.head) {
+            document.head.appendChild(link);
+          }
+        } catch (error) {
+          console.warn('Error preloading font:', error);
+        }
+      });
 
-    // DNS prefetch for external domains
-    const externalDomains = [
-      'https://fonts.googleapis.com',
-      'https://fonts.gstatic.com',
-      'https://images.unsplash.com',
-      'https://source.unsplash.com',
-    ];
+      // Preload critical scripts
+      criticalScripts.forEach((script) => {
+        try {
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'script';
+          link.href = script;
+          if (document.head) {
+            document.head.appendChild(link);
+          }
+        } catch (error) {
+          console.warn('Error preloading script:', error);
+        }
+      });
 
-    externalDomains.forEach((domain) => {
-      const link = document.createElement('link');
-      link.rel = 'dns-prefetch';
-      link.href = domain;
-      document.head.appendChild(link);
-    });
+      // DNS prefetch for external domains
+      const externalDomains = [
+        'https://fonts.googleapis.com',
+        'https://fonts.gstatic.com',
+        'https://images.unsplash.com',
+        'https://source.unsplash.com',
+      ];
 
-    // Preconnect to critical domains
-    const criticalDomains = [
-      'https://fonts.googleapis.com',
-      'https://fonts.gstatic.com',
-    ];
+      externalDomains.forEach((domain) => {
+        try {
+          const link = document.createElement('link');
+          link.rel = 'dns-prefetch';
+          link.href = domain;
+          if (document.head) {
+            document.head.appendChild(link);
+          }
+        } catch (error) {
+          console.warn('Error adding DNS prefetch:', error);
+        }
+      });
 
-    criticalDomains.forEach((domain) => {
-      const link = document.createElement('link');
-      link.rel = 'preconnect';
-      link.href = domain;
-      link.crossOrigin = 'anonymous';
-      document.head.appendChild(link);
-    });
+      // Preconnect to critical domains
+      const criticalDomains = [
+        'https://fonts.googleapis.com',
+        'https://fonts.gstatic.com',
+      ];
 
-    // Cleanup function
-    return () => {
-      // Remove preload links on unmount
-      const preloadLinks = document.querySelectorAll('link[rel="preload"]');
-      preloadLinks.forEach((link) => link.remove());
-    };
+      criticalDomains.forEach((domain) => {
+        try {
+          const link = document.createElement('link');
+          link.rel = 'preconnect';
+          link.href = domain;
+          link.crossOrigin = 'anonymous';
+          if (document.head) {
+            document.head.appendChild(link);
+          }
+        } catch (error) {
+          console.warn('Error adding preconnect:', error);
+        }
+      });
+
+      // Cleanup function with proper null checks
+      return () => {
+        try {
+          if (typeof document !== 'undefined' && document.querySelectorAll) {
+            // Remove preload links on unmount with proper checks
+            const preloadLinks = document.querySelectorAll('link[rel="preload"]');
+            preloadLinks.forEach((link) => {
+              try {
+                if (link && link.parentNode && link.parentNode.contains(link)) {
+                  link.parentNode.removeChild(link);
+                }
+              } catch (error) {
+                console.warn('Error removing preload link:', error);
+              }
+            });
+          }
+        } catch (error) {
+          console.warn('Error in ResourcePreloader cleanup:', error);
+        }
+      };
+    } catch (error) {
+      console.warn('Error in ResourcePreloader:', error);
+    }
   }, [criticalImages, criticalFonts, criticalScripts]);
 
   return null;
