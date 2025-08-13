@@ -205,7 +205,7 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
               <div className="article-content prose prose-sm sm:prose-base lg:prose-lg max-w-none">
                 <div 
                   dangerouslySetInnerHTML={{ __html: article.content }}
-                  className="text-gray-900 leading-relaxed text-base sm:text-lg lg:text-xl font-normal"
+                  className="text-gray-900 leading-relaxed text-lg sm:text-xl lg:text-2xl font-normal"
                   style={{
                     lineHeight: '1.7',
                     letterSpacing: '0.01em',
