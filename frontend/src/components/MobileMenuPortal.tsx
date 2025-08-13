@@ -63,9 +63,34 @@ export default function MobileMenuPortal({
   getIconComponent
 }: MobileMenuPortalProps) {
   const [mounted, setMounted] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
+    
+    // Create a dedicated container for the portal
+    try {
+      if (typeof document !== 'undefined') {
+        const container = document.createElement('div');
+        container.id = 'mobile-menu-portal';
+        document.body.appendChild(container);
+        setPortalContainer(container);
+      }
+    } catch (error) {
+      console.warn('Error creating portal container:', error);
+    }
+
+    return () => {
+      try {
+        if (typeof document !== 'undefined' && portalContainer) {
+          if (document.body.contains(portalContainer)) {
+            document.body.removeChild(portalContainer);
+          }
+        }
+      } catch (error) {
+        console.warn('Error removing portal container:', error);
+      }
+    };
   }, []);
 
   // Prevent body scroll when menu is open
@@ -120,7 +145,7 @@ export default function MobileMenuPortal({
     };
   }, [isOpen, mounted, onClose]);
 
-  if (!mounted || !isOpen || typeof window === 'undefined') {
+  if (!mounted || !isOpen || !portalContainer || typeof window === 'undefined') {
     return null;
   }
 
@@ -196,7 +221,7 @@ export default function MobileMenuPortal({
                   onClick={onClose}
                 >
                   <IconComponent className="h-5 w-5 mr-2" />
-                  {item.label}
+                  <span>{item.label}</span>
                   {item.isExternal && (
                     <Globe className="h-4 w-4 ml-auto" />
                   )}
@@ -209,5 +234,5 @@ export default function MobileMenuPortal({
     </>
   );
 
-  return createPortal(mobileMenuContent, document.body);
+  return createPortal(mobileMenuContent, portalContainer);
 }

@@ -3,10 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientBody from "./ClientBody";
 import Script from "next/script";
-import ResourcePreloader from "@/components/ResourcePreloader";
 import FaviconProvider from "@/components/FaviconProvider";
 import SmoothPageTransition from "@/components/SmoothPageTransition";
-import ProgressBar from "@/components/ProgressBar";
 import PublicLayout from "@/components/PublicLayout";
 import { generateMetadata as generateSiteMetadata } from "@/lib/metadata";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
@@ -76,7 +74,6 @@ export default function RootLayout({
           <ClientBody>
             <FaviconProvider />
             <GoogleAnalytics />
-            <ResourcePreloader />
             <SmoothPageTransition>
               <PublicLayout>
                 {children}
@@ -85,23 +82,31 @@ export default function RootLayout({
           </ClientBody>
         </ErrorBoundary>
         
-        {/* Performance monitoring script */}
+        {/* Safe performance monitoring script */}
         <Script
           id="performance-monitor"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-              if (typeof window !== 'undefined') {
-                window.addEventListener('load', function() {
-                  setTimeout(function() {
-                    if ('performance' in window) {
-                      const perfData = performance.getEntriesByType('navigation')[0];
-                      if (perfData) {
-                        console.log('Page Load Time:', perfData.loadEventEnd - perfData.loadEventStart, 'ms');
+              try {
+                if (typeof window !== 'undefined') {
+                  window.addEventListener('load', function() {
+                    setTimeout(function() {
+                      try {
+                        if ('performance' in window) {
+                          const perfData = performance.getEntriesByType('navigation')[0];
+                          if (perfData) {
+                            console.log('Page Load Time:', perfData.loadEventEnd - perfData.loadEventStart, 'ms');
+                          }
+                        }
+                      } catch (e) {
+                        console.warn('Performance monitoring error:', e);
                       }
-                    }
-                  }, 0);
-                });
+                    }, 0);
+                  });
+                }
+              } catch (e) {
+                console.warn('Performance script error:', e);
               }
             `,
           }}

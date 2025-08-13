@@ -5,11 +5,12 @@ import React from 'react';
 interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
+  errorInfo?: React.ErrorInfo;
 }
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
-  fallback?: React.ComponentType<{ error?: Error }>;
+  fallback?: React.ReactNode;
 }
 
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -24,21 +25,29 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log the error to console
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Log error details for debugging
+    console.error('ErrorBoundary caught an error:', error);
+    console.error('Error info:', errorInfo);
+    
+    this.setState({
+      error,
+      errorInfo
+    });
+
+    // You can also log the error to an error reporting service here
+    // logErrorToService(error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
-      // You can render any custom fallback UI
       if (this.props.fallback) {
-        const FallbackComponent = this.props.fallback;
-        return <FallbackComponent error={this.state.error} />;
+        return this.props.fallback;
       }
 
+      // Default error UI
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
                 <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,9 +60,29 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
               <p className="text-sm text-gray-500 mb-4">
                 We're sorry, but something unexpected happened. Please try refreshing the page.
               </p>
+              {process.env.NODE_ENV === 'development' && this.state.error && (
+                <details className="text-left mb-4 p-3 bg-gray-100 rounded text-xs">
+                  <summary className="cursor-pointer font-medium mb-2">Error Details (Development)</summary>
+                  <div className="space-y-2">
+                    <div><strong>Error:</strong> {this.state.error.message}</div>
+                    <div><strong>Stack:</strong></div>
+                    <pre className="whitespace-pre-wrap text-xs overflow-auto max-h-32">
+                      {this.state.error.stack}
+                    </pre>
+                    {this.state.errorInfo && (
+                      <>
+                        <div><strong>Component Stack:</strong></div>
+                        <pre className="whitespace-pre-wrap text-xs overflow-auto max-h-32">
+                          {this.state.errorInfo.componentStack}
+                        </pre>
+                      </>
+                    )}
+                  </div>
+                </details>
+              )}
               <button
                 onClick={() => {
-                  this.setState({ hasError: false, error: undefined });
+                  this.setState({ hasError: false, error: undefined, errorInfo: undefined });
                   window.location.reload();
                 }}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

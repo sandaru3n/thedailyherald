@@ -2,6 +2,63 @@
 const nextConfig = {
   allowedDevOrigins: ["*.preview.same-app.com"],
   
+  // Security headers to prevent MIME type issues and external script conflicts
+  async headers() {
+    // Get backend URL from environment variable
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const backendHost = new URL(backendUrl).hostname;
+    const backendPort = new URL(backendUrl).port;
+    
+    // Build CSP with dynamic backend URL
+    const cspValue = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+      "style-src 'self' 'unsafe-inline' https:",
+      `img-src 'self' data: https: ${backendUrl} https://${backendHost}${backendPort ? ':' + backendPort : ''}`,
+      "font-src 'self' https:",
+      `connect-src 'self' https: ${backendUrl} https://${backendHost}${backendPort ? ':' + backendPort : ''}`,
+      "frame-src 'none'",
+      "object-src 'none'"
+    ].join('; ');
+
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: cspValue,
+          },
+        ],
+      },
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
+  
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
@@ -197,43 +254,6 @@ const nextConfig = {
       return config;
     },
   }),
-  
-  // Headers for performance
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-          // Cache static assets
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        source: '/api/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=60, s-maxage=300',
-          },
-        ],
-      },
-    ];
-  },
 };
 
 export default nextConfig;
