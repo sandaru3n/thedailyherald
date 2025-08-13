@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { X, Search, Globe } from 'lucide-react';
+import { X, Search, Globe, Bookmark } from 'lucide-react';
 import { SearchResults } from '@/components/SearchResults';
 
 // Import existing types from hooks
@@ -228,6 +228,16 @@ export default function MobileMenuPortal({
                 </Link>
               );
             })}
+            
+            {/* Bookmarks Link */}
+            <Link
+              href="/bookmarks"
+              className="flex items-center text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
+              onClick={onClose}
+            >
+              <Bookmark className="h-5 w-5 mr-2" />
+              <span>My Bookmarks</span>
+            </Link>
           </nav>
         </div>
       </div>

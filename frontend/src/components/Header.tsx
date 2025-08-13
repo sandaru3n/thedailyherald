@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Search, Home, Info, FileText, Settings, Contact, Globe } from 'lucide-react';
+import { Menu, X, Search, Home, Info, FileText, Settings, Contact, Globe, Bookmark } from 'lucide-react';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useAuth } from '@/hooks/useAuth';
@@ -123,6 +123,7 @@ export default function Header() {
       'settings': Settings,
       'contact': Contact,
       'globe': Globe,
+      'bookmark': Bookmark,
     };
     return iconMap[iconName] || Home;
   };
@@ -250,6 +251,19 @@ export default function Header() {
                   />
                 )}
               </div>
+
+              {/* Bookmarks Button */}
+              <Link href="/bookmarks" passHref>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                  aria-label="My Bookmarks"
+                >
+                  <Bookmark className="h-4 w-4 mr-2" />
+                  <span>Bookmarks</span>
+                </Button>
+              </Link>
 
               {/* Admin Dashboard Button (Desktop only, when logged in) */}
               {isLoggedIn && (

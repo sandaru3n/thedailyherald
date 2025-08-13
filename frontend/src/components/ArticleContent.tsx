@@ -25,7 +25,8 @@ import {
   User,
   Bookmark,
   ArrowLeft,
-  ExternalLink
+  ExternalLink,
+  Check
 } from 'lucide-react';
 import ScrollToTop from '@/components/ScrollToTop';
 
@@ -35,16 +36,100 @@ interface ArticleContentProps {
   slug: string;
 }
 
+interface BookmarkedArticle {
+  id: string;
+  title: string;
+  excerpt: string;
+  featuredImage?: string;
+  publishedAt: string;
+  author: string;
+  category: string;
+  slug: string;
+  bookmarkedAt: string;
+}
+
 export default function ArticleContent({ article, relatedArticles, slug }: ArticleContentProps) {
   const router = useRouter();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [showBookmarkFeedback, setShowBookmarkFeedback] = useState(false);
   const { settings } = useSiteSettings();
 
   // Hydration safety
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Check if article is bookmarked on component mount
+  useEffect(() => {
+    if (isClient) {
+      const bookmarkedArticles = getBookmarkedArticles();
+      const articleId = article._id || article.id || '';
+      setIsBookmarked(bookmarkedArticles.some(bookmarked => bookmarked.id === articleId));
+    }
+  }, [isClient, article._id, article.id]);
+
+  const getBookmarkedArticles = (): BookmarkedArticle[] => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem('bookmarkedArticles');
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('Error reading bookmarked articles:', error);
+      return [];
+    }
+  };
+
+  const saveBookmarkedArticles = (articles: BookmarkedArticle[]) => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem('bookmarkedArticles', JSON.stringify(articles));
+    } catch (error) {
+      console.error('Error saving bookmarked articles:', error);
+    }
+  };
+
+  const handleBookmarkToggle = () => {
+    if (!isClient) return;
+
+    const articleId = article._id || article.id || '';
+    const bookmarkedArticles = getBookmarkedArticles();
+    const authorName = typeof article.author === 'string' ? article.author : article.author?.name || 'Unknown Author';
+    const categoryName = typeof article.category === 'string' ? article.category : article.category?.name || 'Uncategorized';
+
+    if (isBookmarked) {
+      // Remove from bookmarks
+      const updatedBookmarks = bookmarkedArticles.filter(bookmarked => bookmarked.id !== articleId);
+      saveBookmarkedArticles(updatedBookmarks);
+      setIsBookmarked(false);
+      showBookmarkFeedbackMessage('Article removed from bookmarks');
+    } else {
+      // Add to bookmarks
+      const newBookmarkedArticle: BookmarkedArticle = {
+        id: articleId,
+        title: article.title,
+        excerpt: article.excerpt || '',
+        featuredImage: article.featuredImage || article.imageUrl,
+        publishedAt: typeof article.publishedAt === 'string' ? article.publishedAt : article.publishedAt.toISOString(),
+        author: authorName,
+        category: categoryName,
+        slug: slug,
+        bookmarkedAt: new Date().toISOString()
+      };
+
+      const updatedBookmarks = [...bookmarkedArticles, newBookmarkedArticle];
+      saveBookmarkedArticles(updatedBookmarks);
+      setIsBookmarked(true);
+      showBookmarkFeedbackMessage('Article saved to bookmarks');
+    }
+  };
+
+  const showBookmarkFeedbackMessage = (message: string) => {
+    setShowBookmarkFeedback(true);
+    setTimeout(() => {
+      setShowBookmarkFeedback(false);
+    }, 2000);
+  };
 
   const calculateReadTime = (content: string) => {
     const wordsPerMinute = 200;
@@ -78,6 +163,16 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
         url={typeof window !== 'undefined' ? window.location.href : ''}
         excerpt={article.excerpt}
       />
+      
+      {/* Bookmark Feedback Toast */}
+      {showBookmarkFeedback && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
+          <Check className="w-4 h-4" />
+          <span className="text-sm font-medium">
+            {isBookmarked ? 'Article saved to bookmarks' : 'Article removed from bookmarks'}
+          </span>
+        </div>
+      )}
       
       {/* Breadcrumb - Optimized for mobile */}
       <nav className="mb-3 sm:mb-4" aria-label="Breadcrumb">
@@ -190,8 +285,12 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-white/90 hover:bg-white"
-                    onClick={() => setIsBookmarked(!isBookmarked)}
+                    className={`absolute top-2 sm:top-4 right-2 sm:right-4 transition-all duration-200 ${
+                      isBookmarked 
+                        ? 'bg-blue-500/90 hover:bg-blue-600 text-white' 
+                        : 'bg-white/90 hover:bg-white text-gray-700'
+                    }`}
+                    onClick={handleBookmarkToggle}
                     aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}
                   >
                     <Bookmark className={`w-3 h-3 sm:w-4 sm:h-4 ${isBookmarked ? 'fill-current' : ''}`} />
