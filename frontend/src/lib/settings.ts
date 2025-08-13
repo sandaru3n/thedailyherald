@@ -2,6 +2,7 @@ interface SiteSettings {
   siteName: string;
   siteDescription: string;
   siteUrl: string;
+  siteFavicon?: string;
   publisherName: string;
   publisherUrl: string;
   seoSettings?: {

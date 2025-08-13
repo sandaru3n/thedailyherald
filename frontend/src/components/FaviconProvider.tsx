@@ -21,14 +21,37 @@ export default function FaviconProvider() {
     
     if (faviconUrl) {
       // Remove existing favicon links
-      const existingFavicons = document.querySelectorAll('link[rel*="icon"]');
+      const existingFavicons = document.querySelectorAll('link[rel*="icon"], link[rel*="apple-touch-icon"]');
       existingFavicons.forEach(link => link.remove());
 
-      // Add new favicon
-      const faviconLink = document.createElement('link');
-      faviconLink.rel = 'icon';
-      faviconLink.href = faviconUrl;
-      document.head.appendChild(faviconLink);
+      // Add comprehensive favicon support
+      const faviconLinks = [
+        // Standard favicon
+        { rel: 'icon', href: faviconUrl, sizes: 'any' },
+        // PNG versions for better compatibility
+        { rel: 'icon', href: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+        { rel: 'icon', href: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+        // Apple touch icon (use uploaded favicon if available)
+        { rel: 'apple-touch-icon', href: faviconUrl, sizes: '180x180' },
+        // Android Chrome icons
+        { rel: 'icon', href: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
+        { rel: 'icon', href: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
+        // Safari pinned tab
+        { rel: 'mask-icon', href: '/safari-pinned-tab.svg', color: '#000000' },
+        // Web app manifest
+        { rel: 'manifest', href: '/site.webmanifest' }
+      ];
+
+      // Add all favicon links to the document head
+      faviconLinks.forEach(linkData => {
+        const link = document.createElement('link');
+        Object.entries(linkData).forEach(([key, value]) => {
+          if (value !== undefined) {
+            link.setAttribute(key, value);
+          }
+        });
+        document.head.appendChild(link);
+      });
     }
   }, [settings?.siteFavicon]);
 

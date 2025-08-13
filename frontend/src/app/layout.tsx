@@ -10,6 +10,7 @@ import ProgressBar from "@/components/ProgressBar";
 import PublicLayout from "@/components/PublicLayout";
 import { generateMetadata as generateSiteMetadata } from "@/lib/metadata";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import { getSiteSettings } from "@/lib/settings";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,11 +23,35 @@ const geistMono = Geist_Mono({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  return generateSiteMetadata(
+  const baseMetadata = await generateSiteMetadata(
     "Home",
     "",
     "/"
   );
+
+  // Get site settings to access the uploaded favicon
+  const settings = await getSiteSettings();
+  const faviconUrl = settings?.siteFavicon;
+
+  return {
+    ...baseMetadata,
+    icons: {
+      icon: [
+        // Use uploaded favicon if available, otherwise fallback to default
+        ...(faviconUrl ? [{ url: faviconUrl, sizes: 'any' }] : [{ url: '/favicon.ico', sizes: 'any' }]),
+        { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+        { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      ],
+      apple: [
+        // Use uploaded favicon for Apple devices if available
+        ...(faviconUrl ? [{ url: faviconUrl, sizes: '180x180', type: 'image/png' }] : [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }]),
+      ],
+      other: [
+        { rel: 'mask-icon', url: '/safari-pinned-tab.svg', color: '#000000' },
+      ],
+    },
+    manifest: '/site.webmanifest',
+  };
 }
 
 export default function RootLayout({
