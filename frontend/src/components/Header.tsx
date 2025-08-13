@@ -9,14 +9,21 @@ import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { HeaderSkeleton, NavigationSkeleton } from '@/components/Skeleton';
 import { useSearch } from '@/hooks/useSearch';
 import { SearchResults } from '@/components/SearchResults';
+import MobileMenuErrorBoundary from '@/components/MobileMenuErrorBoundary';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const { activeItems, loading: navigationLoading } = useNavigation();
   const { settings, loading: settingsLoading } = useSiteSettings();
   const { searchTerm, searchResults, isLoading, error, setSearchTerm, clearSearch } = useSearch();
+
+  // Ensure component is mounted before rendering
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Close search results when clicking outside
   useEffect(() => {
@@ -52,6 +59,55 @@ export default function Header() {
     };
   }, []);
 
+  // Handle mobile menu body scroll and escape key
+  useEffect(() => {
+    if (!isMounted) return;
+
+    if (mobileMenuOpen) {
+      try {
+        // Prevent body scroll when menu is open
+        if (document.body) {
+          document.body.style.overflow = 'hidden';
+        }
+
+        // Handle escape key
+        function handleEscapeKey(event: KeyboardEvent) {
+          if (event.key === 'Escape') {
+            setMobileMenuOpen(false);
+          }
+        }
+
+        document.addEventListener('keydown', handleEscapeKey);
+
+        return () => {
+          try {
+            // Restore body scroll
+            if (document.body) {
+              document.body.style.overflow = 'unset';
+            }
+            // Remove escape key listener
+            if (typeof document !== 'undefined' && document.removeEventListener) {
+              document.removeEventListener('keydown', handleEscapeKey);
+            }
+          } catch (error) {
+            console.warn('Error cleaning up mobile menu:', error);
+          }
+        };
+      } catch (error) {
+        console.warn('Error setting up mobile menu:', error);
+      }
+    } else {
+      try {
+        // Restore body scroll when menu is closed
+        if (document.body) {
+          document.body.style.overflow = 'unset';
+        }
+      } catch (error) {
+        console.warn('Error restoring body scroll:', error);
+      }
+    }
+  }, [mobileMenuOpen, isMounted]);
+
   // Show search results when there are results or loading
   useEffect(() => {
     setShowSearchResults(searchResults.length > 0 || isLoading || !!error);
@@ -68,6 +124,23 @@ export default function Header() {
     };
     return iconMap[iconName] || Home;
   };
+
+  // Don't render until mounted to prevent hydration issues
+  if (!isMounted) {
+    return (
+      <header className="bg-white shadow-lg sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            <div className="w-10 h-10 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="bg-white shadow-lg sticky top-0 z-50">
@@ -191,94 +264,94 @@ export default function Header() {
           />
           
           {/* Floating Menu - now slides in from the left */}
-          <div 
-            id="mobile-menu"
-            className={`fixed top-0 left-0 h-full w-72 bg-white shadow-2xl z-50 lg:hidden transform transition-transform duration-300 ease-in-out ${
-              mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-            }`}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Mobile navigation menu"
-          >
-            {/* Menu Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">Menu</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-white hover:bg-white/20 rounded-full p-2"
-                  aria-label="Close menu"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
+          <MobileMenuErrorBoundary>
+            <div 
+              id="mobile-menu"
+              className="fixed top-0 left-0 h-full w-72 bg-white shadow-2xl z-50 lg:hidden transform transition-transform duration-300 ease-in-out translate-x-0"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Mobile navigation menu"
+            >
+              {/* Menu Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold">Menu</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-white hover:bg-white/20 rounded-full p-2"
+                    aria-label="Close menu"
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            {/* Menu Content */}
-            <div className="p-4 space-y-4">
-              {/* Search */}
-              <div className="relative mb-2">
-                <input
-                  type="text"
-                  placeholder="Search news..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm"
-                  aria-label="Search news"
-                />
-                <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-                {showSearchResults && (
-                  <SearchResults
-                    results={searchResults}
-                    isLoading={isLoading}
-                    error={error}
-                    onResultClick={() => {
-                      setShowSearchResults(false);
-                      clearSearch();
-                      setMobileMenuOpen(false);
-                    }}
+              {/* Menu Content */}
+              <div className="p-4 space-y-4">
+                {/* Search */}
+                <div className="relative mb-2">
+                  <input
+                    type="text"
+                    placeholder="Search news..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm"
+                    aria-label="Search news"
                   />
-                )}
-              </div>
+                  <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                  {showSearchResults && (
+                    <SearchResults
+                      results={searchResults}
+                      isLoading={isLoading}
+                      error={error}
+                      onResultClick={() => {
+                        setShowSearchResults(false);
+                        clearSearch();
+                        setMobileMenuOpen(false);
+                      }}
+                    />
+                  )}
+                </div>
 
-              {/* Navigation Links - smaller font and padding for mobile */}
-              <nav className="space-y-2">
-                {navigationLoading ? (
-                  // Loading skeleton for mobile navigation
-                  <>
-                    {[...Array(6)].map((_, i) => (
-                      <div key={i} className="flex items-center space-x-3 px-3 py-2">
-                        <div className="w-5 h-5 bg-gray-200 rounded animate-pulse"></div>
-                        <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
-                      </div>
-                    ))}
-                  </>
-                ) : (
-                  activeItems && activeItems.length > 0 && activeItems.map((item) => {
-                    if (!item || !item.label) return null;
-                    const IconComponent = getIconComponent(item.icon);
-                    return (
-                      <Link
-                        key={item._id || item.label}
-                        href={item.url || '#'}
-                        target={item.target || '_self'}
-                        className="flex items-center text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <IconComponent className="h-5 w-5 mr-2" />
-                        {item.label}
-                        {item.isExternal && (
-                          <Globe className="h-4 w-4 ml-auto" />
-                        )}
-                      </Link>
-                    );
-                  })
-                )}
-              </nav>
+                {/* Navigation Links - smaller font and padding for mobile */}
+                <nav className="space-y-2">
+                  {navigationLoading ? (
+                    // Loading skeleton for mobile navigation
+                    <>
+                      {[...Array(6)].map((_, i) => (
+                        <div key={i} className="flex items-center space-x-3 px-3 py-2">
+                          <div className="w-5 h-5 bg-gray-200 rounded animate-pulse"></div>
+                          <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    activeItems && activeItems.length > 0 && activeItems.map((item) => {
+                      if (!item || !item.label) return null;
+                      const IconComponent = getIconComponent(item.icon);
+                      return (
+                        <Link
+                          key={item._id || item.label}
+                          href={item.url || '#'}
+                          target={item.target || '_self'}
+                          className="flex items-center text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <IconComponent className="h-5 w-5 mr-2" />
+                          {item.label}
+                          {item.isExternal && (
+                            <Globe className="h-4 w-4 ml-auto" />
+                          )}
+                        </Link>
+                      );
+                    })
+                  )}
+                </nav>
+              </div>
             </div>
-          </div>
+          </MobileMenuErrorBoundary>
         </>
       )}
     </header>
