@@ -7,12 +7,40 @@ import { Button } from '@/components/ui/button';
 import { X, Search, Globe } from 'lucide-react';
 import { SearchResults } from '@/components/SearchResults';
 
+// Import existing types from hooks
+interface NavigationItem {
+  _id?: string;
+  label: string;
+  url: string;
+  icon: string;
+  type: 'link' | 'category';
+  order: number;
+  isActive: boolean;
+  isExternal?: boolean;
+  target?: '_self' | '_blank';
+}
+
+interface SearchResult {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  featuredImage?: string;
+  category?: {
+    name: string;
+    color: string;
+    slug: string;
+  };
+  publishedAt?: string;
+  readTime?: number;
+}
+
 interface MobileMenuPortalProps {
   isOpen: boolean;
   onClose: () => void;
-  navigationItems: any[];
+  navigationItems: NavigationItem[];
   searchTerm: string;
-  searchResults: any[];
+  searchResults: SearchResult[];
   isLoading: boolean;
   error: string | null;
   onSearchChange: (term: string) => void;
