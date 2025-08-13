@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Menu, X, Search, Home, Info, FileText, Settings, Contact, Globe } from 'lucide-react';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { useAuth } from '@/hooks/useAuth';
 import { HeaderSkeleton, NavigationSkeleton } from '@/components/Skeleton';
 import { useSearch } from '@/hooks/useSearch';
 import { SearchResults } from '@/components/SearchResults';
@@ -19,6 +20,7 @@ export default function Header() {
   const { activeItems, loading: navigationLoading } = useNavigation();
   const { settings, loading: settingsLoading } = useSiteSettings();
   const { searchTerm, searchResults, isLoading, error, setSearchTerm, clearSearch } = useSearch();
+  const { isLoggedIn } = useAuth();
 
   // Ensure component is mounted before rendering
   useEffect(() => {
@@ -248,6 +250,20 @@ export default function Header() {
                   />
                 )}
               </div>
+
+              {/* Admin Dashboard Button (Desktop only, when logged in) */}
+              {isLoggedIn && (
+                <Link href="/admin" passHref>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="hidden lg:flex items-center px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-all duration-200"
+                    aria-label="Admin Dashboard"
+                  >
+                    <span>Dashboard</span>
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
