@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Mail, Check, X, Trash2, Eye, Filter, RefreshCw, AlertCircle, Reply, Clock, User, MessageSquare } from 'lucide-react';
+import { Mail, Check, X, Trash2, Eye, Filter, RefreshCw, AlertCircle, Reply, Clock, User, MessageSquare, ChevronDown, ChevronUp, MoreHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,6 +76,10 @@ export default function ContactManagementPage() {
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
+
+  // Mobile-specific states
+  const [expandedContact, setExpandedContact] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   const fetchContacts = useCallback(async () => {
     try {
@@ -265,6 +269,10 @@ export default function ContactManagementPage() {
     setReplyDialogOpen(true);
   };
 
+  const toggleContactExpanded = (contactId: string) => {
+    setExpandedContact(expandedContact === contactId ? null : contactId);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -307,14 +315,18 @@ export default function ContactManagementPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Contact Messages</h1>
-          <p className="text-gray-600">Manage and respond to contact form submissions</p>
+    <div className="space-y-6 p-4 max-w-7xl mx-auto">
+      {/* Page Header - Mobile Responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Contact Messages</h1>
+          <p className="text-gray-600 text-sm sm:text-base">Manage and respond to contact form submissions</p>
         </div>
-        <Button onClick={() => { fetchContacts(); fetchStats(); }} variant="outline">
+        <Button 
+          onClick={() => { fetchContacts(); fetchStats(); }} 
+          variant="outline"
+          className="w-full sm:w-auto"
+        >
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
@@ -322,7 +334,7 @@ export default function ContactManagementPage() {
 
       {/* Success/Error Messages */}
       {success && (
-        <Alert className="border-green-200 bg-green-50">
+        <Alert className="border-green-200 bg-green-50 mx-4 sm:mx-0 admin-alert">
           <AlertCircle className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800">
             {success}
@@ -331,7 +343,7 @@ export default function ContactManagementPage() {
       )}
 
       {error && (
-        <Alert className="border-red-200 bg-red-50">
+        <Alert className="border-red-200 bg-red-50 mx-4 sm:mx-0 admin-alert">
           <AlertCircle className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">
             {error}
@@ -339,70 +351,70 @@ export default function ContactManagementPage() {
         </Alert>
       )}
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
+      {/* Statistics Cards - Mobile Optimized */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        <Card className="admin-card">
+          <CardContent className="p-3 sm:p-4 admin-card-content">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Messages</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.total || 0}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats?.total || 0}</p>
               </div>
-              <Mail className="h-8 w-8 text-gray-400" />
+              <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="admin-card">
+          <CardContent className="p-3 sm:p-4 admin-card-content">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Unread</p>
-                <p className="text-2xl font-bold text-red-600">{stats?.unread || 0}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Unread</p>
+                <p className="text-lg sm:text-2xl font-bold text-red-600">{stats?.unread || 0}</p>
               </div>
-              <Badge variant="secondary" className="bg-red-100 text-red-800">
+              <Badge variant="secondary" className="bg-red-100 text-red-800 text-xs admin-badge">
                 New
               </Badge>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="admin-card">
+          <CardContent className="p-3 sm:p-4 admin-card-content">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Read</p>
-                <p className="text-2xl font-bold text-blue-600">{stats?.read || 0}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Read</p>
+                <p className="text-lg sm:text-2xl font-bold text-blue-600">{stats?.read || 0}</p>
               </div>
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs admin-badge">
                 Viewed
               </Badge>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="admin-card">
+          <CardContent className="p-3 sm:p-4 admin-card-content">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Replied</p>
-                <p className="text-2xl font-bold text-green-600">{stats?.replied || 0}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Replied</p>
+                <p className="text-lg sm:text-2xl font-bold text-green-600">{stats?.replied || 0}</p>
               </div>
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
+              <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs admin-badge">
                 Done
               </Badge>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="admin-card col-span-2 sm:col-span-1">
+          <CardContent className="p-3 sm:p-4 admin-card-content">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Urgent</p>
-                <p className="text-2xl font-bold text-orange-600">{stats?.priority?.urgent || 0}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Urgent</p>
+                <p className="text-lg sm:text-2xl font-bold text-orange-600">{stats?.priority?.urgent || 0}</p>
               </div>
-              <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+              <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs admin-badge">
                 Priority
               </Badge>
             </div>
@@ -410,20 +422,30 @@ export default function ContactManagementPage() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters
+      {/* Filters - Mobile Optimized */}
+      <Card className="mx-4 sm:mx-0 admin-card">
+        <CardHeader className="admin-card-header">
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              <span className="text-lg sm:text-xl">Filters</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="sm:hidden"
+            >
+              {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <CardContent className={`admin-card-content ${showFilters ? 'block' : 'hidden sm:block'}`}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 admin-form-grid">
             <div>
-              <Label htmlFor="status-filter">Status</Label>
+              <Label htmlFor="status-filter" className="text-sm font-medium">Status</Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-1 admin-select">
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -437,9 +459,9 @@ export default function ContactManagementPage() {
             </div>
 
             <div>
-              <Label htmlFor="priority-filter">Priority</Label>
+              <Label htmlFor="priority-filter" className="text-sm font-medium">Priority</Label>
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-1 admin-select">
                   <SelectValue placeholder="All priorities" />
                 </SelectTrigger>
                 <SelectContent>
@@ -453,17 +475,18 @@ export default function ContactManagementPage() {
             </div>
 
             <div>
-              <Label htmlFor="search">Search</Label>
+              <Label htmlFor="search" className="text-sm font-medium">Search</Label>
               <Input
                 id="search"
                 placeholder="Search by name, email, or subject..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                className="mt-1"
               />
             </div>
 
             <div className="flex items-end">
-              <Button onClick={resetFilters} variant="outline" className="w-full">
+              <Button onClick={resetFilters} variant="outline" className="w-full admin-button-group">
                 Clear Filters
               </Button>
             </div>
@@ -471,12 +494,12 @@ export default function ContactManagementPage() {
         </CardContent>
       </Card>
 
-      {/* Contact Messages List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Contact Messages</CardTitle>
+      {/* Contact Messages List - Mobile Optimized */}
+      <Card className="mx-4 sm:mx-0 admin-card">
+        <CardHeader className="admin-card-header">
+          <CardTitle className="text-lg sm:text-xl">Contact Messages</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="admin-card-content">
           {loading && page === 1 ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
@@ -489,140 +512,181 @@ export default function ContactManagementPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {contacts.map((contact) => (
-                <div key={contact._id} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-medium text-gray-900">{contact.name}</h3>
-                        <Badge className={getStatusBadge(contact.status)}>
-                          {contact.status}
-                        </Badge>
-                        <Badge className={getPriorityBadge(contact.priority)}>
-                          {contact.priority}
-                        </Badge>
-                      </div>
-                      
-                      <p className="text-sm text-gray-600 mb-1">{contact.email}</p>
-                      <p className="text-sm text-gray-500 mb-2">
-                        {formatDate(contact.createdAt)} • IP: {contact.ipAddress}
-                      </p>
-                      
-                      <h4 className="font-medium text-gray-900 mb-2">{contact.subject}</h4>
-                      <p className="text-gray-700 mb-3 line-clamp-2">{contact.message}</p>
-
-                      {contact.replyMessage && (
-                        <div className="bg-gray-50 p-3 rounded-lg mb-3">
-                          <p className="text-sm font-medium text-gray-900 mb-1">Reply:</p>
-                          <p className="text-sm text-gray-700">{contact.replyMessage}</p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            Replied by {contact.repliedBy?.name} on {contact.repliedAt && formatDate(contact.repliedAt)}
-                          </p>
-                        </div>
-                      )}
-
-                      {contact.readBy && (
-                        <p className="text-xs text-gray-500">
-                          Read by {contact.readBy.name} on {contact.readAt && formatDate(contact.readAt)}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 ml-4">
-                      {contact.status === 'unread' && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleStatusUpdate(contact._id, 'read')}
-                          disabled={updating === contact._id}
-                          variant="outline"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      )}
-
-                      {contact.status !== 'replied' && (
-                        <Button
-                          size="sm"
-                          onClick={() => openReplyDialog(contact)}
-                          disabled={updating === contact._id}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          <Reply className="h-4 w-4" />
-                        </Button>
-                      )}
-
-                      {contact.status === 'read' && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleStatusUpdate(contact._id, 'archived')}
-                          disabled={updating === contact._id}
-                          variant="outline"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>Contact Message Details</DialogTitle>
-                            <DialogDescription>
-                              Full details of this contact message
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <Label>From</Label>
-                              <p className="text-sm text-gray-700 mt-1">{contact.name} ({contact.email})</p>
-                            </div>
-                            <div>
-                              <Label>Subject</Label>
-                              <p className="text-sm text-gray-700 mt-1">{contact.subject}</p>
-                            </div>
-                            <div>
-                              <Label>Message</Label>
-                              <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{contact.message}</p>
-                            </div>
-                            <div>
-                              <Label>User Agent</Label>
-                              <p className="text-sm text-gray-700 mt-1 break-all">{contact.userAgent}</p>
-                            </div>
-                            <div>
-                              <Label>IP Address</Label>
-                              <p className="text-sm text-gray-700 mt-1">{contact.ipAddress}</p>
-                            </div>
-                            {contact.replyMessage && (
-                              <div>
-                                <Label>Reply</Label>
-                                <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{contact.replyMessage}</p>
-                              </div>
-                            )}
+              {contacts.map((contact) => {
+                const isExpanded = expandedContact === contact._id;
+                
+                return (
+                  <div key={contact._id} className="border rounded-lg overflow-hidden admin-navigation-item">
+                    {/* Mobile Header - Always Visible */}
+                    <div 
+                      className="p-4 cursor-pointer admin-navigation-expandable"
+                      onClick={() => toggleContactExpanded(contact._id)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <h3 className="font-medium text-gray-900 truncate">{contact.name}</h3>
+                            <Badge className={`${getStatusBadge(contact.status)} text-xs admin-badge`}>
+                              {contact.status}
+                            </Badge>
+                            <Badge className={`${getPriorityBadge(contact.priority)} text-xs admin-badge`}>
+                              {contact.priority}
+                            </Badge>
                           </div>
-                        </DialogContent>
-                      </Dialog>
-
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDelete(contact._id)}
-                        disabled={updating === contact._id}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                          
+                          <p className="text-sm text-gray-600 mb-1 truncate">{contact.email}</p>
+                          <p className="text-xs text-gray-500 mb-2">
+                            {formatDate(contact.createdAt)} • IP: {contact.ipAddress}
+                          </p>
+                          
+                          <h4 className="font-medium text-gray-900 mb-2 line-clamp-1">{contact.subject}</h4>
+                          <p className="text-gray-700 text-sm line-clamp-2">{contact.message}</p>
+                        </div>
+                        
+                        <div className="flex items-center ml-2">
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-gray-500" />
+                          )}
+                        </div>
+                      </div>
                     </div>
+
+                    {/* Expandable Content */}
+                    {isExpanded && (
+                      <div className="border-t bg-gray-50 p-4">
+                        <div className="space-y-3">
+                          {/* Full Message */}
+                          <div>
+                            <Label className="text-sm font-medium">Full Message</Label>
+                            <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{contact.message}</p>
+                          </div>
+
+                          {/* Reply Section */}
+                          {contact.replyMessage && (
+                            <div className="bg-white p-3 rounded-lg border">
+                              <p className="text-sm font-medium text-gray-900 mb-1">Reply:</p>
+                              <p className="text-sm text-gray-700">{contact.replyMessage}</p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Replied by {contact.repliedBy?.name} on {contact.repliedAt && formatDate(contact.repliedAt)}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Read Info */}
+                          {contact.readBy && (
+                            <p className="text-xs text-gray-500">
+                              Read by {contact.readBy.name} on {contact.readAt && formatDate(contact.readAt)}
+                            </p>
+                          )}
+
+                          {/* Action Buttons */}
+                          <div className="flex flex-col sm:flex-row gap-2 admin-button-group">
+                            {contact.status === 'unread' && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleStatusUpdate(contact._id, 'read')}
+                                disabled={updating === contact._id}
+                                variant="outline"
+                                className="flex-1 sm:flex-none"
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Mark as Read
+                              </Button>
+                            )}
+
+                            {contact.status !== 'replied' && (
+                              <Button
+                                size="sm"
+                                onClick={() => openReplyDialog(contact)}
+                                disabled={updating === contact._id}
+                                className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none"
+                              >
+                                <Reply className="h-4 w-4 mr-2" />
+                                Reply
+                              </Button>
+                            )}
+
+                            {contact.status === 'read' && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleStatusUpdate(contact._id, 'archived')}
+                                disabled={updating === contact._id}
+                                variant="outline"
+                                className="flex-1 sm:flex-none"
+                              >
+                                <X className="h-4 w-4 mr-2" />
+                                Archive
+                              </Button>
+                            )}
+
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button size="sm" variant="outline" className="flex-1 sm:flex-none">
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Details
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                                <DialogHeader>
+                                  <DialogTitle>Contact Message Details</DialogTitle>
+                                  <DialogDescription>
+                                    Full details of this contact message
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div>
+                                    <Label className="text-sm font-medium">From</Label>
+                                    <p className="text-sm text-gray-700 mt-1">{contact.name} ({contact.email})</p>
+                                  </div>
+                                  <div>
+                                    <Label className="text-sm font-medium">Subject</Label>
+                                    <p className="text-sm text-gray-700 mt-1">{contact.subject}</p>
+                                  </div>
+                                  <div>
+                                    <Label className="text-sm font-medium">Message</Label>
+                                    <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{contact.message}</p>
+                                  </div>
+                                  <div>
+                                    <Label className="text-sm font-medium">User Agent</Label>
+                                    <p className="text-sm text-gray-700 mt-1 break-all">{contact.userAgent}</p>
+                                  </div>
+                                  <div>
+                                    <Label className="text-sm font-medium">IP Address</Label>
+                                    <p className="text-sm text-gray-700 mt-1">{contact.ipAddress}</p>
+                                  </div>
+                                  {contact.replyMessage && (
+                                    <div>
+                                      <Label className="text-sm font-medium">Reply</Label>
+                                      <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{contact.replyMessage}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDelete(contact._id)}
+                              disabled={updating === contact._id}
+                              className="text-red-600 hover:text-red-700 flex-1 sm:flex-none"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {hasMore && (
                 <div className="text-center pt-4">
-                  <Button onClick={loadMore} variant="outline" disabled={loading}>
+                  <Button onClick={loadMore} variant="outline" disabled={loading} className="w-full sm:w-auto">
                     {loading ? 'Loading...' : 'Load More Messages'}
                   </Button>
                 </div>
@@ -632,9 +696,9 @@ export default function ContactManagementPage() {
         </CardContent>
       </Card>
 
-      {/* Reply Dialog */}
+      {/* Reply Dialog - Mobile Optimized */}
       <Dialog open={replyDialogOpen} onOpenChange={setReplyDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-0">
           <DialogHeader>
             <DialogTitle>Reply to {selectedContact?.name}</DialogTitle>
             <DialogDescription>
@@ -643,13 +707,13 @@ export default function ContactManagementPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Original Message</Label>
+              <Label className="text-sm font-medium">Original Message</Label>
               <div className="bg-gray-50 p-3 rounded-lg mt-1">
                 <p className="text-sm text-gray-700">{selectedContact?.message}</p>
               </div>
             </div>
             <div>
-              <Label htmlFor="reply-message">Your Reply</Label>
+              <Label htmlFor="reply-message" className="text-sm font-medium">Your Reply</Label>
               <Textarea
                 id="reply-message"
                 value={replyMessage}
@@ -659,7 +723,7 @@ export default function ContactManagementPage() {
                 className="mt-1"
               />
             </div>
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-col sm:flex-row justify-end gap-2 admin-button-group">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -667,12 +731,14 @@ export default function ContactManagementPage() {
                   setSelectedContact(null);
                   setReplyMessage('');
                 }}
+                className="flex-1 sm:flex-none"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleReply}
                 disabled={!replyMessage.trim() || updating === selectedContact?._id}
+                className="flex-1 sm:flex-none"
               >
                 {updating === selectedContact?._id ? (
                   <>
