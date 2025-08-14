@@ -1,68 +1,72 @@
-# Environment Variables Setup
+# Environment Setup for Admin Profile Features
 
-This document explains how to configure environment variables for the The Daily Herald application.
+## Environment Variable Configuration
 
-## Backend Environment Variables
+To use environment variables for the API base URL, create a `.env.local` file in the frontend directory:
 
-The backend already has environment variables configured in `backend/config.env`:
+### 1. Create Environment File
 
-```env
-# API Base URL for file uploads and favicon
-API_BASE_URL=http://localhost:5000
-```
+Create `frontend/.env.local` with the following content:
 
-## Frontend Environment Variables
-
-Create a `.env.local` file in the `frontend` directory with the following content:
-
-```env
+```bash
 # API Configuration
 NEXT_PUBLIC_API_URL=http://localhost:5000
 
-# Optional: Custom favicon URL (if you want to override the database setting)
-# NEXT_PUBLIC_FAVICON_URL=http://localhost:5000/api/upload/uploads/your-favicon.ico
+# Environment
+NODE_ENV=development
+```
+
+### 2. Alternative: Use .env
+
+If `.env.local` is not working, you can also create `frontend/.env`:
+
+```bash
+# API Configuration
+NEXT_PUBLIC_API_URL=http://localhost:5000
+
+# Environment
+NODE_ENV=development
+```
+
+### 3. Production Configuration
+
+For production, you can set different values:
+
+```bash
+# Production API URL
+NEXT_PUBLIC_API_URL=https://your-backend-domain.com
 ```
 
 ## How It Works
 
-### Backend (Node.js)
-- The backend uses `API_BASE_URL` from `config.env` to generate file URLs
-- When a favicon is uploaded, it creates URLs like: `http://localhost:5000/api/upload/uploads/favicon-1234567890.ico`
-- This environment variable is used in `backend/routes/upload.js`
+The admin settings page (`frontend/src/app/admin/settings/page.tsx`) now uses:
 
-### Frontend (Next.js)
-- The frontend uses `NEXT_PUBLIC_API_URL` to make API calls
-- The `FaviconProvider` component uses this to construct absolute URLs for favicons
-- This ensures the favicon works correctly in different environments
-
-## Environment-Specific Configuration
-
-### Development
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000
+```typescript
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 ```
 
-### Production
-```env
-NEXT_PUBLIC_API_URL=https://your-api-domain.com
+This means:
+- If `NEXT_PUBLIC_API_URL` is set in the environment, it will use that value
+- If not set, it will fallback to `http://localhost:5000`
+
+## Important Notes
+
+1. **NEXT_PUBLIC_ prefix**: This prefix is required for Next.js to expose the variable to the browser
+2. **Restart required**: After creating/modifying environment files, restart the development server
+3. **Git ignore**: The `.env.local` file should be in `.gitignore` to avoid committing sensitive data
+
+## Testing
+
+After setting up the environment variable:
+
+1. Restart the frontend development server
+2. Go to `http://localhost:3000/admin/settings`
+3. Try uploading a profile picture
+4. Check the browser console to see the API URL being used
+
+The console should show:
+```
+Uploading to: http://localhost:5000/api/auth/profile-picture
 ```
 
-### Staging
-```env
-NEXT_PUBLIC_API_URL=https://staging-api.yourdomain.com
-```
-
-## Benefits
-
-1. **Environment Flexibility**: Easy to switch between development, staging, and production
-2. **No Hardcoded URLs**: All URLs are configurable via environment variables
-3. **Consistent Configuration**: Both frontend and backend use the same base URL pattern
-4. **Easy Deployment**: Different environments can have different configurations
-
-## Troubleshooting
-
-If the favicon is not loading:
-1. Check that `NEXT_PUBLIC_API_URL` is set correctly in your frontend `.env.local`
-2. Verify that `API_BASE_URL` is set correctly in your backend `config.env`
-3. Ensure the uploaded favicon file exists in the backend uploads directory
-4. Check browser console for any CORS or network errors 
+If you change the environment variable, it should show the new URL. 

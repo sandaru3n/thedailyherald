@@ -144,11 +144,12 @@ router.get('/profile', auth, async (req, res) => {
 // @access  Private
 router.put('/profile', auth, async (req, res) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, description } = req.body;
     const updates = {};
 
     if (name) updates.name = name;
     if (email) updates.email = email.toLowerCase();
+    if (description !== undefined) updates.description = description;
 
     const admin = await Admin.findByIdAndUpdate(
       req.admin._id,
@@ -173,6 +174,69 @@ router.put('/profile', auth, async (req, res) => {
       error: 'Server error'
     });
   }
+});
+
+// @route   POST /api/auth/profile-picture
+// @desc    Upload admin profile picture
+// @access  Private
+router.post('/profile-picture', auth, async (req, res) => {
+  const { uploadProfilePicture } = require('../middleware/upload');
+  const path = require('path');
+  const fs = require('fs');
+  
+  uploadProfilePicture(req, res, async (err) => {
+    if (err) {
+      console.error('Upload error:', err);
+      return res.status(400).json({
+        success: false,
+        error: err.message || 'Upload failed'
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No file uploaded'
+      });
+    }
+
+    try {
+      // Generate the file URL
+      const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
+      const fileUrl = `${baseUrl}/api/upload/uploads/${req.file.filename}`;
+
+      // Get current admin to check for existing profile picture
+      const admin = await Admin.findById(req.admin._id);
+      
+      // Delete old profile picture file if it exists
+      if (admin.profilePicture) {
+        const oldFilename = path.basename(admin.profilePicture);
+        const oldFilePath = path.join(__dirname, '../uploads', oldFilename);
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
+      }
+
+      // Update admin with new profile picture URL
+      admin.profilePicture = fileUrl;
+      await admin.save();
+
+      res.json({
+        success: true,
+        message: 'Profile picture uploaded successfully',
+        fileUrl: fileUrl,
+        filename: req.file.filename,
+        admin: admin.toPublicJSON()
+      });
+
+    } catch (error) {
+      console.error('Error saving profile picture:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to save profile picture'
+      });
+    }
+  });
 });
 
 // @route   PUT /api/auth/change-password

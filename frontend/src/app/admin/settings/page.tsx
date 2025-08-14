@@ -9,11 +9,14 @@ import {
   Globe,
   Save,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Upload,
+  Camera
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { apiCall, getAdminData } from '@/lib/auth';
@@ -22,6 +25,8 @@ interface AdminUser {
   _id: string;
   name: string;
   email: string;
+  profilePicture?: string;
+  description?: string;
   role: 'admin' | 'editor';
   isActive: boolean;
   lastLogin?: string;
@@ -33,12 +38,14 @@ export default function AdminSettingsPage() {
   const [adminData, setAdminData] = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   const [profileData, setProfileData] = useState({
     name: '',
-    email: ''
+    email: '',
+    description: ''
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -65,7 +72,8 @@ export default function AdminSettingsPage() {
       setAdminData((data as { admin: AdminUser }).admin);
       setProfileData({
         name: (data as { admin: AdminUser }).admin.name,
-        email: (data as { admin: AdminUser }).admin.email
+        email: (data as { admin: AdminUser }).admin.email,
+        description: (data as { admin: AdminUser }).admin.description || ''
       });
     } catch (error) {
       console.error('Error fetching admin data:', error);
@@ -75,7 +83,7 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setProfileData(prev => ({
       ...prev,
@@ -192,6 +200,71 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Please select a valid image file (JPEG, PNG, or WebP)');
+      return;
+    }
+
+    // Validate file size (3MB)
+    if (file.size > 3 * 1024 * 1024) {
+      setError('File size must be less than 3MB');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      setError('');
+      setSuccess('');
+
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+
+      // Explicitly use localhost:5000 for backend API
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const token = localStorage.getItem('adminToken');
+      
+      console.log('Uploading to:', `${apiBaseUrl}/api/auth/profile-picture`);
+      console.log('Token:', token ? 'Present' : 'Missing');
+      
+      const response = await fetch(`${apiBaseUrl}/api/auth/profile-picture`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        let errorMessage = `HTTP ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError);
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      setSuccess('Profile picture uploaded successfully!');
+      setAdminData(data.admin);
+    } catch (err) {
+      console.error('Upload error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to upload profile picture');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -248,6 +321,47 @@ export default function AdminSettingsPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleProfileSave} className="space-y-4">
+              {/* Profile Picture Section */}
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                    {adminData?.profilePicture ? (
+                      <img
+                        src={adminData.profilePicture}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-10 h-10 text-gray-400" />
+                    )}
+                  </div>
+                  {uploading && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor="profilePicture" className="cursor-pointer">
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Camera className="h-4 w-4" />
+                      <span>Upload Profile Picture</span>
+                    </div>
+                  </Label>
+                  <input
+                    id="profilePicture"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProfilePictureUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    JPG, PNG, or WebP. Max 3MB.
+                  </p>
+                </div>
+              </div>
+
               <div>
                 <Label htmlFor="name">Full Name</Label>
                 <Input
@@ -269,6 +383,22 @@ export default function AdminSettingsPage() {
                   onChange={handleProfileChange}
                   className="mt-1"
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  value={profileData.description}
+                  onChange={handleProfileChange}
+                  placeholder="Tell us about yourself..."
+                  className="mt-1"
+                  rows={3}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {profileData.description.length}/500 characters
+                </p>
               </div>
 
               <div className="text-sm text-gray-500">

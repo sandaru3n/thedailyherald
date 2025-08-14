@@ -62,9 +62,19 @@ const uploadPublisherLogo = multer({
   }
 }).single('publisherLogo');
 
+// Create multer instance for profile picture uploads
+const uploadProfilePicture = multer({
+  storage: storage,
+  fileFilter: imageFilter,
+  limits: {
+    fileSize: 3 * 1024 * 1024 // 3MB limit for profile pictures
+  }
+}).single('profilePicture');
+
 module.exports = {
   uploadFavicon,
   uploadSiteLogo,
   uploadPublisherLogo,
+  uploadProfilePicture,
   uploadsDir
 }; 

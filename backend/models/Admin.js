@@ -19,6 +19,15 @@ const adminSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  profilePicture: {
+    type: String,
+    default: null
+  },
+  description: {
+    type: String,
+    trim: true,
+    maxlength: 500
+  },
   role: {
     type: String,
     enum: ['admin', 'editor'],
