@@ -17,7 +17,10 @@ import {
   Contact,
   Globe,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Menu,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -74,6 +77,7 @@ export default function NavigationManagementPage() {
     target: '_self',
     categorySlug: ''
   });
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   // Safety check to ensure newItem is never null
   const safeNewItem = newItem || {
@@ -285,9 +289,19 @@ export default function NavigationManagementPage() {
     }
   };
 
+  const toggleItemExpanded = (itemId: string) => {
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(itemId)) {
+      newExpanded.delete(itemId);
+    } else {
+      newExpanded.add(itemId);
+    }
+    setExpandedItems(newExpanded);
+  };
+
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-4">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
           <div className="space-y-4">
@@ -301,15 +315,19 @@ export default function NavigationManagementPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Navigation Management</h1>
-          <p className="text-gray-600 mt-1">Customize your site navigation menu</p>
+    <div className="space-y-6 p-4 max-w-7xl mx-auto">
+      {/* Page Header - Mobile Responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Navigation Management</h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">Customize your site navigation menu</p>
         </div>
-        <div className="flex space-x-3">
-          <Button onClick={handleSaveNavigation} disabled={saving}>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <Button 
+            onClick={handleSaveNavigation} 
+            disabled={saving}
+            className="w-full sm:w-auto"
+          >
             <Save className="h-4 w-4 mr-2" />
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
@@ -318,7 +336,7 @@ export default function NavigationManagementPage() {
 
       {/* Message Alert */}
       {message && (
-        <Alert className={message.type === 'success' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+        <Alert className={`${message.type === 'success' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'} mx-4 sm:mx-0 admin-alert`}>
           {message.type === 'success' ? (
             <CheckCircle className="h-4 w-4 text-green-600" />
           ) : (
@@ -330,21 +348,24 @@ export default function NavigationManagementPage() {
         </Alert>
       )}
 
-      {/* Navigation Items */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Navigation Items</span>
-            <Button onClick={() => setShowAddForm(true)}>
+      {/* Navigation Items - Mobile Optimized */}
+      <Card className="mx-4 sm:mx-0 admin-card">
+        <CardHeader className="pb-4 admin-card-header">
+          <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <span className="text-xl sm:text-2xl">Navigation Items</span>
+            <Button 
+              onClick={() => setShowAddForm(true)}
+              className="w-full sm:w-auto"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Item
             </Button>
           </CardTitle>
-          <CardDescription>
-            Manage your navigation menu items. Drag to reorder, click edit to modify, or toggle active status.
+          <CardDescription className="text-sm">
+            Manage your navigation menu items. Tap to expand, edit, or toggle active status.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6 admin-card-content">
           <div className="space-y-3">
             {navigationItems
               .filter(item => item && item.label)
@@ -352,102 +373,137 @@ export default function NavigationManagementPage() {
                 const isEditing = editingItem && editingItem._id === item._id;
                 if (isEditing && !editingItem) return null;
                 const IconComponent = getIconComponent(item.icon);
+                const isExpanded = expandedItems.has(item._id || `item-${index}`);
+                
                 return (
                   <div
                     key={item._id || `item-${index}`}
-                    className={`flex items-center justify-between p-4 border rounded-lg ${
+                    className={`border rounded-lg overflow-hidden admin-navigation-item ${
                       item.isActive ? 'bg-white' : 'bg-gray-50'
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <GripVertical className="h-5 w-5 text-gray-400 cursor-move" />
-                      <IconComponent className="h-5 w-5 text-gray-600" />
-                      {isEditing && editingItem ? (
-                        <div className="flex-1 space-y-2">
-                          <div className="grid grid-cols-2 gap-2">
-                            <Input
-                              value={editingItem.label || ''}
-                              onChange={(e) => setEditingItem({ ...editingItem, label: e.target.value })}
-                              placeholder="Label"
-                            />
-                            <Input
-                              value={editingItem.url || ''}
-                              onChange={(e) => setEditingItem({ ...editingItem, url: e.target.value })}
-                              placeholder="URL"
-                            />
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Select
-                              value={editingItem.icon || 'home'}
-                              onValueChange={(value) => setEditingItem({ ...editingItem, icon: value })}
-                            >
-                              <SelectTrigger className="w-32">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {defaultIcons.map((icon) => (
-                                  <SelectItem key={icon.value} value={icon.value}>
-                                    <div className="flex items-center space-x-2">
-                                      <icon.icon className="h-4 w-4" />
-                                      <span>{icon.label}</span>
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Button size="sm" onClick={saveEditing}>
-                              <Check className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={cancelEditing}>
-                              <X className="h-4 w-4" />
-                            </Button>
+                    {/* Mobile Header - Always Visible */}
+                    <div 
+                      className="flex items-center justify-between p-4 cursor-pointer admin-navigation-expandable"
+                      onClick={() => toggleItemExpanded(item._id || `item-${index}`)}
+                    >
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <GripVertical className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                        <IconComponent className="h-5 w-5 text-gray-600 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                                                     <div className="flex items-center space-x-2">
+                             <span className="font-medium truncate">{item.label}</span>
+                             <Badge variant={item.type === 'category' ? 'default' : 'secondary'} className="text-xs admin-badge">
+                               {item.type}
+                             </Badge>
+                             {!item.isActive && (
+                               <Badge variant="outline" className="text-xs admin-badge">Inactive</Badge>
+                             )}
+                             {item.isExternal && (
+                               <Badge variant="outline" className="text-xs admin-badge">External</Badge>
+                             )}
+                           </div>
+                          <div className="flex items-center space-x-1 text-sm text-gray-500 mt-1">
+                            <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{item.url}</span>
                           </div>
                         </div>
-                      ) : (
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium">{item.label}</span>
-                            <Badge variant={item.type === 'category' ? 'default' : 'secondary'}>
-                              {item.type}
-                            </Badge>
-                            {!item.isActive && (
-                              <Badge variant="outline">Inactive</Badge>
-                            )}
-                            {item.isExternal && (
-                              <Badge variant="outline">External</Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center space-x-1 text-sm text-gray-500">
-                            <ExternalLink className="h-3 w-3" />
-                            <span>{item.url}</span>
-                          </div>
-                        </div>
-                      )}
+                      </div>
+                      <div className="flex items-center space-x-2 ml-2">
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4 text-gray-500" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-gray-500" />
+                        )}
+                      </div>
                     </div>
-                    {!isEditing && (
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEditing(item)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleItemActive(item._id!)}
-                        >
-                          {item.isActive ? 'Active' : 'Inactive'}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeNavigationItem(item._id!)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+
+                    {/* Expandable Content */}
+                    {isExpanded && (
+                      <div className="border-t bg-gray-50 p-4">
+                        {isEditing && editingItem ? (
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor={`label-${item._id}`} className="text-sm font-medium">Label</Label>
+                                <Input
+                                  id={`label-${item._id}`}
+                                  value={editingItem.label || ''}
+                                  onChange={(e) => setEditingItem({ ...editingItem, label: e.target.value })}
+                                  placeholder="Label"
+                                  className="mt-1"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor={`url-${item._id}`} className="text-sm font-medium">URL</Label>
+                                <Input
+                                  id={`url-${item._id}`}
+                                  value={editingItem.url || ''}
+                                  onChange={(e) => setEditingItem({ ...editingItem, url: e.target.value })}
+                                  placeholder="URL"
+                                  className="mt-1"
+                                />
+                              </div>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <Select
+                                value={editingItem.icon || 'home'}
+                                onValueChange={(value) => setEditingItem({ ...editingItem, icon: value })}
+                              >
+                                <SelectTrigger className="w-full sm:w-32 admin-select">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {defaultIcons.map((icon) => (
+                                    <SelectItem key={icon.value} value={icon.value}>
+                                      <div className="flex items-center space-x-2">
+                                        <icon.icon className="h-4 w-4" />
+                                        <span>{icon.label}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={saveEditing} className="flex-1 sm:flex-none">
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={cancelEditing} className="flex-1 sm:flex-none">
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                                                 ) : (
+                           <div className="flex flex-col sm:flex-row gap-2 admin-button-group">
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               onClick={() => startEditing(item)}
+                               className="flex-1 sm:flex-none"
+                             >
+                               <Edit className="h-4 w-4 mr-2" />
+                               Edit
+                             </Button>
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               onClick={() => toggleItemActive(item._id!)}
+                               className="flex-1 sm:flex-none"
+                             >
+                               {item.isActive ? 'Deactivate' : 'Activate'}
+                             </Button>
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               onClick={() => removeNavigationItem(item._id!)}
+                               className="text-red-600 hover:text-red-700 flex-1 sm:flex-none"
+                             >
+                               <Trash2 className="h-4 w-4 mr-2" />
+                               Delete
+                             </Button>
+                           </div>
+                         )}
                       </div>
                     )}
                   </div>
@@ -457,8 +513,9 @@ export default function NavigationManagementPage() {
             {navigationItems.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 <Globe className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p>No navigation items yet</p>
-                <Button onClick={() => setShowAddForm(true)} className="mt-4">
+                <p className="text-lg font-medium mb-2">No navigation items yet</p>
+                <p className="text-sm mb-4">Get started by adding your first navigation item</p>
+                <Button onClick={() => setShowAddForm(true)} className="w-full sm:w-auto">
                   Add your first navigation item
                 </Button>
               </div>
@@ -467,48 +524,50 @@ export default function NavigationManagementPage() {
         </CardContent>
       </Card>
 
-      {/* Add New Item Form */}
+      {/* Add New Item Form - Mobile Optimized */}
       {showAddForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Add Navigation Item</CardTitle>
-            <CardDescription>
+        <Card className="mx-4 sm:mx-0 admin-card">
+          <CardHeader className="admin-card-header">
+            <CardTitle className="text-xl sm:text-2xl">Add Navigation Item</CardTitle>
+            <CardDescription className="text-sm">
               Create a new navigation item for your menu
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className="p-4 sm:p-6 admin-card-content admin-navigation-form">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 gap-4 admin-form-grid">
                 <div>
-                  <Label htmlFor="label">Label *</Label>
+                  <Label htmlFor="label" className="text-sm font-medium">Label *</Label>
                   <Input
                     id="label"
                     value={safeNewItem.label || ''}
                     onChange={(e) => setNewItem({ ...newItem, label: e.target.value })}
                     placeholder="e.g., About Us"
                     maxLength={50}
+                    className="mt-1"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="url">URL *</Label>
+                  <Label htmlFor="url" className="text-sm font-medium">URL *</Label>
                   <Input
                     id="url"
                     value={safeNewItem.url || ''}
                     onChange={(e) => setNewItem({ ...newItem, url: e.target.value })}
                     placeholder="e.g., /about"
+                    className="mt-1"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 admin-form-grid">
                 <div>
-                  <Label htmlFor="type">Type</Label>
+                  <Label htmlFor="type" className="text-sm font-medium">Type</Label>
                   <Select
                     value={safeNewItem.type || 'link'}
                     onValueChange={(value: 'link' | 'category') => setNewItem({ ...newItem, type: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1 admin-select">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -519,12 +578,12 @@ export default function NavigationManagementPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="icon">Icon</Label>
+                  <Label htmlFor="icon" className="text-sm font-medium">Icon</Label>
                   <Select
                     value={safeNewItem.icon || 'home'}
                     onValueChange={(value) => setNewItem({ ...newItem, icon: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1 admin-select">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -541,12 +600,12 @@ export default function NavigationManagementPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="target">Target</Label>
+                  <Label htmlFor="target" className="text-sm font-medium">Target</Label>
                   <Select
                     value={safeNewItem.target || '_self'}
                     onValueChange={(value: '_self' | '_blank') => setNewItem({ ...newItem, target: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1 admin-select">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -559,12 +618,12 @@ export default function NavigationManagementPage() {
 
               {safeNewItem.type === 'category' && (
                 <div>
-                  <Label htmlFor="category">Select Category</Label>
+                  <Label htmlFor="category" className="text-sm font-medium">Select Category</Label>
                   <Select
                     value={safeNewItem.categorySlug || ''}
                     onValueChange={(value) => setNewItem({ ...newItem, categorySlug: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1 admin-select">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -584,12 +643,16 @@ export default function NavigationManagementPage() {
                 </div>
               )}
 
-              <div className="flex items-center space-x-4">
-                <Button onClick={addNavigationItem}>
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 admin-button-group">
+                <Button onClick={addNavigationItem} className="flex-1 sm:flex-none">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Item
                 </Button>
-                <Button variant="outline" onClick={() => setShowAddForm(false)}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowAddForm(false)}
+                  className="flex-1 sm:flex-none"
+                >
                   Cancel
                 </Button>
               </div>
@@ -598,15 +661,15 @@ export default function NavigationManagementPage() {
         </Card>
       )}
 
-      {/* Preview */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Navigation Preview</CardTitle>
-          <CardDescription>
+      {/* Preview - Mobile Optimized */}
+      <Card className="mx-4 sm:mx-0 admin-card">
+        <CardHeader className="admin-card-header">
+          <CardTitle className="text-xl sm:text-2xl">Navigation Preview</CardTitle>
+          <CardDescription className="text-sm">
             Preview of how your navigation will look on the site
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6 admin-card-content">
           <div className="bg-gray-900 rounded-lg p-4 max-w-sm mx-auto">
             <div className="space-y-2">
               {navigationItems
@@ -618,10 +681,10 @@ export default function NavigationManagementPage() {
                       key={item._id}
                       className="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg text-white"
                     >
-                      <IconComponent className="h-5 w-5" />
-                      <span className="text-sm">{item.label}</span>
+                      <IconComponent className="h-5 w-5 flex-shrink-0" />
+                      <span className="text-sm truncate">{item.label}</span>
                       {item.isExternal && (
-                        <ExternalLink className="h-3 w-3 ml-auto" />
+                        <ExternalLink className="h-3 w-3 ml-auto flex-shrink-0" />
                       )}
                     </div>
                   );

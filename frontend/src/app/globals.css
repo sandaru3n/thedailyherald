@@ -194,6 +194,83 @@
     .mobile-optimized {
       contain: layout style;
     }
+
+    /* Admin navigation specific mobile improvements */
+    .admin-navigation-item {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .admin-navigation-expandable {
+      transition: all 0.2s ease-in-out;
+    }
+
+    .admin-navigation-form {
+      padding: 1rem;
+    }
+
+    .admin-navigation-form input,
+    .admin-navigation-form select {
+      font-size: 16px !important;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+    }
+
+    .admin-navigation-form label {
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    /* Improve card interactions on mobile */
+    .admin-card {
+      border-radius: 0.75rem;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    }
+
+    .admin-card-header {
+      padding: 1rem;
+    }
+
+    .admin-card-content {
+      padding: 1rem;
+    }
+
+    /* Better button spacing on mobile */
+    .admin-button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .admin-button-group > * {
+      width: 100%;
+    }
+
+    /* Improve badge display on mobile */
+    .admin-badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+    }
+
+    /* Better spacing for mobile forms */
+    .admin-form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    /* Improve select dropdowns on mobile */
+    .admin-select {
+      min-height: 44px;
+    }
+
+    /* Better alert positioning on mobile */
+    .admin-alert {
+      margin: 0 1rem 1rem 1rem;
+      border-radius: 0.5rem;
+    }
   }
 
   /* Prevent zoom on input focus for iOS */
