@@ -17,7 +17,14 @@ import {
   Car,
   BookOpen,
   Users,
-  Newspaper
+  Newspaper,
+  BriefcaseBusiness,
+  Clapperboard,
+  HeartPulse,
+  Vote,
+  Trophy,
+  Cpu,
+  CloudRainWind
 } from 'lucide-react';
 import { API_ENDPOINTS } from '@/lib/config';
 
@@ -84,7 +91,14 @@ export default function CategoriesList({
       Car,
       BookOpen,
       Users,
-      Newspaper
+      Newspaper,
+      BriefcaseBusiness,
+      Clapperboard,
+      HeartPulse,
+      Vote,
+      Trophy,
+      Cpu,
+      CloudRainWind
     };
     return iconMap[iconName] || Newspaper;
   };

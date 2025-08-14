@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Search, Home, Info, FileText, Settings, Contact, Globe, Bookmark } from 'lucide-react';
+import { Menu, X, Search, Home, Info, FileText, Settings, Contact, Globe, Bookmark, TrendingUp, Briefcase, Gamepad2, Music, Heart, Zap, Palette, Camera, Car, BookOpen, Users, Newspaper, BriefcaseBusiness, Clapperboard, HeartPulse, Vote, Trophy, Cpu, CloudRainWind } from 'lucide-react';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useAuth } from '@/hooks/useAuth';
@@ -124,6 +124,25 @@ export default function Header() {
       'contact': Contact,
       'globe': Globe,
       'bookmark': Bookmark,
+      'trending-up': TrendingUp,
+      'briefcase': Briefcase,
+      'gamepad-2': Gamepad2,
+      'music': Music,
+      'heart': Heart,
+      'zap': Zap,
+      'palette': Palette,
+      'camera': Camera,
+      'car': Car,
+      'book-open': BookOpen,
+      'users': Users,
+      'newspaper': Newspaper,
+      'briefcase-business': BriefcaseBusiness,
+      'clapperboard': Clapperboard,
+      'heart-pulse': HeartPulse,
+      'vote': Vote,
+      'trophy': Trophy,
+      'cpu': Cpu,
+      'cloud-rain-wind': CloudRainWind,
     };
     return iconMap[iconName] || Home;
   };

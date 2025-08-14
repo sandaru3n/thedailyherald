@@ -8,7 +8,27 @@ import {
   GripVertical,
   FolderOpen,
   Eye,
-  EyeOff
+  EyeOff,
+  Globe, 
+  TrendingUp, 
+  Briefcase, 
+  Gamepad2, 
+  Music, 
+  Heart, 
+  Zap,
+  Palette,
+  Camera,
+  Car,
+  BookOpen,
+  Users,
+  Newspaper,
+  BriefcaseBusiness,
+  Clapperboard,
+  HeartPulse,
+  Vote,
+  Trophy,
+  Cpu,
+  CloudRainWind
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -182,6 +202,29 @@ export default function AdminCategoriesPage() {
     '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1'
   ];
 
+  const iconOptions = [
+    { name: 'Globe', component: Globe },
+    { name: 'TrendingUp', component: TrendingUp },
+    { name: 'Briefcase', component: Briefcase },
+    { name: 'Gamepad2', component: Gamepad2 },
+    { name: 'Music', component: Music },
+    { name: 'Heart', component: Heart },
+    { name: 'Zap', component: Zap },
+    { name: 'Palette', component: Palette },
+    { name: 'Camera', component: Camera },
+    { name: 'Car', component: Car },
+    { name: 'BookOpen', component: BookOpen },
+    { name: 'Users', component: Users },
+    { name: 'Newspaper', component: Newspaper },
+    { name: 'BriefcaseBusiness', component: BriefcaseBusiness },
+    { name: 'Clapperboard', component: Clapperboard },
+    { name: 'HeartPulse', component: HeartPulse },
+    { name: 'Vote', component: Vote },
+    { name: 'Trophy', component: Trophy },
+    { name: 'Cpu', component: Cpu },
+    { name: 'CloudRainWind', component: CloudRainWind }
+  ];
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Page Header */}
@@ -254,6 +297,31 @@ export default function AdminCategoriesPage() {
                         />
                       ))}
                     </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="icon">Icon</Label>
+                  <div className="grid grid-cols-5 gap-2 mt-1">
+                    {iconOptions.map((iconOption) => {
+                      const IconComponent = iconOption.component;
+                      const isSelected = formData.icon === iconOption.name;
+                      return (
+                        <button
+                          key={iconOption.name}
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, icon: iconOption.name }))}
+                          className={`p-3 rounded-lg border-2 transition-all hover:scale-105 ${
+                            isSelected 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          aria-label={`Select icon ${iconOption.name}`}
+                        >
+                          <IconComponent className="w-5 h-5 mx-auto" />
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -333,10 +401,21 @@ export default function AdminCategoriesPage() {
                 <div key={category._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-gray-50 gap-4">
                   <div className="flex items-center space-x-4">
                     <GripVertical className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                    <div 
-                      className="w-4 h-4 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: category.color }}
-                    />
+                    <div className="flex items-center space-x-3">
+                      <div 
+                        className="w-4 h-4 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: category.color }}
+                      />
+                      {(() => {
+                        const iconOption = iconOptions.find(opt => opt.name === category.icon);
+                        const IconComponent = iconOption?.component || Newspaper;
+                        return (
+                          <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: category.color + '20' }}>
+                            <IconComponent className="w-3 h-3" style={{ color: category.color }} />
+                          </div>
+                        );
+                      })()}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-sm font-medium text-gray-900 break-words">
                         {category.name}

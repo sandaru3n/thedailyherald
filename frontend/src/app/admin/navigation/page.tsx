@@ -20,7 +20,26 @@ import {
   CheckCircle,
   Menu,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  TrendingUp, 
+  Briefcase, 
+  Gamepad2, 
+  Music, 
+  Heart, 
+  Zap,
+  Palette,
+  Camera,
+  Car,
+  BookOpen,
+  Users,
+  Newspaper,
+  BriefcaseBusiness,
+  Clapperboard,
+  HeartPulse,
+  Vote,
+  Trophy,
+  Cpu,
+  CloudRainWind
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,6 +76,25 @@ const defaultIcons = [
   { value: 'settings', label: 'Settings', icon: Settings },
   { value: 'contact', label: 'Contact', icon: Contact },
   { value: 'globe', label: 'External', icon: Globe },
+  { value: 'trending-up', label: 'Trending', icon: TrendingUp },
+  { value: 'briefcase', label: 'Business', icon: Briefcase },
+  { value: 'gamepad-2', label: 'Gaming', icon: Gamepad2 },
+  { value: 'music', label: 'Music', icon: Music },
+  { value: 'heart', label: 'Heart', icon: Heart },
+  { value: 'zap', label: 'Lightning', icon: Zap },
+  { value: 'palette', label: 'Art', icon: Palette },
+  { value: 'camera', label: 'Camera', icon: Camera },
+  { value: 'car', label: 'Transport', icon: Car },
+  { value: 'book-open', label: 'Education', icon: BookOpen },
+  { value: 'users', label: 'People', icon: Users },
+  { value: 'newspaper', label: 'News', icon: Newspaper },
+  { value: 'briefcase-business', label: 'Corporate', icon: BriefcaseBusiness },
+  { value: 'clapperboard', label: 'Entertainment', icon: Clapperboard },
+  { value: 'heart-pulse', label: 'Health', icon: HeartPulse },
+  { value: 'vote', label: 'Politics', icon: Vote },
+  { value: 'trophy', label: 'Sports', icon: Trophy },
+  { value: 'cpu', label: 'Technology', icon: Cpu },
+  { value: 'cloud-rain-wind', label: 'Weather', icon: CloudRainWind },
 ];
 
 export default function NavigationManagementPage() {
@@ -446,24 +484,31 @@ export default function NavigationManagementPage() {
                               </div>
                             </div>
                             <div className="flex flex-col sm:flex-row gap-2">
-                              <Select
-                                value={editingItem.icon || 'home'}
-                                onValueChange={(value) => setEditingItem({ ...editingItem, icon: value })}
-                              >
-                                <SelectTrigger className="w-full sm:w-32 admin-select">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {defaultIcons.map((icon) => (
-                                    <SelectItem key={icon.value} value={icon.value}>
-                                      <div className="flex items-center space-x-2">
-                                        <icon.icon className="h-4 w-4" />
-                                        <span>{icon.label}</span>
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <div className="w-full">
+                                <Label className="text-sm font-medium">Icon</Label>
+                                <div className="grid grid-cols-6 gap-2 mt-1 max-h-32 overflow-y-auto border rounded-md p-2">
+                                  {defaultIcons.map((iconOption) => {
+                                    const IconComponent = iconOption.icon;
+                                    const isSelected = editingItem.icon === iconOption.value;
+                                    return (
+                                      <button
+                                        key={iconOption.value}
+                                        type="button"
+                                        onClick={() => setEditingItem({ ...editingItem, icon: iconOption.value })}
+                                        className={`p-2 rounded-lg border-2 transition-all hover:scale-105 flex flex-col items-center gap-1 ${
+                                          isSelected 
+                                            ? 'border-blue-500 bg-blue-50' 
+                                            : 'border-gray-200 hover:border-gray-300'
+                                        }`}
+                                        aria-label={`Select icon ${iconOption.label}`}
+                                      >
+                                        <IconComponent className="w-3 h-3" />
+                                        <span className="text-xs text-center">{iconOption.label}</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
                               <div className="flex gap-2">
                                 <Button size="sm" onClick={saveEditing} className="flex-1 sm:flex-none">
                                   <Check className="h-4 w-4" />
@@ -560,7 +605,7 @@ export default function NavigationManagementPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 admin-form-grid">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 admin-form-grid">
                 <div>
                   <Label htmlFor="type" className="text-sm font-medium">Type</Label>
                   <Select
@@ -573,28 +618,6 @@ export default function NavigationManagementPage() {
                     <SelectContent>
                       <SelectItem value="link">Custom Link</SelectItem>
                       <SelectItem value="category">Category</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="icon" className="text-sm font-medium">Icon</Label>
-                  <Select
-                    value={safeNewItem.icon || 'home'}
-                    onValueChange={(value) => setNewItem({ ...newItem, icon: value })}
-                  >
-                    <SelectTrigger className="mt-1 admin-select">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {defaultIcons.map((icon) => (
-                        <SelectItem key={icon.value} value={icon.value}>
-                          <div className="flex items-center space-x-2">
-                            <icon.icon className="h-4 w-4" />
-                            <span>{icon.label}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -613,6 +636,32 @@ export default function NavigationManagementPage() {
                       <SelectItem value="_blank">New Window</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="icon" className="text-sm font-medium">Icon</Label>
+                <div className="grid grid-cols-6 gap-2 mt-1 max-h-48 overflow-y-auto border rounded-md p-2">
+                  {defaultIcons.map((iconOption) => {
+                    const IconComponent = iconOption.icon;
+                    const isSelected = safeNewItem.icon === iconOption.value;
+                    return (
+                      <button
+                        key={iconOption.value}
+                        type="button"
+                        onClick={() => setNewItem({ ...newItem, icon: iconOption.value })}
+                        className={`p-2 rounded-lg border-2 transition-all hover:scale-105 flex flex-col items-center gap-1 ${
+                          isSelected 
+                            ? 'border-blue-500 bg-blue-50' 
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        aria-label={`Select icon ${iconOption.label}`}
+                      >
+                        <IconComponent className="w-4 h-4" />
+                        <span className="text-xs text-center">{iconOption.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
