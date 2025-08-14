@@ -15,6 +15,8 @@ import {
   X,
   User,
   MessageCircle,
+  RefreshCw,
+  Zap,
   Mail,
   Rss
 } from 'lucide-react';
@@ -37,9 +39,9 @@ const navigation = [
   { name: 'Contact', href: '/admin/contact', icon: Mail },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
-  { name: 'Site Settings', href: '/admin/settings/site', icon: Settings },
-  { name: 'Google Indexing', href: '/admin/settings/google-indexing', icon: Settings },
-  { name: 'Text Replacements', href: '/admin/settings/text-replacements', icon: Settings },
+  { name: 'SEO', href: '/admin/settings/site', icon: Settings },
+  { name: 'Instant Indexing', href: '/admin/settings/google-indexing', icon: Zap },
+  { name: 'Text Replacements', href: '/admin/settings/text-replacements', icon: RefreshCw },
 ];
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
