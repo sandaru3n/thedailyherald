@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -21,7 +21,7 @@ import {
   Rss
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getAdminData, logout } from '@/lib/auth';
+import { getAdminData, logout, AdminUser } from '@/lib/auth';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 interface AdminLayoutProps {
@@ -46,9 +46,41 @@ const navigation = [
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [adminData, setAdminData] = useState<AdminUser | null>(null);
   const pathname = usePathname();
-  const adminData = getAdminData();
   const { settings } = useSiteSettings();
+
+  // Load admin data and listen for changes
+  useEffect(() => {
+    const loadAdminData = () => {
+      const data = getAdminData();
+      setAdminData(data);
+    };
+
+    // Load initial data
+    loadAdminData();
+
+    // Listen for storage changes (when profile is updated)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'adminData') {
+        loadAdminData();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom events (for same-tab updates)
+    const handleAdminDataUpdate = () => {
+      loadAdminData();
+    };
+
+    window.addEventListener('adminDataUpdated', handleAdminDataUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('adminDataUpdated', handleAdminDataUpdate);
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -117,8 +149,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           {/* User info and logout */}
           <div className="p-4 border-t border-gray-200">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <User className="h-4 w-4 text-gray-600" />
+              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+                {adminData?.profilePicture ? (
+                  <img
+                    src={adminData.profilePicture}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User className="h-4 w-4 text-gray-600" />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">

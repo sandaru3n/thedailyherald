@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { apiCall, getAdminData } from '@/lib/auth';
+import { apiCall, getAdminData, updateAdminData } from '@/lib/auth';
 
 interface AdminUser {
   _id: string;
@@ -122,12 +122,20 @@ export default function AdminSettingsPage() {
       setError('');
       setSuccess('');
 
-      await apiCall('/auth/profile', {
+      const response = await apiCall('/auth/profile', {
         method: 'PUT',
         body: JSON.stringify(profileData)
       });
 
       setSuccess('Profile updated successfully!');
+      
+      // Update localStorage to reflect the new profile data in the sidebar
+      updateAdminData({
+        name: profileData.name,
+        email: profileData.email,
+        description: profileData.description
+      });
+      
       fetchAdminData(); // Refresh data
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile');
@@ -257,6 +265,9 @@ export default function AdminSettingsPage() {
       const data = await response.json();
       setSuccess('Profile picture uploaded successfully!');
       setAdminData(data.admin);
+      
+      // Update localStorage to reflect the new profile picture in the sidebar
+      updateAdminData({ profilePicture: data.admin.profilePicture });
     } catch (err) {
       console.error('Upload error:', err);
       setError(err instanceof Error ? err.message : 'Failed to upload profile picture');

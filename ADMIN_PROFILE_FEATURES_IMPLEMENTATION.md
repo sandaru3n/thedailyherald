@@ -58,7 +58,18 @@ const uploadProfilePicture = multer({
 - **Loading States**: Upload progress indicator
 - **Error Handling**: Comprehensive error messages
 
-### 2. TypeScript Interface
+### 2. Admin Sidebar (`frontend/src/components/AdminLayout.tsx`)
+- **Profile Picture Display**: Shows uploaded profile picture in sidebar
+- **Real-time Updates**: Profile picture updates immediately when changed
+- **Fallback Icon**: Shows User icon when no profile picture is set
+- **Responsive Design**: Works on both desktop and mobile layouts
+
+### 3. Auth Library (`frontend/src/lib/auth.ts`)
+- **Updated Interface**: Added profilePicture and description fields
+- **New Function**: updateAdminData() for real-time updates
+- **Event System**: Custom events for component synchronization
+
+### 4. TypeScript Interface
 ```typescript
 interface AdminUser {
   _id: string;
@@ -127,6 +138,7 @@ npm run dev
 2. Select an image file (JPG, PNG, or WebP)
 3. File should upload and display in the circular avatar
 4. Check browser console for upload logs
+5. **Profile picture should also appear in the admin sidebar immediately**
 
 ### 2. Description Field
 1. Type in the description textarea
@@ -185,8 +197,12 @@ backend/
 └── uploads/ (profile pictures stored here)
 
 frontend/
-└── src/app/admin/settings/
-    └── page.tsx (updated with new UI components)
+├── src/app/admin/settings/
+│   └── page.tsx (updated with new UI components)
+├── src/components/
+│   └── AdminLayout.tsx (updated with profile picture display)
+└── src/lib/
+    └── auth.ts (updated interface and functions)
 ```
 
 ## Security Considerations

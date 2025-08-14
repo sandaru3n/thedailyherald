@@ -4,6 +4,8 @@ export interface AdminUser {
   _id: string;
   name: string;
   email: string;
+  profilePicture?: string;
+  description?: string;
   role: 'admin' | 'editor';
   isActive: boolean;
   lastLogin?: string;
@@ -29,6 +31,18 @@ export const setAuthData = (token: string, admin: AdminUser): void => {
   if (typeof window === 'undefined') return;
   localStorage.setItem('adminToken', token);
   localStorage.setItem('adminData', JSON.stringify(admin));
+};
+
+// Update admin data (for profile updates)
+export const updateAdminData = (updates: Partial<AdminUser>): void => {
+  if (typeof window === 'undefined') return;
+  const currentData = getAdminData();
+  if (currentData) {
+    const updatedData = { ...currentData, ...updates };
+    localStorage.setItem('adminData', JSON.stringify(updatedData));
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('adminDataUpdated'));
+  }
 };
 
 // Clear auth data
