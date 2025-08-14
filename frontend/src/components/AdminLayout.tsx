@@ -131,9 +131,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </div>
             <Button
               onClick={handleLogout}
-              variant="outline"
               size="sm"
-              className="w-full"
+              className="w-full bg-black text-white hover:bg-gray-800 border-black"
             >
               <LogOut className="h-4 w-4 mr-2" />
               Logout
