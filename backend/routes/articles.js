@@ -176,7 +176,7 @@ router.get('/', async (req, res) => {
       sort,
       populate: [
         { path: 'category', select: 'name color slug' },
-        { path: 'author', select: 'name' }
+        { path: 'author', select: 'name profilePicture description' }
       ]
     };
 
@@ -327,7 +327,7 @@ router.get('/:id', async (req, res) => {
   try {
     const article = await Article.findById(req.params.id)
       .populate('category', 'name color slug')
-      .populate('author', 'name');
+      .populate('author', 'name profilePicture description');
 
     if (!article) {
       return res.status(404).json({
@@ -360,7 +360,7 @@ router.get('/slug/:slug', async (req, res) => {
   try {
     const article = await Article.findOne({ slug: req.params.slug })
       .populate('category', 'name color slug')
-      .populate('author', 'name');
+      .populate('author', 'name profilePicture description');
 
     if (!article) {
       return res.status(404).json({

@@ -320,7 +320,12 @@ export default function ArticleContent({ article, relatedArticles, slug }: Artic
               <AuthorBio 
                 author={{
                   name: authorName,
-                  bio: `Experienced journalist covering ${categoryName.toLowerCase()} news and trends.`,
+                  bio: typeof article.author === 'object' && article.author?.description 
+                    ? article.author.description 
+                    : `Experienced journalist covering ${categoryName.toLowerCase()} news and trends.`,
+                  avatar: typeof article.author === 'object' && article.author?.profilePicture 
+                    ? article.author.profilePicture 
+                    : undefined,
                   articlesCount: 50,
                   location: 'New York, NY',
                   joinedDate: '2020-01-01'

@@ -47,6 +47,8 @@ interface Article {
   author: {
     _id: string;
     name: string;
+    profilePicture?: string;
+    description?: string;
   };
 }
 

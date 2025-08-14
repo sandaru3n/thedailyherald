@@ -8,6 +8,8 @@ export interface NewsArticle {
   author: {
     _id: string;
     name: string;
+    profilePicture?: string;
+    description?: string;
   };
   category: {
     _id: string;

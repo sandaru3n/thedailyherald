@@ -49,6 +49,11 @@ const uploadProfilePicture = multer({
 - **Updated Profile Update Route**: Now handles description field
 - **New Profile Picture Upload Route**: `POST /api/auth/profile-picture`
 
+### 4. Article Routes (`backend/routes/articles.js`)
+- **Updated Author Population**: Now includes profilePicture and description fields
+- **Enhanced Single Article Routes**: Both ID and slug routes populate author data
+- **List Articles Route**: Also includes author profile data for consistency
+
 ## Frontend Changes
 
 ### 1. Settings Page (`frontend/src/app/admin/settings/page.tsx`)
@@ -64,12 +69,23 @@ const uploadProfilePicture = multer({
 - **Fallback Icon**: Shows User icon when no profile picture is set
 - **Responsive Design**: Works on both desktop and mobile layouts
 
-### 3. Auth Library (`frontend/src/lib/auth.ts`)
+### 3. Article Author Bio (`frontend/src/components/AuthorBio.tsx`)
+- **Profile Picture Display**: Shows admin profile picture in article author bio
+- **Custom Description**: Displays admin description as author bio text
+- **Fallback Handling**: Shows default bio and User icon when no custom data
+- **Responsive Design**: Optimized for mobile and desktop viewing
+
+### 4. Auth Library (`frontend/src/lib/auth.ts`)
 - **Updated Interface**: Added profilePicture and description fields
 - **New Function**: updateAdminData() for real-time updates
 - **Event System**: Custom events for component synchronization
 
-### 4. TypeScript Interface
+### 5. Article Content (`frontend/src/components/ArticleContent.tsx`)
+- **Author Data Integration**: Passes admin profile picture and description to AuthorBio
+- **Fallback Logic**: Provides default values when admin data is not available
+- **Type Safety**: Updated to handle new author fields properly
+
+### 6. TypeScript Interface
 ```typescript
 interface AdminUser {
   _id: string;
@@ -140,13 +156,20 @@ npm run dev
 4. Check browser console for upload logs
 5. **Profile picture should also appear in the admin sidebar immediately**
 
-### 2. Description Field
+### 2. Article Author Display
+1. Upload a profile picture and add a description in admin settings
+2. Create or view an article
+3. **Profile picture should appear in the article author bio**
+4. **Custom description should show as the author bio text**
+5. Navigate to other articles to verify consistency
+
+### 3. Description Field
 1. Type in the description textarea
 2. Character counter should update in real-time
 3. Save the profile to persist changes
 4. Description should be limited to 500 characters
 
-### 3. Error Handling
+### 4. Error Handling
 - Try uploading files larger than 3MB
 - Try uploading non-image files
 - Try uploading without authentication
@@ -193,14 +216,19 @@ backend/
 ├── middleware/
 │   └── upload.js (added profile picture upload)
 ├── routes/
-│   └── auth.js (added profile picture endpoint)
+│   ├── auth.js (added profile picture endpoint)
+│   └── articles.js (updated author population)
 └── uploads/ (profile pictures stored here)
 
 frontend/
 ├── src/app/admin/settings/
 │   └── page.tsx (updated with new UI components)
 ├── src/components/
-│   └── AdminLayout.tsx (updated with profile picture display)
+│   ├── AdminLayout.tsx (updated with profile picture display)
+│   ├── ArticleContent.tsx (updated with author data integration)
+│   └── AuthorBio.tsx (updated with profile picture display)
+├── src/types/
+│   └── news.ts (updated with author fields)
 └── src/lib/
     └── auth.ts (updated interface and functions)
 ```
